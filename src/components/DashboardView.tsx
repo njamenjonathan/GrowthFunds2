@@ -196,11 +196,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Invite & earn */}
-        <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner />
+        <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner showDemoControls />
 
         <TopReferrersLeaderboard
           currentUser={user}
           onInviteFriend={() => navigator.clipboard?.writeText(referralLinkFor(user)).catch(() => {})}
+          onSimulateSignup={() =>
+            onReferralSuccess({
+              id: `ref_${Date.now()}`,
+              name: 'Demo invitee',
+              phoneOrEmail: 'demo@growthfund.africa',
+              joinedDate: 'Today, just now',
+              status: 'rewarded',
+              giftAmount: 1000,
+            })
+          }
         />
 
         {/* Growth chart + allocation */}

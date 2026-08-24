@@ -9,6 +9,12 @@ interface ReferralProgramProps {
    * programme in context; the dedicated page already has a page heading.
    */
   showBanner?: boolean;
+  /**
+   * Show the demo control that credits a reward without a real friend signing
+   * up. There is no backend behind this app, so it is the only way to exercise
+   * the reward path end to end.
+   */
+  showDemoControls?: boolean;
 }
 
 /**
@@ -21,6 +27,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
   user,
   onReferralSuccess,
   showBanner = false,
+  showDemoControls = false,
 }) => {
   const referralCode = user.referralCode ?? `GF-${user.name.split(' ')[0].toUpperCase()}${user.id.slice(-3)}`;
   const referralUrl = `https://growthfund.africa/join?ref=${referralCode}`;
@@ -78,6 +85,29 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
     showToast(`Invite sent to ${inviteName.trim()}. You'll be credited 1,000 XAF once they verify.`);
     setInviteName('');
     setInviteContact('');
+  };
+
+  /** Sample contacts used only by the demo control below. */
+  const DEMO_FRIENDS = [
+    ['Cedric Tchakounte', '+237 698 112 345'],
+    ['Amina Nguesso', 'amina.ng@gmail.com'],
+    ['Patrick Ondzighi', '+241 077 452 901'],
+    ['Valerie Kamga', '+237 671 223 889'],
+    ['Eric Mbia', 'eric.mbia@yahoo.fr'],
+    ['Therese Bekono', '+242 066 991 204'],
+  ] as const;
+
+  const handleSimulateSignup = () => {
+    const [name, contact] = DEMO_FRIENDS[Math.floor(Math.random() * DEMO_FRIENDS.length)];
+    onReferralSuccess({
+      id: `ref_${Date.now()}`,
+      name,
+      phoneOrEmail: contact,
+      joinedDate: 'Today, just now',
+      status: 'rewarded',
+      giftAmount: 1000,
+    });
+    showToast(`${name} signed up with your code. 1,000 XAF credited to your balance.`);
   };
 
   const shareOnWhatsApp = () => {
@@ -230,6 +260,22 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
               </p>
               <p className="text-[10px] text-gold-ink font-semibold mt-0.5">XAF credited</p>
             </div>
+
+            {showDemoControls && (
+              <div className="col-span-2 bg-accent-bg p-3 rounded-xl border border-dashed border-accent/40 flex flex-wrap items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-xs text-accent font-medium">
+                  <span aria-hidden="true" className="material-symbols-outlined text-base">auto_awesome</span>
+                  Demo: preview the reward flow
+                </span>
+                <button
+                  onClick={handleSimulateSignup}
+                  className="bg-emerald text-on-emerald hover:bg-emerald-2 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-xs">add</span>
+                  Simulate a sign-up (+1,000 XAF)
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

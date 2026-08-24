@@ -25,11 +25,21 @@ export const ReferralsView: React.FC<ReferralsViewProps> = ({ user, onReferralSu
         </p>
       </header>
 
-      <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} />
+      <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showDemoControls />
 
       <TopReferrersLeaderboard
         currentUser={user}
         onInviteFriend={() => navigator.clipboard?.writeText(referralLinkFor(user)).catch(() => {})}
+        onSimulateSignup={() =>
+          onReferralSuccess({
+            id: `ref_${Date.now()}`,
+            name: 'Demo invitee',
+            phoneOrEmail: 'demo@growthfund.africa',
+            joinedDate: 'Today, just now',
+            status: 'rewarded',
+            giftAmount: 1000,
+          })
+        }
       />
     </div>
   </div>

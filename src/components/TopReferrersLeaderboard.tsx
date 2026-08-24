@@ -18,12 +18,15 @@ export interface LeaderboardMember {
 interface TopReferrersLeaderboardProps {
   currentUser: UserProfile;
   onInviteFriend?: () => void;
+  /** Demo control: advance the user's standing by one invite. */
+  onSimulateSignup?: () => void;
   className?: string;
 }
 
 export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = ({
   currentUser,
   onInviteFriend,
+  onSimulateSignup,
   className = '',
 }) => {
   const [activePeriod, setActivePeriod] = useState<'month' | 'alltime' | 'perks'>('month');
@@ -540,6 +543,16 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
+                {onSimulateSignup && (
+                  <button
+                    onClick={onSimulateSignup}
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-dashed border-white/30 transition-colors flex items-center justify-center gap-1"
+                    title="Demo: add one invite to preview rank advancement"
+                  >
+                    <span aria-hidden="true" className="material-symbols-outlined text-[14px]">add</span>
+                    <span>+1 invite</span>
+                  </button>
+                )}
                 {onInviteFriend && (
                   <button
                     onClick={onInviteFriend}
