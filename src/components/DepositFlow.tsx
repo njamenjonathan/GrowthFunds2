@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PaymentMethodType, UserProfile } from '../types';
+import { MIN_INVESTMENT_XAF } from '../lib/constants';
 import { Modal, ModalHeader } from './Modal';
 
 interface DepositFlowProps {
@@ -13,9 +14,8 @@ interface DepositFlowProps {
   ) => void;
 }
 
-const MIN_DEPOSIT = 5000;
+const MIN_DEPOSIT = MIN_INVESTMENT_XAF;
 const MAX_DEPOSIT = 10000000;
-const FEE_RATE = 0.005;
 /** Seconds the simulated mobile-money authorisation takes to clear. */
 const AUTHORISATION_SECONDS = 8;
 
@@ -75,8 +75,9 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
   /** Guards against crediting the same deposit twice (timer + manual confirm). */
   const settledRef = useRef(false);
 
-  const fee = Math.round(amount * FEE_RATE);
-  const totalCharge = amount + fee;
+  // Deposits are free: what is charged to the wallet is exactly what lands in
+  // the balance, so there is no fee line to reconcile.
+  const totalCharge = amount;
 
   const settle = () => {
     if (settledRef.current) return;
@@ -214,16 +215,12 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
 
           <dl className="bg-surface-2 p-4 rounded-xl border border-line-2 space-y-2 text-xs">
             <div className="flex justify-between text-ink-3">
-              <dt>Deposit</dt>
-              <dd className="font-mono">{amount.toLocaleString()} XAF</dd>
-            </div>
-            <div className="flex justify-between text-ink-3">
-              <dt>Gateway fee (0.5%)</dt>
-              <dd className="font-mono">+{fee.toLocaleString()} XAF</dd>
+              <dt>Charged to {selectedMethod}</dt>
+              <dd className="font-mono">{totalCharge.toLocaleString()} XAF</dd>
             </div>
             <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-line-2">
-              <dt>Total debited</dt>
-              <dd className="font-mono">{totalCharge.toLocaleString()} XAF</dd>
+              <dt>Added to your balance</dt>
+              <dd className="font-mono">{amount.toLocaleString()} XAF</dd>
             </div>
           </dl>
 

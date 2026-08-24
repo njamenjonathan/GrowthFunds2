@@ -23,19 +23,26 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
-const NAV_LINKS: { view: View; label: string }[] = [
-  { view: 'plans', label: 'Invest' },
-  { view: 'dashboard', label: 'Portfolio' },
-  { view: 'history', label: 'Transactions' },
-  { view: 'referrals', label: 'Invite & earn' },
-  { view: 'security', label: 'Security' },
+/**
+ * Every destination in the app, in the header and in the menus.
+ *
+ * The list is deliberately flat: each entry lands on its own screen in one
+ * click from anywhere, so nothing worth reaching is more than two clicks away.
+ */
+const NAV_LINKS: { view: View; label: string; icon: string }[] = [
+  { view: 'plans', label: 'Invest', icon: 'trending_up' },
+  { view: 'dashboard', label: 'My money', icon: 'account_balance_wallet' },
+  { view: 'checkin', label: 'CheckIn', icon: 'calendar_month' },
+  { view: 'history', label: 'Transactions', icon: 'receipt_long' },
+  { view: 'referrals', label: 'Invite & earn', icon: 'card_giftcard' },
+  { view: 'security', label: 'Security', icon: 'shield' },
 ];
 
 const NOTIFICATION_STYLES: Record<AppNotification['type'], { icon: string; className: string }> = {
   maturity: { icon: 'hourglass_bottom', className: 'bg-gold/20 text-gold-ink border-gold/40' },
   deposit: { icon: 'arrow_downward', className: 'bg-pos-bg text-on-pos-bg border-pos/30' },
   withdrawal: { icon: 'arrow_upward', className: 'bg-neg-bg text-neg border-neg/30' },
-  dividend: { icon: 'payments', className: 'bg-gold/25 text-gold-ink border-gold/50' },
+  checkin: { icon: 'calendar_month', className: 'bg-gold/25 text-gold-ink border-gold/50' },
   referral: { icon: 'card_giftcard', className: 'bg-accent-bg text-accent border-accent/20' },
   investment: { icon: 'trending_up', className: 'bg-info-bg text-info border-info/30' },
   security: { icon: 'shield_lock', className: 'bg-surface-2 text-ink-2 border-line' },
@@ -93,6 +100,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   const unreadCount = notifications.filter((n) => !n.read).length;
   const visibleNotifications = activeTab === 'unread' ? notifications.filter((n) => !n.read) : notifications;
 
+  /** A plan's package page sits under Invest, so that link stays highlighted. */
+  const isCurrent = (view: View) => currentView === view || (view === 'plans' && currentView === 'plan');
+
   const go = (view: View) => {
     onNavigate(view);
     setMobileMenuOpen(false);
@@ -117,11 +127,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={view}
                   onClick={() => onNavigate(view)}
-                  aria-current={currentView === view ? 'page' : undefined}
+                  aria-current={isCurrent(view) ? 'page' : undefined}
                   className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-                    currentView === view
-                      ? 'text-accent bg-accent-bg'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-2'
+                    isCurrent(view) ? 'text-accent bg-accent-bg' : 'text-ink-2 hover:text-ink hover:bg-surface-2'
                   }`}
                 >
                   {label}
@@ -322,19 +330,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <p className="text-sm font-bold text-accent truncate">{user.name}</p>
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-pos-bg text-on-pos-bg">
-                        Tier {user.kycTier} verified
+                        Verified
                       </span>
                       <span className="text-[11px] text-ink-3 font-mono truncate">{user.phone}</span>
                     </div>
                   </div>
 
                   <div className="py-1">
-                    {NAV_LINKS.map(({ view, label }) => (
+                    {NAV_LINKS.map(({ view, label, icon }) => (
                       <button
                         key={view}
                         onClick={() => go(view)}
-                        className="w-full px-4 py-2 text-left text-xs font-medium text-ink hover:bg-surface-2 transition-colors"
+                        className={`w-full px-4 py-2 text-left text-xs font-medium hover:bg-surface-2 transition-colors flex items-center gap-2 ${
+                          isCurrent(view) ? 'text-accent' : 'text-ink'
+                        }`}
                       >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">{icon}</span>
                         {label}
                       </button>
                     ))}
@@ -426,17 +437,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Home
             </button>
-            {NAV_LINKS.map(({ view, label }) => (
+            {NAV_LINKS.map(({ view, label, icon }) => (
               <button
                 key={view}
                 onClick={() => go(view)}
-                className={`px-3 py-2.5 text-left text-sm font-semibold rounded-lg transition-colors ${
-                  currentView === view ? 'bg-accent-bg text-accent' : 'bg-surface-2 text-ink'
+                className={`px-3 py-2.5 text-left text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
+                  isCurrent(view) ? 'bg-accent-bg text-accent' : 'bg-surface-2 text-ink'
                 }`}
-                >
-                  {label}
-                </button>
-              ))}
+              >
+                <span aria-hidden="true" className="material-symbols-outlined text-[17px]">{icon}</span>
+                {label}
+              </button>
+            ))}
             {isAdmin && (
               <span className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-gold/20 text-gold-ink">
                 Manager console

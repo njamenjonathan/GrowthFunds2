@@ -23,14 +23,9 @@ import {
   View,
   DashboardTab,
 } from './types';
-import {
-  annualReturnFor,
-  lockMonthsFor,
-  lockStateFor,
-  maturityDateFrom,
-  maturityValueFor,
-  tierFor,
-} from './lib/commitment';
+import { lockStateFor, maturityDateInDays, payoutFor } from './lib/commitment';
+import { DAILY_CHECKIN_XAF, REFERRAL_REWARD_XAF } from './lib/constants';
+import { canCheckIn, nextStreak, todayKey } from './lib/checkin';
 import {
   ThemeMode,
   readStoredMode,
@@ -41,6 +36,7 @@ import {
 import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
 import { PlansView } from './components/PlansView';
+import { PlanDetailView } from './components/PlanDetailView';
 import { DashboardView } from './components/DashboardView';
 import { TransactionHistoryView } from './components/TransactionHistoryView';
 import { SecurityView } from './components/SecurityView';
@@ -56,14 +52,14 @@ import { LegalModal } from './components/LegalModal';
 import { AuthModal } from './components/AuthModal';
 
 /** Views that require a signed-in investor. */
-const PRIVATE_VIEWS: View[] = ['dashboard', 'referrals', 'history', 'security'];
+const PRIVATE_VIEWS: View[] = ['dashboard', 'referrals', 'checkin', 'history', 'security'];
 
 const reference = (prefix: string) => `GF-${prefix}-${Math.floor(1000000 + Math.random() * 9000000)}`;
 
 const auditTimestamp = () => new Date().toISOString().replace('T', ' ').substring(0, 19);
 
 const formatLockRefusal = (daysRemaining: number) =>
-  `holding still locked for ${daysRemaining} more ${daysRemaining === 1 ? 'day' : 'days'}`;
+  `investment still running for ${daysRemaining} more ${daysRemaining === 1 ? 'day' : 'days'}`;
 
 export default function App() {
   // ---------------------------------------------------------------- theme
@@ -125,8 +121,8 @@ export default function App() {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [legalModalTopic, setLegalModalTopic] = useState<string | null>(null);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
-  /** Plan pre-selected from the home page, opened straight into its prospectus. */
-  const [planToOpen, setPlanToOpen] = useState<InvestmentPlan | null>(null);
+  /** The plan whose packages page is open, if any. */
+  const [openPlan, setOpenPlan] = useState<InvestmentPlan | null>(null);
   /** Last dashboard section viewed, so navigating away and back keeps context. */
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('overview');
 
@@ -134,6 +130,15 @@ export default function App() {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  /** Sends the investor to a plan's own page, where its packages are listed. */
+  const openPlanPage = useCallback(
+    (plan: InvestmentPlan) => {
+      setOpenPlan(plan);
+      navigate('plan');
+    },
+    [navigate]
+  );
 
   const openDeposit = useCallback(() => setShowDepositModal(true), []);
   const openWithdraw = useCallback(() => setShowWithdrawModal(true), []);
@@ -175,7 +180,7 @@ export default function App() {
           id: `tx_${Date.now()}`,
           type: 'deposit',
           amount,
-          fee: Math.round(amount * 0.005),
+          fee: 0,
           netAmount: amount,
           status: 'completed',
           method,
@@ -282,17 +287,14 @@ export default function App() {
 
   // ---------------------------------------------------------- investments
   const handleInvestInPlan = useCallback(
-    (plan: InvestmentPlan, amount: number, sub: SubInvestment) => {
+    (plan: InvestmentPlan, sub: SubInvestment) => {
       if (!user) return;
       const refCode = reference('IV');
-      // Term and target return come from the chosen opportunity, not the plan
-      // it sits under — a 12-month construction contract and a 24-month
-      // apartment block mature on different dates. The commitment tier then
-      // extends that lock-up and lifts the rate in proportion to the amount.
-      const tier = tierFor(amount);
-      const lockMonths = lockMonthsFor(sub, amount);
-      const annualReturn = annualReturnFor(sub, amount);
-      const maturityValue = maturityValueFor(sub, amount);
+      // A package is fixed on all three sides — the stake, the number of days
+      // and the profit are read straight off the catalogue entry, so what the
+      // investor was shown before confirming is exactly what gets written here.
+      const amount = sub.amount;
+      const payout = payoutFor(sub);
       const startDate = new Date();
 
       const investment: ActiveInvestment = {
@@ -303,13 +305,10 @@ export default function App() {
         subInvestmentName: sub.name,
         amountInvested: amount,
         startDate: startDate.toISOString().split('T')[0],
-        maturityDate: maturityDateFrom(startDate, lockMonths),
-        lockMonths,
-        tierId: tier.id,
-        projectedReturn: annualReturn,
-        accruedEarnings: 0,
-        currentValuation: amount,
-        maturityValue,
+        maturityDate: maturityDateInDays(sub.durationDays, startDate),
+        durationDays: sub.durationDays,
+        profit: sub.profit,
+        maturityValue: payout,
         status: 'active',
       };
 
@@ -329,7 +328,7 @@ export default function App() {
           timestamp: Date.now(),
           planName: plan.name,
           subInvestmentName: sub.name,
-          notes: `Capital committed to ${sub.name} under ${plan.name}. Locked for ${lockMonths} months (${tier.label} tier) until ${investment.maturityDate}.`,
+          notes: `${amount.toLocaleString()} XAF placed in ${sub.name} for ${sub.durationDays} days, paying out ${payout.toLocaleString()} XAF on ${investment.maturityDate}.`,
         },
         ...prev,
       ]);
@@ -341,8 +340,8 @@ export default function App() {
       });
 
       pushNotification({
-        title: 'Investment locked in',
-        message: `${amount.toLocaleString()} XAF committed to ${sub.name} at the ${tier.label} tier — locked for ${lockMonths} months at ${annualReturn}% a year, paying out ${maturityValue.toLocaleString()} XAF on ${investment.maturityDate}.`,
+        title: 'Investment placed',
+        message: `${amount.toLocaleString()} XAF is now in ${sub.name} for ${sub.durationDays} days. You collect ${payout.toLocaleString()} XAF on ${investment.maturityDate}.`,
         type: 'investment',
         amount,
         reference: refCode,
@@ -351,8 +350,8 @@ export default function App() {
 
       pushAudit({
         actor: user.name,
-        action: `Subscribed to ${sub.name} — ${plan.name} (${amount.toLocaleString()} XAF, ${lockMonths}-month lock-up)`,
-        target: `Portfolio #${investment.id}`,
+        action: `Invested in ${sub.name} — ${plan.name} (${amount.toLocaleString()} XAF, ${sub.durationDays} days)`,
+        target: `Investment #${investment.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
       });
@@ -362,13 +361,13 @@ export default function App() {
     [user, pushAudit, pushNotification]
   );
 
-  // ---------------------------------------------------------- redemptions
+  // ------------------------------------------------------------- payouts
   /**
-   * Release a holding once its lock-up has elapsed.
+   * Pay out an investment once its run has finished.
    *
-   * The guard is not just presentational: the button is disabled while a
-   * holding is locked, but the same check runs here so a stale render or a
-   * replayed click cannot release capital early.
+   * The guard is not just presentational: the button is disabled while an
+   * investment is still running, but the same check runs here so a stale
+   * render or a replayed click cannot release money early.
    */
   const handleRedeemInvestment = useCallback(
     (investmentId: string) => {
@@ -380,8 +379,8 @@ export default function App() {
       if (lock.locked) {
         pushAudit({
           actor: user.name,
-          action: `Early redemption refused — ${formatLockRefusal(lock.daysRemaining)}`,
-          target: `Portfolio #${holding.id}`,
+          action: `Early payout refused — ${formatLockRefusal(lock.daysRemaining)}`,
+          target: `Investment #${holding.id}`,
           ipAddress: '41.202.219.14',
           status: 'BLOCKED',
         });
@@ -389,14 +388,14 @@ export default function App() {
       }
       if (holding.status === 'liquidated') return;
 
-      const refCode = reference('LQ');
+      const refCode = reference('PO');
       const payout = holding.maturityValue;
       const profit = Math.max(0, payout - holding.amountInvested);
 
       setActiveInvestments((prev) =>
         prev.map((inv) =>
           inv.id === investmentId
-            ? { ...inv, status: 'liquidated', accruedEarnings: profit, currentValuation: payout }
+            ? { ...inv, status: 'liquidated' }
             : inv
         )
       );
@@ -404,7 +403,7 @@ export default function App() {
       setTransactions((prev) => [
         {
           id: `tx_${Date.now()}`,
-          type: 'liquidation',
+          type: 'payout',
           amount: payout,
           fee: 0,
           netAmount: payout,
@@ -415,7 +414,7 @@ export default function App() {
           timestamp: Date.now(),
           planName: holding.planName,
           subInvestmentName: holding.subInvestmentName,
-          notes: `Lock-up completed after ${holding.lockMonths} months. Capital and ${profit.toLocaleString()} XAF profit released to your available balance.`,
+          notes: `Finished its ${holding.durationDays}-day run. Your money and ${profit.toLocaleString()} XAF profit went back into your available balance.`,
         },
         ...prev,
       ]);
@@ -428,8 +427,8 @@ export default function App() {
       });
 
       pushNotification({
-        title: 'Holding unlocked and paid out',
-        message: `${holding.subInvestmentName ?? holding.planName} completed its ${holding.lockMonths}-month lock-up. ${payout.toLocaleString()} XAF (including ${profit.toLocaleString()} XAF profit) is now available.`,
+        title: 'Investment paid out',
+        message: `${holding.subInvestmentName ?? holding.planName} finished its ${holding.durationDays}-day run. ${payout.toLocaleString()} XAF (including ${profit.toLocaleString()} XAF profit) is now in your balance.`,
         type: 'maturity',
         amount: payout,
         reference: refCode,
@@ -438,8 +437,8 @@ export default function App() {
 
       pushAudit({
         actor: user.name,
-        action: `Redeemed matured holding (+${payout.toLocaleString()} XAF)`,
-        target: `Portfolio #${holding.id}`,
+        action: `Collected finished investment (+${payout.toLocaleString()} XAF)`,
+        target: `Investment #${holding.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
       });
@@ -451,7 +450,7 @@ export default function App() {
   const handleReferralSuccess = useCallback(
     (newReferral: ReferralRecord) => {
       if (!user) return;
-      const reward = newReferral.giftAmount || 1000;
+      const reward = newReferral.giftAmount || REFERRAL_REWARD_XAF;
       const refCode = reference('RF');
 
       setTransactions((prev) => [
@@ -499,6 +498,67 @@ export default function App() {
     },
     [user, pushAudit, pushNotification]
   );
+
+  // ------------------------------------------------------------ check-in
+  /**
+   * Credit today's daily reward.
+   *
+   * The once-a-day rule lives in `canCheckIn`, and it is enforced here rather
+   * than only on the button, so a stale render or a double click cannot pay
+   * the reward twice in one day.
+   */
+  const handleDailyCheckIn = useCallback(() => {
+    if (!user) return;
+    if (!canCheckIn(user.lastCheckInDate)) return;
+
+    const refCode = reference('CI');
+    const streak = nextStreak(user.lastCheckInDate, user.checkInStreak);
+
+    setUser({
+      ...user,
+      availableBalance: user.availableBalance + DAILY_CHECKIN_XAF,
+      lastCheckInDate: todayKey(),
+      checkInStreak: streak,
+      checkInEarnings: (user.checkInEarnings ?? 0) + DAILY_CHECKIN_XAF,
+    });
+
+    setTransactions((prev) => [
+      {
+        id: `tx_${Date.now()}`,
+        type: 'daily_checkin',
+        amount: DAILY_CHECKIN_XAF,
+        fee: 0,
+        netAmount: DAILY_CHECKIN_XAF,
+        status: 'completed',
+        method: 'GrowthFund Wallet',
+        reference: refCode,
+        date: 'Just now',
+        timestamp: Date.now(),
+        destinationOrSource: 'Daily check-in',
+        notes: `Daily check-in reward credited. Day ${streak} in a row.`,
+      },
+      ...prev,
+    ]);
+
+    pushNotification({
+      title: 'Check-in collected',
+      message: `${DAILY_CHECKIN_XAF} XAF added to your balance. That's ${streak} ${
+        streak === 1 ? 'day' : 'days'
+      } in a row — come back tomorrow for the next one.`,
+      type: 'checkin',
+      amount: DAILY_CHECKIN_XAF,
+      reference: refCode,
+      targetView: 'checkin',
+    });
+
+    pushAudit({
+      actor: user.name,
+      action: `Daily check-in collected (+${DAILY_CHECKIN_XAF} XAF)`,
+      target: `Wallet ${user.id}`,
+      ipAddress: '41.202.219.14',
+      status: 'SUCCESS',
+    });
+  }, [user, pushAudit, pushNotification]);
 
   // ------------------------------------------------------------------ kyc
   const handleKycComplete = useCallback((updatedFields: Partial<UserProfile>) => {
@@ -582,10 +642,7 @@ export default function App() {
             {currentView === 'home' && (
               <HomeView
                 plans={plans}
-                onSelectPlan={(plan) => {
-                  setPlanToOpen(plan);
-                  navigate('plans');
-                }}
+                onSelectPlan={openPlanPage}
                 onExplorePlans={() => navigate('plans')}
                 onOpenDeposit={openDeposit}
                 onOpenLegal={setLegalModalTopic}
@@ -596,32 +653,63 @@ export default function App() {
               <PlansView
                 plans={plans}
                 user={user}
-                planToOpen={planToOpen}
-                onPlanOpened={() => setPlanToOpen(null)}
-                onInvestInPlan={handleInvestInPlan}
+                onOpenPlan={openPlanPage}
                 onOpenDeposit={openDeposit}
                 onOpenKyc={openKyc}
-                onOpenAuth={() => setAuthModalMode('login')}
-                onViewPortfolio={() => navigate('dashboard')}
               />
             )}
 
-            {(currentView === 'dashboard' || currentView === 'referrals') && user && (
-              <DashboardView
-                initialTab={currentView === 'referrals' ? 'invite' : dashboardTab}
-                onTabChange={setDashboardTab}
-                user={user}
-                activeInvestments={activeInvestments}
-                transactions={transactions}
-                onOpenDeposit={openDeposit}
-                onOpenWithdraw={openWithdraw}
-                onExplorePlans={() => navigate('plans')}
-                onViewHistory={() => navigate('history')}
-                onSelectTransaction={setSelectedTransaction}
-                onReferralSuccess={handleReferralSuccess}
-                onRedeemInvestment={handleRedeemInvestment}
-              />
-            )}
+            {/* A plan's own page, listing the packages inside it. Falling back
+                to the catalogue keeps the route honest if it is reached
+                without a plan selected. */}
+            {currentView === 'plan' &&
+              (openPlan ? (
+                <PlanDetailView
+                  plan={openPlan}
+                  user={user}
+                  onBack={() => navigate('plans')}
+                  onInvestInPlan={handleInvestInPlan}
+                  onOpenDeposit={openDeposit}
+                  onOpenKyc={openKyc}
+                  onOpenAuth={() => setAuthModalMode('login')}
+                  onViewPortfolio={() => navigate('dashboard')}
+                />
+              ) : (
+                <PlansView
+                  plans={plans}
+                  user={user}
+                  onOpenPlan={openPlanPage}
+                  onOpenDeposit={openDeposit}
+                  onOpenKyc={openKyc}
+                />
+              ))}
+
+            {(currentView === 'dashboard' ||
+              currentView === 'referrals' ||
+              currentView === 'checkin') &&
+              user && (
+                <DashboardView
+                  initialTab={
+                    currentView === 'referrals'
+                      ? 'invite'
+                      : currentView === 'checkin'
+                      ? 'checkin'
+                      : dashboardTab
+                  }
+                  onTabChange={setDashboardTab}
+                  user={user}
+                  activeInvestments={activeInvestments}
+                  transactions={transactions}
+                  onOpenDeposit={openDeposit}
+                  onOpenWithdraw={openWithdraw}
+                  onExplorePlans={() => navigate('plans')}
+                  onViewHistory={() => navigate('history')}
+                  onSelectTransaction={setSelectedTransaction}
+                  onReferralSuccess={handleReferralSuccess}
+                  onRedeemInvestment={handleRedeemInvestment}
+                  onCheckIn={handleDailyCheckIn}
+                />
+              )}
 
             {currentView === 'history' && (
               <TransactionHistoryView

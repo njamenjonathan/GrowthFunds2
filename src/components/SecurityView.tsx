@@ -177,7 +177,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
           <div className="p-3.5 bg-emerald/5 rounded-xl border border-accent/15 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <span aria-hidden="true" className="material-symbols-outlined text-accent">shield</span>
-              <span className="text-ink-2">Current KYC Status: <strong className="text-accent">Tier {user.kycTier} Verified</strong></span>
+              <span className="text-ink-2">Identity check: <strong className="text-accent">Verified</strong></span>
             </div>
             <button
               onClick={onOpenKyc}

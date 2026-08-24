@@ -75,7 +75,6 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
         name: fullName.trim(),
         country,
         kycStatus: 'verified',
-        kycTier: 2,
         idDocumentType: docType,
         idNumber: docNumber.trim(),
         expiryDate,
@@ -92,7 +91,7 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
       <ModalHeader
         icon="verified_user"
         title="Identity verification"
-        subtitle="COSUMAF Tier 2 compliance"
+        subtitle="Required before you invest or withdraw"
         onClose={onClose}
       />
 

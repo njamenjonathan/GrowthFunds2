@@ -14,7 +14,7 @@ interface SupportChatModalProps {
 const QUICK_QUESTIONS = [
   'How do I deposit with MTN MoMo or Orange Money?',
   'Are returns guaranteed?',
-  'What is the minimum lock-up period?',
+  'How long does an investment run?',
   'How do withdrawals reach my bank?',
 ];
 
@@ -28,22 +28,27 @@ const REPLIES: { match: string[]; reply: string }[] = [
   {
     match: ['guarantee', 'cosumaf', 'risk', 'safe'],
     reply:
-      'Under COSUMAF rules no platform may promise guaranteed returns. Our projections (6.5%–18%) are actuarial estimates based on real underlying assets — agricultural cooperatives, commercial real estate and treasury bills — and all capital risk disclosures are audited quarterly.',
+      'No platform may promise guaranteed returns, and we do not. The profit shown on a package is the target it is built to pay from real assets — farm cooperatives, building sites, treasury bills — and every risk disclosure is audited quarterly.',
   },
   {
     match: ['withdraw', 'payout', 'cash out'],
     reply:
-      'Withdrawals go back to your verified mobile money wallet or CEMAC bank account. Mobile payouts are near-instant, interbank transfers take 1–2 hours, and the fee is a flat 250 XAF.',
+      'Withdrawals start at 5,000 XAF and go in steps of 5,000 — 5,000, 10,000, 15,000, 20,000, 25,000 and so on. They go back to your verified mobile money wallet or bank account, and the fee is a flat 250 XAF.',
   },
   {
-    match: ['lockup', 'lock-up', 'duration', 'term', 'maturity'],
+    match: ['lockup', 'lock-up', 'duration', 'term', 'maturity', 'days', 'long'],
     reply:
-      'Terms run from 6 months on the CEMAC Sovereign Bond Fund up to 24 months on the Real Estate Fund. Quarterly dividends are paid into your available balance during the term.',
+      'From 5 days on the smallest 5,000 XAF package up to 28 days on the largest — nothing on the platform runs longer than 30 days. Your money and its profit land back in your balance the day the package finishes.',
+  },
+  {
+    match: ['check-in', 'checkin', 'daily', 'bonus', 'referral', 'invite', 'friend'],
+    reply:
+      'Two easy ones: the Check-in tab pays 100 XAF once a day, every day, straight into your balance. And every friend who joins with your invite code and verifies pays you 800 XAF.',
   },
   {
     match: ['kyc', 'verify', 'identity', 'document'],
     reply:
-      'Tier 1 needs your mobile number and basic ID (up to 1,000,000 XAF). Tier 2 adds a government ID scan and a selfie liveness check, raising your limit to 10,000,000 XAF. Verification usually completes in under 20 minutes.',
+      'We need your mobile number, a government ID scan and a selfie so we can match the two. Verification usually completes in under 20 minutes, and you can start once it clears.',
   },
 ];
 

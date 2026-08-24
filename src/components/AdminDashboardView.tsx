@@ -73,7 +73,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </span>
             <p className="text-2xl font-extrabold text-accent font-mono mt-1">45,250,000 XAF</p>
             <p className="text-xs text-pos font-semibold mt-1 flex items-center gap-1">
-              <span aria-hidden="true" className="material-symbols-outlined text-[14px]">trending_up</span> +18.4% MoM
+              <span aria-hidden="true" className="material-symbols-outlined text-[14px]">trending_up</span> Up on last month
             </p>
           </div>
 

@@ -1,7 +1,9 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { UserProfile, ActiveInvestment, Transaction, ReferralRecord, DashboardTab } from '../types';
-import { COMMITMENT_TIERS, formatRemaining, lockStateFor } from '../lib/commitment';
+import { formatRemaining, lockStateFor } from '../lib/commitment';
 import { STATUS_CHIP, currency } from '../lib/transactions';
+import { canCheckIn } from '../lib/checkin';
+import { CheckInPanel } from './CheckInPanel';
 import { ReferralProgram } from './ReferralProgram';
 import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
 import { TransactionRow } from './TransactionRow';
@@ -19,8 +21,10 @@ interface DashboardViewProps {
   onViewHistory: () => void;
   onSelectTransaction: (tx: Transaction) => void;
   onReferralSuccess: (referral: ReferralRecord) => void;
-  /** Releases a holding whose lock-up has elapsed. */
+  /** Pays out an investment that has finished its run. */
   onRedeemInvestment: (investmentId: string) => void;
+  /** Credits today's daily check-in reward. */
+  onCheckIn: () => void;
   /** Section to open on mount — lets the nav and notifications deep-link in. */
   initialTab?: DashboardTab;
   /** Reports the active section so it survives navigating away and back. */
@@ -39,13 +43,16 @@ const SECTOR_COLORS = ['var(--gf-accent)', 'var(--gf-gold-3)', 'var(--gf-info)',
 
 const buildTabs = (
   holdings: number,
+  checkInReady: boolean,
   deposits: number,
   withdrawals: number,
   activity: number,
   referrals: number
 ): TabItem<DashboardTab>[] => [
   { id: 'overview', label: 'Overview', icon: 'donut_large' },
-  { id: 'holdings', label: 'Holdings', icon: 'inventory_2', badge: holdings },
+  { id: 'holdings', label: 'Investments', icon: 'inventory_2', badge: holdings },
+  // The badge is the nudge: a 1 sits on the tab until the day is collected.
+  { id: 'checkin', label: 'CheckIn', icon: 'calendar_month', badge: checkInReady ? 1 : 0 },
   { id: 'deposits', label: 'Deposits', icon: 'arrow_downward', badge: deposits },
   { id: 'withdrawals', label: 'Withdrawals', icon: 'arrow_upward', badge: withdrawals },
   { id: 'activity', label: 'Activity', icon: 'receipt_long', badge: activity },
@@ -229,6 +236,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTransaction,
   onReferralSuccess,
   onRedeemInvestment,
+  onCheckIn,
   initialTab = 'overview',
   onTabChange,
 }) => {
@@ -270,10 +278,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, [range, user.investedBalance, user.lifetimeEarnings]);
 
-  /** Allocation computed from real holdings rather than a hard-coded 80/20 split. */
+  /**
+   * Where the invested money sits, by plan. The bar is drawn from each plan's
+   * share of the total, but the figure printed next to it is the amount in
+   * XAF — the number an investor can act on.
+   */
   const allocation = useMemo(() => {
     const byPlan = new Map<string, number>();
     for (const inv of activeInvestments) {
+      if (inv.status === 'liquidated') continue;
       byPlan.set(inv.planName, (byPlan.get(inv.planName) ?? 0) + inv.amountInvested);
     }
     const total = [...byPlan.values()].reduce((sum, value) => sum + value, 0);
@@ -283,14 +296,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .map(([name, amount], index) => ({
         name,
         amount,
-        percent: (amount / total) * 100,
+        share: (amount / total) * 100,
         color: SECTOR_COLORS[index % SECTOR_COLORS.length],
       }));
   }, [activeInvestments]);
 
   const recentTransactions = transactions.slice(0, 5);
+  const runningCount = activeInvestments.filter((inv) => inv.status !== 'liquidated').length;
 
-  /** What is locked, what has come free, and how soon the next holding does. */
+  /** What is still running, what is ready to collect, and when the next one is. */
   const lockSummary = useMemo(() => {
     const held = activeInvestments.filter((inv) => inv.status !== 'liquidated');
     const states = held.map((inv) => ({ inv, lock: lockStateFor(inv) }));
@@ -312,48 +326,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const TABS = useMemo(
     () =>
       buildTabs(
-        activeInvestments.length,
+        activeInvestments.filter((inv) => inv.status !== 'liquidated').length,
+        canCheckIn(user.lastCheckInDate),
         deposits.length,
         withdrawals.length,
         transactions.length,
         user.referralList?.length ?? 0
       ),
-    [activeInvestments.length, deposits.length, withdrawals.length, transactions.length, user.referralList?.length]
+    [
+      activeInvestments,
+      user.lastCheckInDate,
+      deposits.length,
+      withdrawals.length,
+      transactions.length,
+      user.referralList?.length,
+    ]
   );
 
   const stats = [
     {
-      label: 'Total portfolio value',
+      label: 'Total money',
       value: currency(totalNetWorth),
-      caption: 'Available cash plus invested capital',
+      caption: 'Your balance plus everything invested',
       icon: 'account_balance_wallet',
       accent: 'text-accent',
       chip: 'bg-accent-bg text-accent',
       featured: true,
     },
     {
-      label: 'Available liquidity',
+      label: 'Available balance',
       value: currency(user.availableBalance),
-      caption: 'Ready to withdraw or allocate',
+      caption: 'Ready to withdraw or invest',
       icon: 'payments',
       accent: 'text-ink',
       chip: 'bg-surface-2 text-ink-2',
     },
     {
-      label: 'Capital invested',
+      label: 'Currently invested',
       value: currency(user.investedBalance),
       caption:
-        lockSummary.lockedTotal > 0
-          ? `${currency(lockSummary.lockedTotal)} locked until maturity`
-          : `${activeInvestments.length} active ${activeInvestments.length === 1 ? 'holding' : 'holdings'}`,
+        lockSummary.nextUnlock != null
+          ? `Next payout in ${formatRemaining(lockSummary.nextUnlock)}`
+          : `${runningCount} ${runningCount === 1 ? 'investment' : 'investments'} running`,
       icon: 'domain',
       accent: 'text-gold-ink',
       chip: 'bg-gold/25 text-gold-ink',
     },
     {
-      label: 'Lifetime net yield',
+      label: 'Profit earned',
       value: `+${currency(user.lifetimeEarnings)}`,
-      caption: 'Realised dividends credited',
+      caption: 'Paid into your balance so far',
       icon: 'savings',
       accent: 'text-pos',
       chip: 'bg-pos-bg text-on-pos-bg',
@@ -374,7 +396,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <h1 className="text-xl sm:text-2xl font-extrabold text-ink">{user.name}</h1>
                 <span className="bg-pos-bg text-on-pos-bg text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                   <span aria-hidden="true" className="material-symbols-outlined text-[13px]">verified</span>
-                  Tier {user.kycTier} verified
+                  Verified
                 </span>
               </div>
               <p className="text-xs text-ink-3 mt-1 flex flex-wrap items-center gap-x-2">
@@ -469,8 +491,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <section className="lg:col-span-8 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-line-2">
               <div>
-                <h2 className="text-base font-extrabold text-ink">Capital growth</h2>
-                <p className="text-xs text-ink-3">Invested balance and accrued yield over time</p>
+                <h2 className="text-base font-extrabold text-ink">Money growth</h2>
+                <p className="text-xs text-ink-3">What you have invested, and the profit it has paid</p>
               </div>
               <div className="flex items-center gap-1 bg-surface-2 p-1 rounded-xl text-[11px] font-bold">
                 {(Object.keys(RANGE_MONTHS) as ChartRange[]).map((option) => (
@@ -505,21 +527,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-gold-3"></span>
-                <span className="font-medium text-gold-ink">Yield +{currency(user.lifetimeEarnings)}</span>
+                <span className="font-medium text-gold-ink">Profit +{currency(user.lifetimeEarnings)}</span>
               </span>
             </div>
           </section>
 
           <section className="lg:col-span-4 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-sm flex flex-col">
-            <h2 className="text-base font-bold text-ink">Asset allocation</h2>
-            <p className="text-xs text-ink-3 mb-4">Split of your active capital</p>
+            <h2 className="text-base font-bold text-ink">Where your money is</h2>
+            <p className="text-xs text-ink-3 mb-4">Split across the areas you invested in</p>
 
             {allocation.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
                 <span aria-hidden="true" className="material-symbols-outlined text-3xl text-ink-3">donut_large</span>
                 <p className="text-xs font-bold text-ink mt-2">Nothing invested yet</p>
                 <button onClick={onExplorePlans} className="text-xs font-bold text-accent hover:underline mt-1">
-                  Browse investment plans
+                  Browse the packages
                 </button>
               </div>
             ) : (
@@ -534,12 +556,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         ></span>
                         <span className="truncate text-ink">{slice.name}</span>
                       </span>
-                      <span className="font-mono text-ink-2 shrink-0">{slice.percent.toFixed(1)}%</span>
+                      <span className="font-mono text-ink-2 shrink-0">{currency(slice.amount)}</span>
                     </div>
                     <div className="w-full h-2 bg-surface-3 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-[width] duration-500"
-                        style={{ width: `${slice.percent}%`, backgroundColor: slice.color }}
+                        style={{ width: `${slice.share}%`, backgroundColor: slice.color }}
                       ></div>
                     </div>
                   </div>
@@ -547,16 +569,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
 
-            {/* Tier-based withdrawal ceiling — a COSUMAF compliance figure the
-                investor needs alongside their allocation. */}
             <div className="mt-5 pt-4 border-t border-line-2">
               <div className="bg-surface-2 border border-line-2 p-3.5 rounded-xl">
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="font-bold text-ink">Daily liquidity cap</span>
-                  <span className="font-mono font-bold text-accent">10,000,000 XAF</span>
+                  <span className="font-bold text-ink">Ready to collect</span>
+                  <span className="font-mono font-bold text-pos">{currency(lockSummary.redeemableTotal)}</span>
                 </div>
                 <p className="text-[11px] text-ink-3 mt-1">
-                  Tier {user.kycTier} verified account limit under COSUMAF guidelines.
+                  {lockSummary.redeemableTotal > 0
+                    ? 'Collect it from the Investments tab to move it into your balance.'
+                    : lockSummary.nextUnlock != null
+                    ? `Nothing yet — the next one finishes in ${formatRemaining(lockSummary.nextUnlock)}.`
+                    : 'Nothing running right now.'}
                 </p>
               </div>
             </div>
@@ -568,20 +592,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <section {...tabPanelProps('holdings')} className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden outline-none">
           <div className="p-5 sm:p-6 border-b border-line-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-              <h2 className="text-lg font-bold text-ink">Active holdings</h2>
+              <h2 className="text-lg font-bold text-ink">My investments</h2>
               <p className="text-xs text-ink-3">
                 {lockSummary.lockedTotal > 0
-                  ? `${currency(lockSummary.lockedTotal)} locked${
-                      lockSummary.nextUnlock ? ` • next unlocks in ${formatRemaining(lockSummary.nextUnlock)}` : ''
+                  ? `${currency(lockSummary.lockedTotal)} still running${
+                      lockSummary.nextUnlock != null
+                        ? ` • next one finishes in ${formatRemaining(lockSummary.nextUnlock)}`
+                        : ''
                     }`
-                  : 'Nothing is locked — every holding can be redeemed'}
+                  : 'Nothing is running — everything has been collected'}
               </p>
             </div>
             <button
               onClick={onExplorePlans}
               className="text-xs font-bold text-accent hover:underline flex items-center gap-1"
             >
-              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> Add investment
+              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> New investment
             </button>
           </div>
 
@@ -589,8 +615,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="px-5 sm:px-6 py-3 bg-pos-bg border-b border-pos/25 flex items-center gap-2.5 text-xs">
               <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-on-pos-bg">lock_open</span>
               <p className="text-on-pos-bg">
-                <strong>{currency(lockSummary.redeemableTotal)}</strong> has finished its lock-up. Redeem it to move
-                the capital and its profit into your available balance.
+                <strong>{currency(lockSummary.redeemableTotal)}</strong> has finished. Collect it to move your money
+                and its profit into your available balance.
               </p>
             </div>
           )}
@@ -598,19 +624,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {activeInvestments.length === 0 ? (
             <div className="p-12 text-center">
               <span aria-hidden="true" className="material-symbols-outlined text-3xl text-ink-3">inventory_2</span>
-              <p className="text-sm font-bold text-ink mt-2">No active holdings</p>
-              <p className="text-xs text-ink-3 mt-1">Allocate capital to a plan to start earning.</p>
+              <p className="text-sm font-bold text-ink mt-2">Nothing invested yet</p>
+              <p className="text-xs text-ink-3 mt-1">Pick a package to start earning.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface-2 border-b border-line-2 text-[11px] font-bold uppercase tracking-wider text-ink-3">
-                    <th scope="col" className="p-4">Fund</th>
-                    <th scope="col" className="p-4">Invested</th>
-                    <th scope="col" className="p-4">Yield</th>
-                    <th scope="col" className="p-4">Lock-up</th>
-                    <th scope="col" className="p-4">Pays out</th>
+                    <th scope="col" className="p-4">Package</th>
+                    <th scope="col" className="p-4">You put in</th>
+                    <th scope="col" className="p-4">Time left</th>
+                    <th scope="col" className="p-4">You collect</th>
                     <th scope="col" className="p-4 text-right">Status</th>
                   </tr>
                 </thead>
@@ -618,29 +643,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {activeInvestments.map((inv) => {
                     const lock = lockStateFor(inv);
                     const released = inv.status === 'liquidated';
-                    const tier = COMMITMENT_TIERS.find((t) => t.id === inv.tierId);
                     return (
                       <tr key={inv.id} className="hover:bg-surface-2 transition-colors">
                         <td className="p-4 whitespace-nowrap">
                           <span className="block font-bold text-ink">{inv.subInvestmentName ?? inv.planName}</span>
-                          <span className="block text-[11px] text-ink-3">
-                            {inv.planName}
-                            {tier && ` • ${tier.label} tier`}
-                          </span>
+                          <span className="block text-[11px] text-ink-3">{inv.planName}</span>
                         </td>
                         <td className="p-4 font-mono text-ink">{currency(inv.amountInvested)}</td>
-                        <td className="p-4 font-bold text-accent whitespace-nowrap">+{inv.projectedReturn}% / yr</td>
 
                         <td className="p-4 min-w-[190px]">
                           {released ? (
-                            <span className="text-[11px] text-ink-3">Released</span>
+                            <span className="text-[11px] text-ink-3">Collected</span>
                           ) : (
                             <>
                               <span className="flex items-center justify-between gap-2 text-[11px] mb-1.5">
                                 <span className={`font-bold ${lock.locked ? 'text-gold-ink' : 'text-pos'}`}>
-                                  {lock.locked ? `${formatRemaining(lock.daysRemaining)} left` : 'Lock-up complete'}
+                                  {lock.locked ? `${formatRemaining(lock.daysRemaining)} left` : 'Ready to collect'}
                                 </span>
-                                <span className="text-ink-3 font-mono">{inv.lockMonths}mo</span>
+                                <span className="text-ink-3 font-mono">{inv.durationDays}d</span>
                               </span>
                               <span className="block w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
                                 <span
@@ -648,7 +668,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                   style={{ width: `${Math.max(3, lock.progressPercent)}%` }}
                                 ></span>
                               </span>
-                              <span className="block text-[10px] text-ink-3 mt-1">Unlocks {inv.maturityDate}</span>
+                              <span className="block text-[10px] text-ink-3 mt-1">Finishes {inv.maturityDate}</span>
                             </>
                           )}
                         </td>
@@ -663,23 +683,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <td className="p-4 text-right">
                           {released ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-surface-3 text-ink-2">
-                              redeemed
+                              collected
                             </span>
                           ) : lock.locked ? (
                             <span
                               className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase bg-gold text-on-gold"
-                              title={`Locked until ${inv.maturityDate}`}
+                              title={`Available on ${inv.maturityDate}`}
                             >
-                              <span aria-hidden="true" className="material-symbols-outlined text-[13px]">lock</span>
-                              Locked
+                              <span aria-hidden="true" className="material-symbols-outlined text-[13px]">schedule</span>
+                              Running
                             </span>
                           ) : (
                             <button
                               onClick={() => onRedeemInvestment(inv.id)}
                               className="inline-flex items-center gap-1.5 bg-emerald text-on-emerald text-[11px] font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-2 transition-colors"
                             >
-                              <span aria-hidden="true" className="material-symbols-outlined text-[14px]">lock_open</span>
-                              Redeem
+                              <span aria-hidden="true" className="material-symbols-outlined text-[14px]">savings</span>
+                              Collect
                             </button>
                           )}
                         </td>
@@ -691,6 +711,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
         </section>
+        )}
+
+        {tab === 'checkin' && (
+          <div {...tabPanelProps('checkin')} className="outline-none">
+            <CheckInPanel user={user} onCheckIn={onCheckIn} />
+          </div>
         )}
 
         {tab === 'deposits' && (

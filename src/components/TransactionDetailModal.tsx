@@ -1,4 +1,5 @@
 import { Transaction } from '../types';
+import { isCredit as isCreditType } from '../lib/transactions';
 import { Modal, ModalHeader } from './Modal';
 
 interface TransactionDetailModalProps {
@@ -19,9 +20,9 @@ const TYPE_LABELS: Record<Transaction['type'], string> = {
   deposit: 'Deposit',
   withdrawal: 'Withdrawal',
   investment: 'Investment',
-  dividend: 'Dividend',
-  liquidation: 'Liquidation',
+  payout: 'Investment payout',
   referral_gift: 'Referral gift',
+  daily_checkin: 'Daily check-in',
 };
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
@@ -29,10 +30,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   onClose,
   onOpenSupport,
 }) => {
-  const isCredit =
-    transaction.type === 'deposit' ||
-    transaction.type === 'dividend' ||
-    transaction.type === 'referral_gift';
+  const isCredit = isCreditType(transaction.type);
 
   return (
     <Modal onClose={onClose} size="max-w-md" label="Transaction receipt">
