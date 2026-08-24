@@ -1,0 +1,459 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #002c13;
+  --color-primary-container: #014421;
+  --color-on-primary-container: #76b284;
+  --color-primary-fixed: #b2f1bf;
+  --color-primary-fixed-dim: #97d5a5;
+  --color-on-primary-fixed-variant: #14512d;
+  --color-surface-tint: #306a43;
+
+  --color-secondary: #735c00;
+  --color-secondary-container: #fed65b;
+  --color-secondary-fixed: #ffe088;
+  --color-secondary-fixed-dim: #e9c349;
+  --color-on-secondary-container: #745c00;
+  --color-on-secondary-fixed: #241a00;
+
+  --color-tertiary: #162634;
+  --color-tertiary-container: #2c3c4a;
+  --color-on-tertiary-container: #96a6b7;
+  --color-tertiary-fixed: #d4e4f6;
+  --color-tertiary-fixed-dim: #b8c8da;
+
+  --color-surface: #f8f9fa;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container: #edeeef;
+  --color-surface-container-high: #e7e8e9;
+  --color-surface-container-highest: #e1e3e4;
+  --color-surface-variant: #e1e3e4;
+  --color-surface-dim: #d9dadb;
+  --color-surface-bright: #f8f9fa;
+
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #404941;
+  --color-on-background: #191c1d;
+  --color-outline: #717970;
+  --color-outline-variant: #c0c9be;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-sans-ui {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Luxury Accents and Shimmer */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #d4af37 0%, #fed65b 50%, #e2be42 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.emerald-gradient-text {
+  background: linear-gradient(135deg, #002c13 0%, #035226 50%, #014421 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html.dark .emerald-gradient-text {
+  background: linear-gradient(135deg, #97d5a5 0%, #b2f1bf 50%, #fed65b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.luxury-gold-border {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.08);
+}
+
+.shimmer-badge {
+  background: linear-gradient(90deg, rgba(254, 214, 91, 0.1) 0%, rgba(254, 214, 91, 0.3) 50%, rgba(254, 214, 91, 0.1) 100%);
+  background-size: 200% 100%;
+  animation: shimmerMove 3s infinite;
+}
+
+@keyframes shimmerMove {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* Glass Panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(192, 201, 190, 0.45);
+}
+
+html.dark .glass-panel {
+  background: rgba(18, 30, 23, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(254, 214, 91, 0.18);
+}
+
+/* Base Transition for Theme Switching & Smooth Motion */
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  scroll-behavior: smooth;
+}
+
+/* ========================================================================= */
+/* HIGH-CONTRAST DARK MODE SYSTEM (Optimized for Low-Light Viewing) */
+/* ========================================================================= */
+
+html.dark {
+  color-scheme: dark;
+  background-color: #0b120e;
+  color: #f3f7f4;
+}
+
+html.dark body {
+  background-color: #0b120e;
+  color: #f3f7f4;
+}
+
+/* Dark Mode Canvas & Backgrounds */
+html.dark .bg-white {
+  background-color: #121e17 !important;
+}
+
+html.dark .bg-\[\#f8f9fa\],
+html.dark .bg-\[\#fafbfc\],
+html.dark .bg-\[\#f9fafb\],
+html.dark .bg-\[\#faf9f6\],
+html.dark .bg-\[\#f0f5f2\],
+html.dark .bg-\[\#f8faf9\] {
+  background-color: #0b120e !important;
+}
+
+html.dark .bg-\[\#f3f4f5\],
+html.dark .bg-\[\#f0f2f3\] {
+  background-color: #16261e !important;
+}
+
+html.dark .bg-\[\#fdfdfd\] {
+  background-color: #132019 !important;
+}
+
+html.dark .bg-\[\#edeeef\] {
+  background-color: #192b22 !important;
+}
+
+html.dark .bg-\[\#e7e8e9\] {
+  background-color: #1f3429 !important;
+}
+
+html.dark .bg-\[\#e1e3e4\] {
+  background-color: #243c30 !important;
+}
+
+/* Dark Mode Deep Green Surfaces */
+html.dark .bg-\[\#002c13\] {
+  background-color: #091710 !important;
+}
+
+html.dark .bg-\[\#014421\] {
+  background-color: #0d281a !important;
+}
+
+html.dark .bg-\[\#002410\] {
+  background-color: #060e0a !important;
+}
+
+html.dark .bg-\[\#f0fbf3\],
+html.dark .bg-\[\#f0f7f3\],
+html.dark .bg-\[\#e6f3eb\] {
+  background-color: #10271b !important;
+}
+
+html.dark .hover\:bg-\[\#e6f3eb\]:hover {
+  background-color: #183726 !important;
+}
+
+html.dark .bg-\[\#002c13\]\/5,
+html.dark .bg-\[\#002c13\]\/10,
+html.dark .bg-\[\#002c13\]\/15 {
+  background-color: rgba(72, 199, 116, 0.12) !important;
+}
+
+html.dark .bg-\[\#fed65b\]\/10,
+html.dark .bg-\[\#fed65b\]\/20,
+html.dark .bg-\[\#fed65b\]\/30,
+html.dark .bg-\[\#fed65b\]\/40 {
+  background-color: rgba(254, 214, 91, 0.15) !important;
+}
+
+html.dark .bg-\[\#ffdad6\] {
+  background-color: #3b1616 !important;
+}
+
+html.dark .bg-\[\#ffdad6\]\/40 {
+  background-color: rgba(186, 26, 26, 0.2) !important;
+}
+
+html.dark .bg-\[\#b2f1bf\] {
+  background-color: #14512d !important;
+}
+
+/* Dark Mode High-Contrast Typography */
+html.dark .text-\[\#191c1d\],
+html.dark .text-\[\#002c13\] {
+  color: #f3f7f4 !important;
+}
+
+html.dark .text-\[\#404941\] {
+  color: #d1ded5 !important;
+}
+
+html.dark .text-\[\#717970\] {
+  color: #a9beaf !important;
+}
+
+html.dark .text-\[\#735c00\],
+html.dark .text-\[\#745c00\],
+html.dark .text-\[\#544300\],
+html.dark .text-\[\#241a00\] {
+  color: #fed65b !important;
+}
+
+html.dark .text-\[\#14512d\],
+html.dark .text-\[\#014421\] {
+  color: #97d5a5 !important;
+}
+
+html.dark .text-\[\#306a43\],
+html.dark .text-\[\#20bd5a\],
+html.dark .text-\[\#48c774\] {
+  color: #48c774 !important;
+}
+
+html.dark .text-\[\#162634\],
+html.dark .text-\[\#004a77\] {
+  color: #d4e4f6 !important;
+}
+
+html.dark .text-\[\#ba1a1a\],
+html.dark .text-\[\#93000a\] {
+  color: #ff9e9e !important;
+}
+
+/* Ensure bright yellow/gold solid backgrounds maintain crisp dark text */
+html.dark .bg-\[\#fed65b\],
+html.dark .bg-\[\#fed65b\] *,
+html.dark [class*="bg-[#fed65b]"]:not([class*="bg-[#fed65b]/"]),
+html.dark [class*="bg-[#fed65b]"]:not([class*="bg-[#fed65b]/"]) *,
+html.dark .bg-\[\#ffe088\],
+html.dark .bg-\[\#ffe088\] *,
+html.dark [class*="bg-[#ffe088]"]:not([class*="bg-[#ffe088]/"]),
+html.dark [class*="bg-[#ffe088]"]:not([class*="bg-[#ffe088]/"]) * {
+  color: #002c13 !important;
+}
+
+/* Badges with bright mint or red backgrounds */
+html.dark .bg-\[\#b2f1bf\] {
+  background-color: #14512d !important;
+  color: #b2f1bf !important;
+}
+html.dark .bg-\[\#b2f1bf\] * {
+  color: #b2f1bf !important;
+}
+
+html.dark .bg-\[\#ffdad6\] {
+  background-color: #3b1616 !important;
+  color: #ff9e9e !important;
+}
+html.dark .bg-\[\#ffdad6\] * {
+  color: #ff9e9e !important;
+}
+
+/* Dark Mode Borders & Dividers */
+html.dark .border-\[\#c0c9be\],
+html.dark .border-\[\#c0c9be\]\/30,
+html.dark .border-\[\#c0c9be\]\/40,
+html.dark .border-\[\#c0c9be\]\/50,
+html.dark .border-\[\#e1e3e4\],
+html.dark .border-\[\#f0f2f3\],
+html.dark .border-\[\#717970\] {
+  border-color: #273d31 !important;
+}
+
+html.dark .border-b-\[\#e1e3e4\],
+html.dark .border-t-\[\#e1e3e4\],
+html.dark .border-r-\[\#e1e3e4\],
+html.dark .border-l-\[\#e1e3e4\],
+html.dark .border-b-\[\#f0f2f3\],
+html.dark .border-t-\[\#f0f2f3\] {
+  border-color: #273d31 !important;
+}
+
+html.dark .divide-\[\#e1e3e4\] > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-\[\#c0c9be\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #273d31 !important;
+}
+
+/* Dark Mode Form Inputs & Selects */
+html.dark input[type="text"],
+html.dark input[type="number"],
+html.dark input[type="password"],
+html.dark input[type="email"],
+html.dark input[type="tel"],
+html.dark input[type="date"],
+html.dark select,
+html.dark textarea {
+  background-color: #15241b !important;
+  color: #f3f7f4 !important;
+  border-color: #2f493b !important;
+}
+
+html.dark select option {
+  background-color: #121e17 !important;
+  color: #f3f7f4 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #7b9485 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #fed65b !important;
+  box-shadow: 0 0 0 1px #fed65b;
+}
+
+/* Dark Mode Tables & Data Views */
+html.dark th {
+  color: #a9beaf !important;
+}
+
+html.dark tr.hover\:bg-\[\#f8f9fa\]:hover,
+html.dark tr.hover\:bg-\[\#f3f4f5\]:hover,
+html.dark tr:hover {
+  background-color: #16261e !important;
+}
+
+/* Dark Mode Recharts */
+html.dark .recharts-cartesian-grid line {
+  stroke: #1e3327 !important;
+}
+
+html.dark .recharts-text {
+  fill: #a9beaf !important;
+}
+
+/* Dark Mode Hover States */
+html.dark .hover\:bg-\[\#f3f4f5\]:hover,
+html.dark .hover\:bg-\[\#f8f9fa\]:hover {
+  background-color: #192c21 !important;
+}
+
+html.dark .hover\:bg-\[\#e7e8e9\]:hover {
+  background-color: #20372a !important;
+}
+
+html.dark .hover\:border-\[\#002c13\]:hover {
+  border-color: #fed65b !important;
+}
+
+/* Dark Mode Modals & Shadows */
+html.dark .shadow-xs,
+html.dark .shadow-sm,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl,
+html.dark .shadow-2xl {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.65), 0 2px 6px -1px rgba(0, 0, 0, 0.45);
+}
+
+/* Dark Mode Patterns */
+html.dark .pattern-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23fed65b' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+html.dark .pattern-diamonds {
+  background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16 0l16 16-16 16L0 16z' fill='%23fed65b' fill-opacity='0.035' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+html.dark .pattern-geometric {
+  background-image: linear-gradient(135deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
+                    linear-gradient(225deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
+                    linear-gradient(45deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
+                    linear-gradient(315deg, rgba(254,214,91,0.03) 25%, #121e17 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
+}
+
+/* African Geometric & Diamond Motif Patterns (Light Default) */
+.pattern-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23002c13' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.pattern-diamonds {
+  background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16 0l16 16-16 16L0 16z' fill='%23002c13' fill-opacity='0.025' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.pattern-geometric {
+  background-image: linear-gradient(135deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
+                    linear-gradient(225deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
+                    linear-gradient(45deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
+                    linear-gradient(315deg, rgba(200,200,200,0.05) 25%, #ffffff 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
+}
+
+.gf-accent-bar,
+.cauri-accent-bar {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0l10 10-10 10L0 10z' fill='%23fed65b' fill-opacity='0.9' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: 16px 16px;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+
