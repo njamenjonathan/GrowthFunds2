@@ -84,6 +84,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             </div>
           )}
 
+          {transaction.subInvestmentName && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-3">Opportunity</dt>
+              <dd className="font-bold text-ink text-right">{transaction.subInvestmentName}</dd>
+            </div>
+          )}
+
           <div className="flex justify-between gap-3">
             <dt className="text-ink-3">Fee</dt>
             <dd className="font-mono text-ink-2">{transaction.fee.toLocaleString()} XAF</dd>

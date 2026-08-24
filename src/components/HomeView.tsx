@@ -109,7 +109,7 @@ const FAQS = [
   },
   {
     q: 'What is the minimum amount to start?',
-    a: 'You can begin with 25,000 XAF in the CEMAC Sovereign Bond Fund, or allocate larger amounts across the agricultural and real estate portfolios with no entry penalties.',
+    a: 'Every opportunity in the catalogue opens at 5,000 XAF — residential houses, cocoa farm shares, treasury bills or solar mini-grids alike. Each plan breaks into several opportunities you can back individually, and you can allocate larger amounts across them with no entry penalties.',
   },
   {
     q: 'Are returns guaranteed?',
@@ -468,13 +468,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       </div>
                       <div className="flex justify-between text-xs pt-1 border-t border-line-2">
                         <dt className="text-ink-3">Minimum</dt>
-                        <dd className="font-bold text-ink font-mono">{plan.minInvestment.toLocaleString()} XAF</dd>
+                        <dd className="font-bold text-pos font-mono">
+                          From {plan.minInvestment.toLocaleString()} XAF
+                        </dd>
                       </div>
                       <div className="flex justify-between text-xs">
                         <dt className="text-ink-3">Term</dt>
                         <dd className="font-bold text-ink">{plan.termMonths} months</dd>
                       </div>
                     </dl>
+
+                    {/* Name the opportunities inside the plan, so the category
+                        reads as something concrete before the prospectus opens. */}
+                    <ul className="flex flex-wrap gap-1.5 mb-6">
+                      {plan.subInvestments.map((sub) => (
+                        <li
+                          key={sub.id}
+                          className="px-2.5 py-1 rounded-full bg-surface border border-line-2 text-[10px] font-bold text-ink-2"
+                        >
+                          {sub.name}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
                   <motion.button

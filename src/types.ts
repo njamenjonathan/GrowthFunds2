@@ -3,9 +3,26 @@
 export type View = 'home' | 'plans' | 'dashboard' | 'referrals' | 'history' | 'security';
 
 /** Sections within the investor dashboard, shown one at a time. */
-export type DashboardTab = 'overview' | 'holdings' | 'activity' | 'invite';
+export type DashboardTab = 'overview' | 'holdings' | 'deposits' | 'withdrawals' | 'activity' | 'invite';
 
 export type RiskLevel = 'Very Low' | 'Low' | 'Medium' | 'High';
+
+/**
+ * A concrete opportunity inside a plan — the thing capital actually goes into
+ * (a housing block, a cocoa cooperative, a solar site). Every one of them opens
+ * at `MIN_INVESTMENT_XAF`, so a plan is a category rather than a price barrier.
+ */
+export interface SubInvestment {
+  id: string;
+  name: string;
+  description: string;
+  /** Entry ticket in XAF. Uniformly `MIN_INVESTMENT_XAF` across the catalogue. */
+  minInvestment: number;
+  /** Annual target return for this specific opportunity. */
+  projectedReturn: number;
+  termMonths: number;
+  iconName: string;
+}
 
 export interface InvestmentPlan {
   id: string;
@@ -18,6 +35,8 @@ export interface InvestmentPlan {
   description: string;
   longDescription: string;
   managementFeePercent: number;
+  /** The 3-5 concrete opportunities an investor picks between inside this plan. */
+  subInvestments: SubInvestment[];
   underlyingAssets: string[];
   historicalPerformance: { year: string; returnPct: number }[];
   regulatoryNotice: string;
@@ -30,6 +49,9 @@ export interface ActiveInvestment {
   id: string;
   planId: string;
   planName: string;
+  /** Which opportunity inside the plan the capital went into. */
+  subInvestmentId?: string;
+  subInvestmentName?: string;
   amountInvested: number;
   startDate: string;
   maturityDate: string;
@@ -66,6 +88,7 @@ export interface Transaction {
   destinationOrSource?: string;
   notes?: string;
   planName?: string;
+  subInvestmentName?: string;
 }
 
 export interface UserProfile {

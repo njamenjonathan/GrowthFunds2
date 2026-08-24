@@ -22,7 +22,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
     return transactions.filter((tx) => {
       if (filterType !== 'all' && tx.type !== filterType) return false;
       if (!query) return true;
-      return [tx.reference, tx.method, tx.type, tx.planName, tx.destinationOrSource]
+      return [tx.reference, tx.method, tx.type, tx.planName, tx.subInvestmentName, tx.destinationOrSource]
         .filter((field): field is string => Boolean(field))
         .some((field) => field.toLowerCase().includes(query));
     });

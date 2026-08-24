@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { InvestmentPlan, RiskLevel, UserProfile } from '../types';
+import { InvestmentPlan, RiskLevel, SubInvestment, UserProfile } from '../types';
+import { MIN_INVESTMENT_XAF } from '../lib/constants';
 import { Modal, ModalHeader } from './Modal';
 
 interface PlansViewProps {
@@ -8,7 +9,7 @@ interface PlansViewProps {
   /** Plan chosen elsewhere (e.g. the home page) to open straight away. */
   planToOpen: InvestmentPlan | null;
   onPlanOpened: () => void;
-  onInvestInPlan: (plan: InvestmentPlan, amount: number) => string | undefined;
+  onInvestInPlan: (plan: InvestmentPlan, amount: number, sub: SubInvestment) => string | undefined;
   onOpenDeposit: () => void;
   onOpenKyc: () => void;
   onOpenAuth: () => void;
@@ -22,8 +23,9 @@ const riskStyles = (risk: RiskLevel) => {
   return { className: 'bg-info text-on-info', icon: 'trending_up' };
 };
 
-const projectedGain = (amount: number, plan: InvestmentPlan) =>
-  Math.round(amount * (plan.projectedReturn / 100) * (plan.termMonths / 12));
+/** Return at maturity for a commitment, using the chosen opportunity's own terms. */
+const projectedGain = (amount: number, sub: SubInvestment) =>
+  Math.round(amount * (sub.projectedReturn / 100) * (sub.termMonths / 12));
 
 export const PlansView: React.FC<PlansViewProps> = ({
   plans,
@@ -37,18 +39,34 @@ export const PlansView: React.FC<PlansViewProps> = ({
   onViewPortfolio,
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
+  /** Which opportunity inside the open plan the capital is headed for. */
+  const [selectedSub, setSelectedSub] = useState<SubInvestment | null>(null);
   const [investAmount, setInvestAmount] = useState(0);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   /** Set once on success so the confirmation shows the real ledger reference. */
-  const [confirmation, setConfirmation] = useState<{ plan: InvestmentPlan; amount: number; reference: string } | null>(
-    null
-  );
+  const [confirmation, setConfirmation] = useState<{
+    plan: InvestmentPlan;
+    sub: SubInvestment;
+    amount: number;
+    reference: string;
+  } | null>(null);
 
-  const openPlan = (plan: InvestmentPlan) => {
+  /** Opens a plan's prospectus with its first opportunity pre-selected. */
+  const openPlan = (plan: InvestmentPlan, sub?: SubInvestment) => {
+    const target = sub ?? plan.subInvestments[0] ?? null;
     setSelectedPlan(plan);
-    setInvestAmount(plan.minInvestment);
+    setSelectedSub(target);
+    setInvestAmount(target?.minInvestment ?? plan.minInvestment);
     setAgreedTerms(false);
+    setErrorMsg(null);
+  };
+
+  /** Switching opportunity resets the amount to that opportunity's entry ticket
+      only while the investor is still sitting on the previous minimum. */
+  const chooseSub = (sub: SubInvestment) => {
+    setInvestAmount((amount) => (amount === (selectedSub?.minInvestment ?? 0) ? sub.minInvestment : amount));
+    setSelectedSub(sub);
     setErrorMsg(null);
   };
 
@@ -60,7 +78,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
   }, [planToOpen, onPlanOpened]);
 
   const handleConfirmInvestment = () => {
-    if (!selectedPlan) return;
+    if (!selectedPlan || !selectedSub) return;
     if (!user) {
       setErrorMsg('Sign in or create an account to start investing.');
       return;
@@ -69,8 +87,8 @@ export const PlansView: React.FC<PlansViewProps> = ({
       setErrorMsg('Your account needs identity verification before you can allocate funds.');
       return;
     }
-    if (!Number.isFinite(investAmount) || investAmount < selectedPlan.minInvestment) {
-      setErrorMsg(`The minimum for this fund is ${selectedPlan.minInvestment.toLocaleString()} XAF.`);
+    if (!Number.isFinite(investAmount) || investAmount < selectedSub.minInvestment) {
+      setErrorMsg(`${selectedSub.name} starts from ${selectedSub.minInvestment.toLocaleString()} XAF.`);
       return;
     }
     if (investAmount > user.availableBalance) {
@@ -84,8 +102,8 @@ export const PlansView: React.FC<PlansViewProps> = ({
       return;
     }
 
-    const reference = onInvestInPlan(selectedPlan, investAmount);
-    setConfirmation({ plan: selectedPlan, amount: investAmount, reference: reference ?? '—' });
+    const reference = onInvestInPlan(selectedPlan, investAmount, selectedSub);
+    setConfirmation({ plan: selectedPlan, sub: selectedSub, amount: investAmount, reference: reference ?? '—' });
     setSelectedPlan(null);
   };
 
@@ -104,7 +122,9 @@ export const PlansView: React.FC<PlansViewProps> = ({
           </h1>
           <p className="text-sm text-ink-2 max-w-2xl leading-relaxed">
             Institutional-grade opportunities matched to your risk profile and timeline, each backed by audited
-            regional assets.
+            regional assets. Every plan breaks down into specific opportunities you can back individually — all of
+            them opening from{' '}
+            <strong className="text-pos font-mono">{MIN_INVESTMENT_XAF.toLocaleString()} XAF</strong>.
           </p>
         </header>
 
@@ -178,8 +198,10 @@ export const PlansView: React.FC<PlansViewProps> = ({
                       <dd className="text-3xl font-extrabold text-accent font-mono">{plan.projectedReturn}%</dd>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <dt className="text-ink-2">Minimum</dt>
-                      <dd className="font-bold text-ink font-mono">{plan.minInvestment.toLocaleString()} XAF</dd>
+                      <dt className="text-ink-2">Minimum entry</dt>
+                      <dd className="font-bold text-pos font-mono">
+                        From {plan.minInvestment.toLocaleString()} XAF
+                      </dd>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <dt className="text-ink-2">Term</dt>
@@ -190,6 +212,40 @@ export const PlansView: React.FC<PlansViewProps> = ({
                       <dd className="font-semibold text-ink-3">{plan.managementFeePercent}% / yr</dd>
                     </div>
                   </dl>
+
+                  {/* The concrete opportunities inside the plan — an investor
+                      picks one of these rather than buying the category. */}
+                  <div className="mt-5 pt-4 border-t border-line-2">
+                    <h3 className="text-[11px] font-bold text-ink uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                      <span aria-hidden="true" className="material-symbols-outlined text-[15px] text-accent">
+                        account_tree
+                      </span>
+                      {plan.subInvestments.length} ways to invest
+                    </h3>
+                    <ul className="space-y-1.5">
+                      {plan.subInvestments.map((sub) => (
+                        <li key={sub.id}>
+                          <button
+                            onClick={() => openPlan(plan, sub)}
+                            className="w-full flex items-center justify-between gap-2 text-left px-2.5 py-2 rounded-lg bg-surface-2 border border-line-2 hover:border-accent hover:bg-accent-bg transition-colors group"
+                          >
+                            <span className="flex items-center gap-2 min-w-0">
+                              <span
+                                aria-hidden="true"
+                                className="material-symbols-outlined text-[16px] text-ink-3 group-hover:text-accent shrink-0"
+                              >
+                                {sub.iconName}
+                              </span>
+                              <span className="text-[11px] font-semibold text-ink truncate">{sub.name}</span>
+                            </span>
+                            <span className="text-[11px] font-bold text-accent font-mono shrink-0">
+                              {sub.projectedReturn}%
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="p-6 pt-0 mt-auto">
@@ -201,7 +257,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
                         : 'bg-surface border border-line text-ink hover:bg-surface-2 hover:border-accent hover:text-accent'
                     }`}
                   >
-                    View prospectus &amp; invest
+                    View prospectus &amp; choose
                     <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </button>
                 </div>
@@ -236,6 +292,60 @@ export const PlansView: React.FC<PlansViewProps> = ({
           <div className="p-6 space-y-4 overflow-y-auto">
             <p className="text-xs text-ink-2 leading-relaxed">{selectedPlan.longDescription}</p>
 
+            {/* Pick the opportunity first: it sets the term, the target return
+                and the minimum the amount field is validated against. */}
+            <fieldset>
+              <legend className="text-xs font-bold text-ink uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span aria-hidden="true" className="material-symbols-outlined text-[15px] text-accent">account_tree</span>
+                Choose what to invest in
+              </legend>
+              <div className="space-y-2">
+                {selectedPlan.subInvestments.map((sub) => {
+                  const chosen = selectedSub?.id === sub.id;
+                  return (
+                    <label
+                      key={sub.id}
+                      className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                        chosen
+                          ? 'border-accent bg-accent-bg shadow-2xs'
+                          : 'border-line-2 bg-surface-2 hover:border-accent/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="sub-investment"
+                        value={sub.id}
+                        checked={chosen}
+                        onChange={() => chooseSub(sub)}
+                        className="sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`material-symbols-outlined text-[20px] mt-0.5 shrink-0 ${
+                          chosen ? 'text-accent' : 'text-ink-3'
+                        }`}
+                      >
+                        {sub.iconName}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                          <span className="text-xs font-bold text-ink">{sub.name}</span>
+                          <span className="text-xs font-extrabold text-accent font-mono">
+                            +{sub.projectedReturn}% / yr
+                          </span>
+                        </span>
+                        <span className="block text-[11px] text-ink-2 leading-relaxed mt-1">{sub.description}</span>
+                        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] font-bold text-ink-3 uppercase tracking-wider">
+                          <span>{sub.termMonths} month term</span>
+                          <span className="text-pos">From {sub.minInvestment.toLocaleString()} XAF</span>
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
             <div className="bg-surface-2 p-4 rounded-xl border border-line-2">
               <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-2">Underlying assets</h3>
               <ul className="space-y-1.5">
@@ -262,7 +372,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
 
             <div className="pt-1">
               <label htmlFor="invest-amount" className="block text-xs font-bold text-ink uppercase mb-1.5">
-                Commitment amount
+                Commitment amount{selectedSub ? ` — ${selectedSub.name}` : ''}
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-ink-3 pointer-events-none">
@@ -272,41 +382,47 @@ export const PlansView: React.FC<PlansViewProps> = ({
                   id="invest-amount"
                   type="number"
                   inputMode="numeric"
-                  min={selectedPlan.minInvestment}
-                  step={10000}
+                  min={selectedSub?.minInvestment ?? selectedPlan.minInvestment}
+                  step={MIN_INVESTMENT_XAF}
                   value={investAmount || ''}
                   onChange={(e) => setInvestAmount(Number(e.target.value))}
                   className="w-full pl-14 pr-4 py-3 rounded-lg border border-line text-lg font-bold font-mono text-accent focus:border-accent outline-none"
                 />
               </div>
               <div className="flex justify-between items-center text-[11px] text-ink-3 mt-1.5">
-                <span>Min {selectedPlan.minInvestment.toLocaleString()} XAF</span>
+                <span>Min {(selectedSub?.minInvestment ?? selectedPlan.minInvestment).toLocaleString()} XAF</span>
                 {user && <span>Available {user.availableBalance.toLocaleString()} XAF</span>}
               </div>
             </div>
 
-            <dl className="bg-accent-bg border border-accent/20 rounded-xl p-4 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <dt className="text-ink-2">Lock-up term</dt>
-                <dd className="font-bold text-ink">{selectedPlan.termMonths} months</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-ink-2">Annual target return</dt>
-                <dd className="font-bold text-accent">+{selectedPlan.projectedReturn}% / yr</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-ink-2">Estimated return at maturity</dt>
-                <dd className="font-bold text-gold-ink font-mono">
-                  +{projectedGain(investAmount, selectedPlan).toLocaleString()} XAF
-                </dd>
-              </div>
-              <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-accent/15">
-                <dt>Projected value at maturity</dt>
-                <dd className="font-mono">
-                  {(investAmount + projectedGain(investAmount, selectedPlan)).toLocaleString()} XAF
-                </dd>
-              </div>
-            </dl>
+            {selectedSub && (
+              <dl className="bg-accent-bg border border-accent/20 rounded-xl p-4 space-y-2 text-xs">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-2">Selected opportunity</dt>
+                  <dd className="font-bold text-ink text-right">{selectedSub.name}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-2">Lock-up term</dt>
+                  <dd className="font-bold text-ink">{selectedSub.termMonths} months</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-2">Annual target return</dt>
+                  <dd className="font-bold text-accent">+{selectedSub.projectedReturn}% / yr</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-2">Estimated return at maturity</dt>
+                  <dd className="font-bold text-gold-ink font-mono">
+                    +{projectedGain(investAmount, selectedSub).toLocaleString()} XAF
+                  </dd>
+                </div>
+                <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-accent/15">
+                  <dt>Projected value at maturity</dt>
+                  <dd className="font-mono">
+                    {(investAmount + projectedGain(investAmount, selectedSub)).toLocaleString()} XAF
+                  </dd>
+                </div>
+              </dl>
+            )}
 
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input
@@ -369,7 +485,8 @@ export const PlansView: React.FC<PlansViewProps> = ({
             <p className="text-xs text-ink-2 leading-relaxed">
               Your commitment of{' '}
               <strong className="font-mono text-accent">{confirmation.amount.toLocaleString()} XAF</strong> to{' '}
-              <strong className="text-accent">{confirmation.plan.name}</strong> is now active.
+              <strong className="text-accent">{confirmation.sub.name}</strong> ({confirmation.plan.name}) is now
+              active.
             </p>
 
             <dl className="bg-surface-2 p-4 rounded-lg border border-line-2 text-left text-xs space-y-1.5">
@@ -383,7 +500,11 @@ export const PlansView: React.FC<PlansViewProps> = ({
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-3">Term</dt>
-                <dd className="font-bold text-ink">{confirmation.plan.termMonths} months</dd>
+                <dd className="font-bold text-ink">{confirmation.sub.termMonths} months</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Target return</dt>
+                <dd className="font-bold text-accent">+{confirmation.sub.projectedReturn}% / yr</dd>
               </div>
             </dl>
 
