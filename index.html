@@ -26,7 +26,8 @@
       (function () {
         try {
           var saved = localStorage.getItem('growthfund_theme');
-          var dark = saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches);
+          var followSystem = saved !== 'light' && saved !== 'dark';
+          var dark = saved === 'dark' || (followSystem && matchMedia('(prefers-color-scheme: dark)').matches);
           if (dark) document.documentElement.classList.add('dark');
         } catch (e) {
           /* storage unavailable — fall back to the light theme */

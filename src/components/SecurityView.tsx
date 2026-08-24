@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { UserProfile } from '../types';
+import { ThemeMode, THEME_OPTIONS } from '../lib/theme';
 
 interface SecurityViewProps {
   user: UserProfile;
   onUpdateSecurity: (settings: Partial<UserProfile>) => void;
   onOpenKyc: () => void;
   theme?: 'light' | 'dark';
-  onToggleTheme?: () => void;
+  themeMode: ThemeMode;
+  onSetThemeMode: (mode: ThemeMode) => void;
 }
 
 export const SecurityView: React.FC<SecurityViewProps> = ({
@@ -14,7 +16,8 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
   onUpdateSecurity,
   onOpenKyc,
   theme = 'light',
-  onToggleTheme,
+  themeMode,
+  onSetThemeMode,
 }) => {
   const [twoFactor, setTwoFactor] = useState(user.twoFactorEnabled);
   const [method, setMethod] = useState<'sms' | 'authenticator'>(user.twoFactorMethod || 'sms');
@@ -185,35 +188,55 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
           </div>
         </div>
 
-        {/* Display & Low-Light Theme Card */}
-        <div className="bg-surface rounded-2xl border border-line/40 p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald/10 text-accent rounded-xl">
-                <span aria-hidden="true" className="material-symbols-outlined text-2xl">
-                  {theme === 'dark' ? 'dark_mode' : 'light_mode'}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-ink">Display & Theme Mode</h3>
-                <p className="text-xs text-ink-3">
-                  Switch between standard day view and high-contrast dark mode for low-light trading.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onToggleTheme}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
-                theme === 'dark'
-                  ? 'bg-gold text-on-gold border-gold shadow-xs'
-                  : 'bg-emerald text-on-emerald border-accent hover:bg-emerald-2'
-              }`}
-            >
-              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+        {/* Appearance */}
+        <div className="bg-surface rounded-2xl border border-line p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-accent-bg text-accent rounded-xl">
+              <span aria-hidden="true" className="material-symbols-outlined text-2xl">
+                {theme === 'dark' ? 'dark_mode' : 'light_mode'}
               </span>
-              <span>{theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
-            </button>
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-ink">Appearance</h3>
+              <p className="text-xs text-ink-3">
+                Choose a light or dark palette, or follow your device setting automatically.
+              </p>
+            </div>
+          </div>
+
+          <div role="radiogroup" aria-label="Theme" className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {THEME_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                role="radio"
+                aria-checked={themeMode === option.value}
+                onClick={() => onSetThemeMode(option.value)}
+                className={`p-4 rounded-xl border text-left transition-colors ${
+                  themeMode === option.value
+                    ? 'border-accent bg-accent-bg ring-1 ring-accent'
+                    : 'border-line hover:bg-surface-2'
+                }`}
+              >
+                <span className="flex items-center gap-2 mb-1">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-accent">
+                    {option.icon}
+                  </span>
+                  <span className="text-xs font-bold text-ink">{option.label}</span>
+                  {themeMode === option.value && (
+                    <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-accent">
+                      Active
+                    </span>
+                  )}
+                </span>
+                <span className="block text-[11px] text-ink-3">
+                  {option.value === 'light'
+                    ? 'Always use the light palette.'
+                    : option.value === 'dark'
+                    ? 'Always use the high-contrast dark palette.'
+                    : `Follow your device (currently ${theme}).`}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

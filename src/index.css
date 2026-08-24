@@ -350,22 +350,26 @@ html.icons-ready .material-symbols-outlined {
    aria-label, so meaning is preserved either way. */
 html.icons-failed .material-symbols-outlined {
   visibility: visible;
-  font-family: var(--font-sans);
-  color: transparent;
   position: relative;
+  width: 1em;
+  height: 1em;
+  /* Push the ligature source text out of the box rather than making it
+     transparent: `color` has to stay intact so the marker below, drawn with
+     currentColor, inherits the control's own colour. Keeping the font-size
+     also keeps `1em` meaningful, so the marker is sized from the icon. */
+  text-indent: 200%;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 html.icons-failed .material-symbols-outlined::after {
   content: '';
   position: absolute;
-  inset: 50% auto auto 50%;
-  width: 0.45em;
-  height: 0.45em;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  text-indent: 0;
+  border: 0.12em solid currentColor;
   border-radius: 50%;
-  background: currentColor;
-  color: inherit;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 /* =========================================================================
