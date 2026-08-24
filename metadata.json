@@ -1,6 +1,5 @@
 {
   "name": "GrowthFund",
-  "description": "A modern, trustworthy investment and savings platform for Central Africa with XAF currency, COSUMAF regulatory compliance, transparent risk disclosures, mobile money deposits, and comprehensive investor & admin dashboards.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "description": "A modern, trustworthy investment and savings platform for Central Africa with XAF currency, COSUMAF regulatory compliance, transparent risk disclosures, mobile money deposits, and investor & manager dashboards.",
+  "requestFramePermissions": []
 }

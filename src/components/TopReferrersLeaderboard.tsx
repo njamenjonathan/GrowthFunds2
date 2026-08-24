@@ -1,32 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
+import { avatarFor } from '../lib/avatar';
 
 export interface LeaderboardMember {
   id: string;
   rank: number;
   name: string;
-  avatar: string;
   location: string;
   flag: string;
   invitesCount: number;
   totalGiftsXAF: number;
   tier: 'Diamond' | 'Platinum' | 'Gold' | 'Silver' | 'Rising';
-  badgeColor: string;
   isCurrentUser?: boolean;
 }
 
 interface TopReferrersLeaderboardProps {
   currentUser: UserProfile;
   onInviteFriend?: () => void;
-  onSimulateSignup?: () => void;
   className?: string;
 }
 
 export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = ({
   currentUser,
   onInviteFriend,
-  onSimulateSignup,
   className = '',
 }) => {
   const [activePeriod, setActivePeriod] = useState<'month' | 'alltime' | 'perks'>('month');
@@ -42,73 +39,61 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       id: 'usr_top_1',
       rank: 1,
       name: 'Boris Manga',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
       location: 'Douala, Cameroon',
       flag: '🇨🇲',
       invitesCount: 52,
       totalGiftsXAF: 52000,
       tier: 'Diamond',
-      badgeColor: '#fed65b',
     },
     {
       id: 'usr_top_2',
       rank: 2,
       name: 'Vanessa Ndongo',
-      avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&auto=format&fit=crop&q=80',
       location: 'Yaoundé, Cameroon',
       flag: '🇨🇲',
       invitesCount: 41,
       totalGiftsXAF: 41000,
       tier: 'Platinum',
-      badgeColor: '#e1e3e4',
     },
     {
       id: 'usr_top_3',
       rank: 3,
       name: 'Cedric Ondo',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
       location: 'Libreville, Gabon',
       flag: '🇬🇦',
       invitesCount: 34,
       totalGiftsXAF: 34000,
       tier: 'Gold',
-      badgeColor: '#cd7f32',
     },
     {
       id: 'usr_top_4',
       rank: 4,
       name: 'Sylvie Bitemo',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
       location: 'Brazzaville, Congo',
       flag: '🇨🇬',
       invitesCount: 26,
       totalGiftsXAF: 26000,
       tier: 'Silver',
-      badgeColor: '#97d5a5',
     },
     {
       id: 'usr_top_5',
       rank: 5,
       name: 'Marc Eposi',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
       location: 'Bafoussam, Cameroon',
       flag: '🇨🇲',
       invitesCount: 19,
       totalGiftsXAF: 19000,
       tier: 'Silver',
-      badgeColor: '#97d5a5',
     },
     {
       id: 'usr_top_6',
       rank: 6,
       name: 'Fatimatou Ahmat',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
       location: "N'Djamena, Chad",
       flag: '🇹🇩',
       invitesCount: 15,
       totalGiftsXAF: 15000,
       tier: 'Rising',
-      badgeColor: '#48c774',
     },
   ];
 
@@ -118,61 +103,51 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       id: 'usr_at_1',
       rank: 1,
       name: 'Vanessa Ndongo',
-      avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&auto=format&fit=crop&q=80',
       location: 'Yaoundé, Cameroon',
       flag: '🇨🇲',
       invitesCount: 184,
       totalGiftsXAF: 184000,
       tier: 'Diamond',
-      badgeColor: '#fed65b',
     },
     {
       id: 'usr_at_2',
       rank: 2,
       name: 'Boris Manga',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
       location: 'Douala, Cameroon',
       flag: '🇨🇲',
       invitesCount: 168,
       totalGiftsXAF: 168000,
       tier: 'Diamond',
-      badgeColor: '#fed65b',
     },
     {
       id: 'usr_at_3',
       rank: 3,
       name: 'Patrice Nguema',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80',
       location: 'Port-Gentil, Gabon',
       flag: '🇬🇦',
       invitesCount: 122,
       totalGiftsXAF: 122000,
       tier: 'Platinum',
-      badgeColor: '#e1e3e4',
     },
     {
       id: 'usr_at_4',
       rank: 4,
       name: 'Cedric Ondo',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
       location: 'Libreville, Gabon',
       flag: '🇬🇦',
       invitesCount: 97,
       totalGiftsXAF: 97000,
       tier: 'Gold',
-      badgeColor: '#cd7f32',
     },
     {
       id: 'usr_at_5',
       rank: 5,
       name: 'Jeanne Makosso',
-      avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=100&auto=format&fit=crop&q=80',
       location: 'Pointe-Noire, Congo',
       flag: '🇨🇬',
       invitesCount: 81,
       totalGiftsXAF: 81000,
       tier: 'Silver',
-      badgeColor: '#97d5a5',
     },
   ];
 
@@ -200,7 +175,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       badge: '🏆',
       reward: '50,000 XAF Seasonal Grand Bonus',
       perk: 'VIP Dedicated Wealth Advisor + 0% Withdrawal Fees',
-      color: 'border-[#fed65b] bg-[#fed65b]/15',
+      color: 'border-gold bg-gold/15',
     },
     {
       tier: 'Platinum Ambassador',
@@ -208,7 +183,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       badge: '🥇',
       reward: '25,000 XAF Seasonal Bonus',
       perk: 'Priority Processing on all CEMAC payouts',
-      color: 'border-[#97d5a5] bg-[#97d5a5]/15',
+      color: 'border-emerald-tint bg-emerald-tint/15',
     },
     {
       tier: 'Gold Advocate',
@@ -216,7 +191,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       badge: '🥈',
       reward: '10,000 XAF Milestone Bonus',
       perk: 'Quarterly Investment Roundtable Invitation',
-      color: 'border-[#cd7f32]/60 bg-[#cd7f32]/10',
+      color: 'border-bronze/60 bg-bronze/10',
     },
     {
       tier: 'Community Champion',
@@ -224,21 +199,21 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       badge: '🌟',
       reward: '1,000 XAF Instant Gift per invitee',
       perk: 'Official GrowthFund Verified Investor Badge',
-      color: 'border-[#002c13]/30 bg-[#f0fbf3]',
+      color: 'border-accent/30 bg-accent-bg',
     },
   ];
 
   return (
     <div
       id="top-referrers-leaderboard"
-      className={`bg-white rounded-2xl border border-[#c0c9be]/40 shadow-xs overflow-hidden ${className}`}
+      className={`bg-surface rounded-2xl border border-line/40 shadow-xs overflow-hidden ${className}`}
     >
       {/* Leaderboard Header */}
-      <div className="p-5 sm:p-6 bg-linear-to-r from-[#002c13] via-[#013819] to-[#002c13] text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="p-5 sm:p-6 bg-linear-to-r from-emerald via-emerald-2 to-emerald text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#fed65b] animate-pulse"></span>
-            <span className="text-[11px] uppercase tracking-widest font-extrabold text-[#fed65b]">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse"></span>
+            <span className="text-[11px] uppercase tracking-widest font-extrabold text-gold">
               CEMAC Community League
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/15">
@@ -250,18 +225,18 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             <span className="text-base">🏆</span>
           </h3>
           <p className="text-xs text-white/80 mt-0.5">
-            Compete with top regional investors. Win up to <strong className="text-[#fed65b]">50,000 XAF</strong> in seasonal bonus pools!
+            Compete with top regional investors. Win up to <strong className="text-gold">50,000 XAF</strong> in seasonal bonus pools!
           </p>
         </div>
 
         {/* View Toggle Tabs */}
-        <div className="flex items-center gap-1 bg-[#061e10] p-1 rounded-xl border border-[#fed65b]/30 self-stretch sm:self-auto justify-between sm:justify-start">
+        <div className="flex items-center gap-1 bg-emerald-3 p-1 rounded-xl border border-gold/30 self-stretch sm:self-auto justify-between sm:justify-start">
           <button
             id="tab-month-leaderboard"
             onClick={() => setActivePeriod('month')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'month'
-                ? 'bg-[#fed65b] text-[#002c13] shadow-xs'
+                ? 'bg-gold text-on-gold shadow-xs'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -272,7 +247,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             onClick={() => setActivePeriod('alltime')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'alltime'
-                ? 'bg-[#fed65b] text-[#002c13] shadow-xs'
+                ? 'bg-gold text-on-gold shadow-xs'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -283,7 +258,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             onClick={() => setActivePeriod('perks')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'perks'
-                ? 'bg-[#fed65b] text-[#002c13] shadow-xs'
+                ? 'bg-gold text-on-gold shadow-xs'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -293,19 +268,19 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       </div>
 
       {/* Season Prize Pool Announcement Ribbon */}
-      <div className="px-5 py-2.5 bg-[#f0fbf3] border-b border-[#b2f1bf] flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-[#14512d] font-semibold">
-          <span className="material-symbols-outlined text-[#306a43] text-base">military_tech</span>
+      <div className="px-5 py-2.5 bg-accent-bg border-b border-pos-bg flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-on-pos-bg font-semibold">
+          <span aria-hidden="true" className="material-symbols-outlined text-pos text-base">military_tech</span>
           <span>
-            Current Prize Pool: <strong className="text-[#002c13] font-bold">100,000 XAF</strong> • Top 3 receive cash bonuses on Month End!
+            Current Prize Pool: <strong className="text-accent font-bold">100,000 XAF</strong> • Top 3 receive cash bonuses on Month End!
           </span>
         </div>
         <button
           onClick={() => setShowPrizeInfo(!showPrizeInfo)}
-          className="text-[11px] font-bold text-[#306a43] hover:text-[#002c13] underline flex items-center gap-1"
+          className="text-[11px] font-bold text-pos hover:text-accent underline flex items-center gap-1"
         >
           <span>{showPrizeInfo ? 'Hide Details' : 'How It Works'}</span>
-          <span className="material-symbols-outlined text-[13px]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[13px]">
             {showPrizeInfo ? 'expand_less' : 'expand_more'}
           </span>
         </button>
@@ -318,9 +293,9 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden bg-[#fafbfc] border-b border-[#e1e3e4] px-5 py-3.5 text-xs text-[#717970] space-y-1.5"
+            className="overflow-hidden bg-surface-2 border-b border-line-2 px-5 py-3.5 text-xs text-ink-3 space-y-1.5"
           >
-            <p className="font-bold text-[#002c13]">Gamified Referral Rules &amp; Ranking:</p>
+            <p className="font-bold text-accent">Gamified Referral Rules &amp; Ranking:</p>
             <ul className="list-disc list-inside space-y-1 text-[11px]">
               <li>Every successful friend referral instantly grants you <strong>1,000 XAF</strong> in cash gift.</li>
               <li>Each referral earns you <strong>+1 Rank Point</strong> on the monthly leaderboards.</li>
@@ -337,10 +312,10 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
           /* Perks & Tiers Tab */
           <div className="space-y-4">
             <div className="text-center max-w-md mx-auto mb-4">
-              <h4 className="text-base font-extrabold text-[#002c13]">
+              <h4 className="text-base font-extrabold text-accent">
                 Ambassador Tiers &amp; Milestones
               </h4>
-              <p className="text-xs text-[#717970] mt-1">
+              <p className="text-xs text-ink-3 mt-1">
                 Unlock higher rewards and exclusive institutional privileges as your referral network grows across CEMAC.
               </p>
             </div>
@@ -354,15 +329,15 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{tier.badge}</span>
-                      <span className="font-bold text-sm text-[#002c13]">{tier.tier}</span>
+                      <span className="font-bold text-sm text-accent">{tier.tier}</span>
                     </div>
-                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-white text-[#002c13] border border-[#c0c9be]/50">
+                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-surface text-accent border border-line/50">
                       {tier.minInvites}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#14512d]">{tier.reward}</p>
-                    <p className="text-[11px] text-[#717970] mt-0.5">{tier.perk}</p>
+                    <p className="text-xs font-bold text-on-pos-bg">{tier.reward}</p>
+                    <p className="text-[11px] text-ink-3 mt-0.5">{tier.perk}</p>
                   </div>
                 </div>
               ))}
@@ -376,30 +351,29 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               {/* 2nd Place (Left) */}
               <div className="flex flex-col items-center text-center order-1">
                 <div className="relative mb-2">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-[#e1e3e4] overflow-hidden shadow-xs bg-[#f3f4f5]">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-line-2 overflow-hidden shadow-xs bg-surface-2">
                     <img
-                      src={currentList[1]?.avatar}
+                      src={avatarFor(currentList[1]?.name ?? '')}
                       alt={currentList[1]?.name}
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#e1e3e4] text-[#191c1d] border border-white font-extrabold text-[11px] flex items-center justify-center shadow-xs">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-3 text-ink border border-white font-extrabold text-[11px] flex items-center justify-center shadow-xs">
                     2
                   </div>
                 </div>
-                <div className="w-full bg-[#f8f9fa] rounded-t-xl border-t border-x border-[#e1e3e4] pt-2 pb-3 px-1">
-                  <p className="text-xs font-bold text-[#191c1d] truncate">
+                <div className="w-full bg-surface-2 rounded-t-xl border-t border-x border-line-2 pt-2 pb-3 px-1">
+                  <p className="text-xs font-bold text-ink truncate">
                     {currentList[1]?.name.split(' ')[0]}
                   </p>
-                  <p className="text-[10px] text-[#717970] flex items-center justify-center gap-1">
+                  <p className="text-[10px] text-ink-3 flex items-center justify-center gap-1">
                     <span>{currentList[1]?.flag}</span>
-                    <span className="font-mono font-bold text-[#002c13]">
+                    <span className="font-mono font-bold text-accent">
                       {currentList[1]?.invitesCount}
                     </span>{' '}
                     invites
                   </p>
-                  <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white text-[#717970] border border-[#e1e3e4]">
+                  <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-surface text-ink-3 border border-line-2">
                     🥈 25k Bonus
                   </span>
                 </div>
@@ -408,33 +382,32 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               {/* 1st Place (Center - Elevated) */}
               <div className="flex flex-col items-center text-center order-2">
                 <div className="relative mb-2">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-3 border-[#fed65b] overflow-hidden shadow-md ring-4 ring-[#fed65b]/20 bg-[#fed65b]/10">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-3 border-gold overflow-hidden shadow-md ring-4 ring-gold/20 bg-gold/10">
                     <img
-                      src={currentList[0]?.avatar}
+                      src={avatarFor(currentList[0]?.name ?? '')}
                       alt={currentList[0]?.name}
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg animate-bounce">
                     👑
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#fed65b] text-[#002c13] border-2 border-white font-black text-xs flex items-center justify-center shadow-xs">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gold text-on-gold border-2 border-white font-black text-xs flex items-center justify-center shadow-xs">
                     1
                   </div>
                 </div>
-                <div className="w-full bg-linear-to-b from-[#fed65b]/25 to-[#fed65b]/10 rounded-t-xl border-t-2 border-x border-[#fed65b] pt-3 pb-4 px-1 shadow-2xs">
-                  <p className="text-xs font-extrabold text-[#002c13] truncate">
+                <div className="w-full bg-linear-to-b from-gold/25 to-gold/10 rounded-t-xl border-t-2 border-x border-gold pt-3 pb-4 px-1 shadow-2xs">
+                  <p className="text-xs font-extrabold text-accent truncate">
                     {currentList[0]?.name.split(' ')[0]}
                   </p>
-                  <p className="text-[10px] text-[#735c00] flex items-center justify-center gap-1 font-semibold">
+                  <p className="text-[10px] text-gold-ink flex items-center justify-center gap-1 font-semibold">
                     <span>{currentList[0]?.flag}</span>
-                    <span className="font-mono font-black text-[#002c13]">
+                    <span className="font-mono font-black text-accent">
                       {currentList[0]?.invitesCount}
                     </span>{' '}
                     invites
                   </p>
-                  <span className="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#002c13] text-[#fed65b]">
+                  <span className="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald text-gold">
                     🥇 50k Grand
                   </span>
                 </div>
@@ -443,30 +416,29 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               {/* 3rd Place (Right) */}
               <div className="flex flex-col items-center text-center order-3">
                 <div className="relative mb-2">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-[#cd7f32] overflow-hidden shadow-xs bg-[#f3f4f5]">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-bronze overflow-hidden shadow-xs bg-surface-2">
                     <img
-                      src={currentList[2]?.avatar}
+                      src={avatarFor(currentList[2]?.name ?? '')}
                       alt={currentList[2]?.name}
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#cd7f32] text-white border border-white font-extrabold text-[11px] flex items-center justify-center shadow-xs">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-bronze text-white border border-white font-extrabold text-[11px] flex items-center justify-center shadow-xs">
                     3
                   </div>
                 </div>
-                <div className="w-full bg-[#f8f9fa] rounded-t-xl border-t border-x border-[#e1e3e4] pt-2 pb-3 px-1">
-                  <p className="text-xs font-bold text-[#191c1d] truncate">
+                <div className="w-full bg-surface-2 rounded-t-xl border-t border-x border-line-2 pt-2 pb-3 px-1">
+                  <p className="text-xs font-bold text-ink truncate">
                     {currentList[2]?.name.split(' ')[0]}
                   </p>
-                  <p className="text-[10px] text-[#717970] flex items-center justify-center gap-1">
+                  <p className="text-[10px] text-ink-3 flex items-center justify-center gap-1">
                     <span>{currentList[2]?.flag}</span>
-                    <span className="font-mono font-bold text-[#002c13]">
+                    <span className="font-mono font-bold text-accent">
                       {currentList[2]?.invitesCount}
                     </span>{' '}
                     invites
                   </p>
-                  <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white text-[#735c00] border border-[#cd7f32]/40">
+                  <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-surface text-gold-ink border border-bronze/40">
                     🥉 10k Bonus
                   </span>
                 </div>
@@ -474,8 +446,8 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             </div>
 
             {/* Complete Rankings List Table */}
-            <div className="border border-[#e1e3e4] rounded-xl overflow-hidden shadow-2xs">
-              <div className="bg-[#f8f9fa] px-4 py-2.5 border-b border-[#e1e3e4] flex items-center justify-between text-[11px] font-bold text-[#717970] uppercase tracking-wider">
+            <div className="border border-line-2 rounded-xl overflow-hidden shadow-2xs">
+              <div className="bg-surface-2 px-4 py-2.5 border-b border-line-2 flex items-center justify-between text-[11px] font-bold text-ink-3 uppercase tracking-wider">
                 <div className="flex items-center gap-4">
                   <span className="w-6 text-center">#</span>
                   <span>Investor</span>
@@ -486,55 +458,54 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
                 </div>
               </div>
 
-              <div className="divide-y divide-[#e1e3e4]">
+              <div className="divide-y divide-line-2">
                 {currentList.map((leader) => (
                   <div
                     key={leader.id}
                     className={`px-4 py-3 flex items-center justify-between text-xs transition-colors ${
                       leader.rank === 1
-                        ? 'bg-[#fed65b]/10 hover:bg-[#fed65b]/15'
-                        : 'bg-white hover:bg-[#f8f9fa]'
+                        ? 'bg-gold/10 hover:bg-gold/15'
+                        : 'bg-surface hover:bg-surface-2'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <span
                         className={`w-6 h-6 rounded-full font-bold flex items-center justify-center text-[11px] ${
                           leader.rank === 1
-                            ? 'bg-[#fed65b] text-[#002c13] font-black'
+                            ? 'bg-gold text-on-gold font-black'
                             : leader.rank === 2
-                            ? 'bg-[#e1e3e4] text-[#191c1d]'
+                            ? 'bg-surface-3 text-ink'
                             : leader.rank === 3
-                            ? 'bg-[#cd7f32]/30 text-[#735c00]'
-                            : 'bg-[#f3f4f5] text-[#717970]'
+                            ? 'bg-bronze/30 text-gold-ink'
+                            : 'bg-surface-2 text-ink-3'
                         }`}
                       >
                         {leader.rank}
                       </span>
-                      <div className="w-8 h-8 rounded-full overflow-hidden border border-[#c0c9be]/50 bg-[#f3f4f5] shrink-0">
+                      <div className="w-8 h-8 rounded-full overflow-hidden border border-line/50 bg-surface-2 shrink-0">
                         <img
-                          src={leader.avatar}
+                          src={avatarFor(leader.name)}
                           alt={leader.name}
                           className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
                         />
                       </div>
                       <div>
-                        <p className="font-bold text-[#191c1d] flex items-center gap-1.5">
+                        <p className="font-bold text-ink flex items-center gap-1.5">
                           <span>{leader.name}</span>
                           <span className="text-xs">{leader.flag}</span>
                         </p>
-                        <p className="text-[10px] text-[#717970]">{leader.location}</p>
+                        <p className="text-[10px] text-ink-3">{leader.location}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6">
                       <div className="text-right">
-                        <span className="font-mono font-bold text-[#002c13] text-sm">
+                        <span className="font-mono font-bold text-accent text-sm">
                           {leader.invitesCount}
                         </span>
-                        <span className="text-[10px] text-[#717970] block">invites</span>
+                        <span className="text-[10px] text-ink-3 block">invites</span>
                       </div>
-                      <div className="w-20 text-right font-mono font-extrabold text-[#306a43]">
+                      <div className="w-20 text-right font-mono font-extrabold text-pos">
                         +{leader.totalGiftsXAF.toLocaleString()} XAF
                       </div>
                     </div>
@@ -544,24 +515,24 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             </div>
 
             {/* Current User Standings Card */}
-            <div className="p-4 rounded-xl bg-linear-to-r from-[#002c13] to-[#014421] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+            <div className="p-4 rounded-xl bg-linear-to-r from-emerald to-emerald-2 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-full bg-[#fed65b] text-[#002c13] font-black text-base flex items-center justify-center shadow-xs ring-2 ring-white/20">
+                <div className="w-11 h-11 rounded-full bg-gold text-on-gold font-black text-base flex items-center justify-center shadow-xs ring-2 ring-white/20">
                   #{userRankInfo.rank}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#fed65b]">Your Current Standings</span>
-                    <span className="text-[10px] px-2 py-0.2 rounded-full bg-white/20 text-white">
+                    <span className="text-xs font-bold text-gold">Your Current Standings</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white">
                       {currentUser.name}
                     </span>
                   </div>
                   <p className="text-xs text-white/90 mt-0.5">
-                    You have <strong className="text-[#fed65b] font-mono">{userInvites} invites</strong>{' '}
+                    You have <strong className="text-gold font-mono">{userInvites} invites</strong>{' '}
                     (+{userEarnings.toLocaleString()} XAF earned).
                     {userRankInfo.nextInvites > 0 && (
                       <span className="text-white/75 block sm:inline sm:ml-1">
-                        Invite <strong className="text-[#fed65b]">{userRankInfo.nextInvites} more</strong> to reach #{userRankInfo.nextRank}!
+                        Invite <strong className="text-gold">{userRankInfo.nextInvites} more</strong> to reach #{userRankInfo.nextRank}!
                       </span>
                     )}
                   </p>
@@ -569,22 +540,12 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                {onSimulateSignup && (
-                  <button
-                    onClick={onSimulateSignup}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center justify-center gap-1"
-                    title="Simulate adding 1 friend invite to test rank advancement"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
-                    <span>+1 Invite</span>
-                  </button>
-                )}
                 {onInviteFriend && (
                   <button
                     onClick={onInviteFriend}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-[#fed65b] text-[#002c13] hover:bg-[#ffe088] text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gold text-on-gold hover:bg-gold-2 text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-1.5"
                   >
-                    <span className="material-symbols-outlined text-[15px]">person_add</span>
+                    <span aria-hidden="true" className="material-symbols-outlined text-[15px]">person_add</span>
                     <span>Invite Friends</span>
                   </button>
                 )}

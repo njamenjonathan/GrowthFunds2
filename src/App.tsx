@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   INITIAL_PLANS,
   INITIAL_USER,
@@ -19,15 +19,19 @@ import {
   AuditLog,
   ReferralRecord,
   AppNotification,
+  View,
 } from './types';
 
 import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
 import { PlansView } from './components/PlansView';
 import { DashboardView } from './components/DashboardView';
+import { ReferralsView } from './components/ReferralsView';
 import { TransactionHistoryView } from './components/TransactionHistoryView';
 import { SecurityView } from './components/SecurityView';
 import { AdminDashboardView } from './components/AdminDashboardView';
+import { SiteFooter } from './components/SiteFooter';
+import { SignedOutNotice } from './components/SignedOutNotice';
 import { DepositFlow } from './components/DepositFlow';
 import { WithdrawalFlow } from './components/WithdrawalFlow';
 import { KycVerificationModal } from './components/KycVerificationModal';
@@ -36,17 +40,22 @@ import { SupportChatModal } from './components/SupportChatModal';
 import { LegalModal } from './components/LegalModal';
 import { AuthModal } from './components/AuthModal';
 
+/** Views that require a signed-in investor. */
+const PRIVATE_VIEWS: View[] = ['dashboard', 'referrals', 'history', 'security'];
+
+const reference = (prefix: string) => `GF-${prefix}-${Math.floor(1000000 + Math.random() * 9000000)}`;
+
+const auditTimestamp = () => new Date().toISOString().replace('T', ' ').substring(0, 19);
+
 export default function App() {
-  // Theme State (Light vs High-Contrast Dark)
+  // ---------------------------------------------------------------- theme
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
-      const savedTheme = localStorage.getItem('growthfund_theme');
-      if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-      if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
+      const saved = localStorage.getItem('growthfund_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
     } catch {
-      // ignore
+      // Storage can be unavailable (private mode, blocked cookies) — fall through.
     }
     return 'light';
   });
@@ -55,374 +64,357 @@ export default function App() {
     try {
       localStorage.setItem('growthfund_theme', theme);
     } catch {
-      // ignore
+      // Persisting the preference is best-effort; the theme still applies.
     }
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  const handleToggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  const handleToggleTheme = useCallback(
+    () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
+    []
+  );
 
-  // Main Navigation State
-  const [currentView, setCurrentView] = useState<string>('home');
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  // ----------------------------------------------------------- navigation
+  const [currentView, setCurrentView] = useState<View>('home');
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Core Data State
+  // ------------------------------------------------------------- app data
   const [user, setUser] = useState<UserProfile | null>(INITIAL_USER);
   const [plans] = useState<InvestmentPlan[]>(INITIAL_PLANS);
   const [activeInvestments, setActiveInvestments] = useState<ActiveInvestment[]>(INITIAL_ACTIVE_INVESTMENTS);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
 
-  // Notification Handlers
-  const handleMarkNotificationAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
-  };
-
-  const handleMarkAllNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
-  };
-
-  const handleClearNotifications = () => {
-    setNotifications([]);
-  };
-
-  // Admin Data State
   const [adminDeposits, setAdminDeposits] = useState(INITIAL_ADMIN_DEPOSITS);
   const [adminWithdrawals, setAdminWithdrawals] = useState(INITIAL_ADMIN_WITHDRAWALS);
   const [kycApplications, setKycApplications] = useState(INITIAL_KYC_APPLICATIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
 
-  // Modals
-  const [showDepositModal, setShowDepositModal] = useState<boolean>(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
-  const [showKycModal, setShowKycModal] = useState<boolean>(false);
+  // --------------------------------------------------------------- modals
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showKycModal, setShowKycModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [showSupportModal, setShowSupportModal] = useState<boolean>(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [legalModalTopic, setLegalModalTopic] = useState<string | null>(null);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
+  /** Plan pre-selected from the home page, opened straight into its prospectus. */
+  const [planToOpen, setPlanToOpen] = useState<InvestmentPlan | null>(null);
 
-  // Deposit Handler
-  const handleDepositSuccess = (amount: number, method: PaymentMethodType, phone: string) => {
-    if (!user) return;
-    const fee = Math.round(amount * 0.005);
-    const refCode = `GF-DP-${Math.floor(1000000 + Math.random() * 9000000)}`;
-    const newTx: Transaction = {
-      id: `tx_${Date.now()}`,
-      type: 'deposit',
-      amount: amount,
-      fee: fee,
-      netAmount: amount,
-      status: 'completed',
-      method: method,
-      reference: refCode,
-      date: 'Just now',
-      timestamp: Date.now(),
-      destinationOrSource: phone,
-      notes: `Mobile deposit authorized via ${method}.`,
-    };
+  const navigate = useCallback((view: View) => {
+    setCurrentView(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
-    setUser({
-      ...user,
-      availableBalance: user.availableBalance + amount,
-    });
-    setTransactions([newTx, ...transactions]);
+  const openDeposit = useCallback(() => setShowDepositModal(true), []);
+  const openWithdraw = useCallback(() => setShowWithdrawModal(true), []);
+  const openKyc = useCallback(() => setShowKycModal(true), []);
+  const openSupport = useCallback(() => setShowSupportModal(true), []);
 
-    // Push new notification
-    const newNotif: AppNotification = {
-      id: `notif_${Date.now()}`,
-      title: 'Deposit Successful',
-      message: `${amount.toLocaleString()} XAF deposited via ${method} has been credited to your available balance.`,
-      timestamp: Date.now(),
-      timeAgo: 'Just now',
-      type: 'deposit',
-      read: false,
-      amount: amount,
-      reference: refCode,
-      targetView: 'dashboard',
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
-
-    // Add to Admin Deposits & Audit
-    setAdminDeposits([
-      {
-        id: `dp_adm_${Date.now()}`,
-        user: user.name,
-        amount: amount,
-        status: 'APPROVED',
-        date: 'Just now',
-        method: method,
-      },
-      ...adminDeposits,
+  const pushAudit = useCallback((entry: Omit<AuditLog, 'id' | 'timestamp'>) => {
+    setAuditLogs((prev) => [
+      { id: `log_${Date.now()}`, timestamp: auditTimestamp(), ...entry },
+      ...prev,
     ]);
+  }, []);
 
-    setAuditLogs([
-      {
-        id: `log_${Date.now()}`,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+  const pushNotification = useCallback((notif: Omit<AppNotification, 'id' | 'timestamp' | 'timeAgo' | 'read'>) => {
+    setNotifications((prev) => [
+      { id: `notif_${Date.now()}`, timestamp: Date.now(), timeAgo: 'Just now', read: false, ...notif },
+      ...prev,
+    ]);
+  }, []);
+
+  // --------------------------------------------------- notification state
+  const handleMarkNotificationAsRead = useCallback((id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  }, []);
+
+  const handleMarkAllNotificationsAsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  const handleClearNotifications = useCallback(() => setNotifications([]), []);
+
+  // ------------------------------------------------------------- deposits
+  const handleDepositSuccess = useCallback(
+    (amount: number, method: PaymentMethodType, phone: string, refCode: string) => {
+      if (!user) return;
+
+      setTransactions((prev) => [
+        {
+          id: `tx_${Date.now()}`,
+          type: 'deposit',
+          amount,
+          fee: Math.round(amount * 0.005),
+          netAmount: amount,
+          status: 'completed',
+          method,
+          reference: refCode,
+          date: 'Just now',
+          timestamp: Date.now(),
+          destinationOrSource: phone,
+          notes: `Mobile deposit authorized via ${method}.`,
+        },
+        ...prev,
+      ]);
+
+      setUser({ ...user, availableBalance: user.availableBalance + amount });
+
+      pushNotification({
+        title: 'Deposit successful',
+        message: `${amount.toLocaleString()} XAF deposited via ${method} has been credited to your available balance.`,
+        type: 'deposit',
+        amount,
+        reference: refCode,
+        targetView: 'dashboard',
+      });
+
+      setAdminDeposits((prev) => [
+        {
+          id: `dp_adm_${Date.now()}`,
+          user: user.name,
+          amount,
+          status: 'APPROVED' as const,
+          date: 'Just now',
+          method,
+        },
+        ...prev,
+      ]);
+
+      pushAudit({
         actor: user.name,
-        action: `Deposit Cleared (${amount.toLocaleString()} XAF)`,
+        action: `Deposit cleared (${amount.toLocaleString()} XAF)`,
         target: `Wallet ${user.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
-      },
-      ...auditLogs,
-    ]);
-  };
+      });
+    },
+    [user, pushAudit, pushNotification]
+  );
 
-  // Withdrawal Handler
-  const handleWithdrawSuccess = (amount: number, fee: number, method: PaymentMethodType, account: string) => {
-    if (!user) return;
-    const netAmount = Math.max(0, amount - fee);
-    const refCode = `GF-WD-${Math.floor(1000000 + Math.random() * 9000000)}`;
+  // ---------------------------------------------------------- withdrawals
+  const handleWithdrawSuccess = useCallback(
+    (amount: number, fee: number, method: PaymentMethodType, account: string, refCode: string) => {
+      if (!user) return;
 
-    const newTx: Transaction = {
-      id: `tx_${Date.now()}`,
-      type: 'withdrawal',
-      amount: amount,
-      fee: fee,
-      netAmount: netAmount,
-      status: 'completed',
-      method: method,
-      reference: refCode,
-      date: 'Just now',
-      timestamp: Date.now(),
-      destinationOrSource: account,
-      notes: `Payout dispatched to verified account ${account}.`,
-    };
+      setTransactions((prev) => [
+        {
+          id: `tx_${Date.now()}`,
+          type: 'withdrawal',
+          amount,
+          fee,
+          netAmount: Math.max(0, amount - fee),
+          status: 'completed',
+          method,
+          reference: refCode,
+          date: 'Just now',
+          timestamp: Date.now(),
+          destinationOrSource: account,
+          notes: `Payout dispatched to verified account ${account}.`,
+        },
+        ...prev,
+      ]);
 
-    setUser({
-      ...user,
-      availableBalance: user.availableBalance - amount,
-    });
-    setTransactions([newTx, ...transactions]);
+      setUser({ ...user, availableBalance: user.availableBalance - amount });
 
-    // Push new notification
-    const newNotif: AppNotification = {
-      id: `notif_${Date.now()}`,
-      title: 'Withdrawal Dispatched',
-      message: `${amount.toLocaleString()} XAF withdrawal to ${account} via ${method} is processing.`,
-      timestamp: Date.now(),
-      timeAgo: 'Just now',
-      type: 'withdrawal',
-      read: false,
-      amount: amount,
-      reference: refCode,
-      targetView: 'history',
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
+      pushNotification({
+        title: 'Withdrawal dispatched',
+        message: `${amount.toLocaleString()} XAF withdrawal to ${account} via ${method} is processing.`,
+        type: 'withdrawal',
+        amount,
+        reference: refCode,
+        targetView: 'history',
+      });
 
-    setAdminWithdrawals([
-      {
-        id: `wd_adm_${Date.now()}`,
-        user: user.name,
-        amount: amount,
-        status: 'APPROVED',
-        date: 'Just now',
-        method: method,
-        account: account,
-      },
-      ...adminWithdrawals,
-    ]);
+      setAdminWithdrawals((prev) => [
+        {
+          id: `wd_adm_${Date.now()}`,
+          user: user.name,
+          amount,
+          status: 'APPROVED' as const,
+          date: 'Just now',
+          method,
+          account,
+        },
+        ...prev,
+      ]);
 
-    setAuditLogs([
-      {
-        id: `log_${Date.now()}`,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      pushAudit({
         actor: user.name,
-        action: `Withdrawal Dispatched (${amount.toLocaleString()} XAF)`,
+        action: `Withdrawal dispatched (${amount.toLocaleString()} XAF)`,
         target: `${method} (${account})`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
-      },
-      ...auditLogs,
-    ]);
-  };
+      });
+    },
+    [user, pushAudit, pushNotification]
+  );
 
-  // Investment Allocation Handler
-  const handleInvestInPlan = (plan: InvestmentPlan, amount: number) => {
-    if (!user) return;
-    const refCode = `GF-IV-${Math.floor(1000000 + Math.random() * 9000000)}`;
+  // ---------------------------------------------------------- investments
+  const handleInvestInPlan = useCallback(
+    (plan: InvestmentPlan, amount: number) => {
+      if (!user) return;
+      const refCode = reference('IV');
+      const maturity = new Date();
+      maturity.setMonth(maturity.getMonth() + plan.termMonths);
 
-    const newInv: ActiveInvestment = {
-      id: `inv_${Date.now()}`,
-      planId: plan.id,
-      planName: plan.name,
-      amountInvested: amount,
-      startDate: new Date().toISOString().split('T')[0],
-      maturityDate: new Date(Date.now() + plan.termMonths * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      projectedReturn: plan.projectedReturn,
-      accruedEarnings: 0,
-      currentValuation: amount,
-      status: 'active',
-    };
+      const investment: ActiveInvestment = {
+        id: `inv_${Date.now()}`,
+        planId: plan.id,
+        planName: plan.name,
+        amountInvested: amount,
+        startDate: new Date().toISOString().split('T')[0],
+        maturityDate: maturity.toISOString().split('T')[0],
+        projectedReturn: plan.projectedReturn,
+        accruedEarnings: 0,
+        currentValuation: amount,
+        status: 'active',
+      };
 
-    const newTx: Transaction = {
-      id: `tx_${Date.now()}`,
-      type: 'investment',
-      amount: amount,
-      fee: 0,
-      netAmount: amount,
-      status: 'completed',
-      method: 'Express Union Mobile',
-      reference: refCode,
-      date: 'Just now',
-      timestamp: Date.now(),
-      planName: plan.name,
-      notes: `Capital committed to ${plan.name} (${plan.termMonths} Months lockup).`,
-    };
+      setActiveInvestments((prev) => [investment, ...prev]);
 
-    setUser({
-      ...user,
-      availableBalance: user.availableBalance - amount,
-      investedBalance: user.investedBalance + amount,
-    });
-    setActiveInvestments([newInv, ...activeInvestments]);
-    setTransactions([newTx, ...transactions]);
+      setTransactions((prev) => [
+        {
+          id: `tx_${Date.now()}`,
+          type: 'investment',
+          amount,
+          fee: 0,
+          netAmount: amount,
+          status: 'completed',
+          method: 'GrowthFund Wallet',
+          reference: refCode,
+          date: 'Just now',
+          timestamp: Date.now(),
+          planName: plan.name,
+          notes: `Capital committed to ${plan.name} (${plan.termMonths} month lock-up).`,
+        },
+        ...prev,
+      ]);
 
-    // Push new notification
-    const newNotif: AppNotification = {
-      id: `notif_${Date.now()}`,
-      title: 'Investment Active & Earning',
-      message: `Subscribed ${amount.toLocaleString()} XAF to ${plan.name} (${plan.termMonths} Months, ${plan.projectedReturn}% projected return).`,
-      timestamp: Date.now(),
-      timeAgo: 'Just now',
-      type: 'investment',
-      read: false,
-      amount: amount,
-      reference: refCode,
-      targetView: 'investments',
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
+      setUser({
+        ...user,
+        availableBalance: user.availableBalance - amount,
+        investedBalance: user.investedBalance + amount,
+      });
 
-    setAuditLogs([
-      {
-        id: `log_${Date.now()}`,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      pushNotification({
+        title: 'Investment active',
+        message: `Subscribed ${amount.toLocaleString()} XAF to ${plan.name} (${plan.termMonths} months, ${plan.projectedReturn}% projected return).`,
+        type: 'investment',
+        amount,
+        reference: refCode,
+        targetView: 'dashboard',
+      });
+
+      pushAudit({
         actor: user.name,
         action: `Subscribed to ${plan.name} (${amount.toLocaleString()} XAF)`,
-        target: `Portfolio #${newInv.id}`,
+        target: `Portfolio #${investment.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
-      },
-      ...auditLogs,
-    ]);
-  };
+      });
 
-  // Referral Gift Handler (1,000 XAF Gift per successful referral)
-  const handleReferralSuccess = (newReferral: ReferralRecord) => {
-    if (!user) return;
-    const reward = newReferral.giftAmount || 1000;
-    const refCode = `GF-RF-${Math.floor(1000000 + Math.random() * 9000000)}`;
+      return refCode;
+    },
+    [user, pushAudit, pushNotification]
+  );
 
-    const newTx: Transaction = {
-      id: `tx_${Date.now()}`,
-      type: 'referral_gift',
-      amount: reward,
-      fee: 0,
-      netAmount: reward,
-      status: 'completed',
-      method: 'GrowthFund Wallet',
-      reference: refCode,
-      date: 'Just now',
-      timestamp: Date.now(),
-      destinationOrSource: `Referral Bonus: ${newReferral.name}`,
-      notes: `1,000 XAF invite reward credited for friend sign-up (${newReferral.name}).`,
-    };
+  // ------------------------------------------------------------ referrals
+  const handleReferralSuccess = useCallback(
+    (newReferral: ReferralRecord) => {
+      if (!user) return;
+      const reward = newReferral.giftAmount || 1000;
+      const refCode = reference('RF');
 
-    const currentList = user.referralList || [];
-    const updatedList = [newReferral, ...currentList];
-    const updatedCount = (user.referralCount || 0) + 1;
-    const updatedEarnings = (user.referralEarnings || 0) + reward;
+      setTransactions((prev) => [
+        {
+          id: `tx_${Date.now()}`,
+          type: 'referral_gift',
+          amount: reward,
+          fee: 0,
+          netAmount: reward,
+          status: 'completed',
+          method: 'GrowthFund Wallet',
+          reference: refCode,
+          date: 'Just now',
+          timestamp: Date.now(),
+          destinationOrSource: `Referral bonus: ${newReferral.name}`,
+          notes: `${reward.toLocaleString()} XAF invite reward credited for a friend sign-up (${newReferral.name}).`,
+        },
+        ...prev,
+      ]);
 
-    setUser({
-      ...user,
-      availableBalance: user.availableBalance + reward,
-      referralCount: updatedCount,
-      referralEarnings: updatedEarnings,
-      referralList: updatedList,
-    });
+      setUser({
+        ...user,
+        availableBalance: user.availableBalance + reward,
+        referralCount: (user.referralCount ?? 0) + 1,
+        referralEarnings: (user.referralEarnings ?? 0) + reward,
+        referralList: [newReferral, ...(user.referralList ?? [])],
+      });
 
-    setTransactions([newTx, ...transactions]);
+      pushNotification({
+        title: 'Referral reward credited',
+        message: `${newReferral.name} registered with your code ${user.referralCode ?? ''}. ${reward.toLocaleString()} XAF has been added to your wallet.`,
+        type: 'referral',
+        amount: reward,
+        reference: refCode,
+        targetView: 'referrals',
+      });
 
-    // Push new notification
-    const newNotif: AppNotification = {
-      id: `notif_${Date.now()}`,
-      title: 'Referral Reward Credited',
-      message: `${newReferral.name} registered with your code ${user.referralCode || 'GF-SAM882'}. 1,000 XAF cash gift has been added to your wallet!`,
-      timestamp: Date.now(),
-      timeAgo: 'Just now',
-      type: 'referral',
-      read: false,
-      amount: reward,
-      reference: refCode,
-      targetView: 'dashboard',
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
-
-    setAuditLogs([
-      {
-        id: `log_${Date.now()}`,
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        actor: 'System (Referral Engine)',
-        action: `Referral Gift Credited (+${reward.toLocaleString()} XAF)`,
-        target: `Referee: ${newReferral.name} (Code: ${user.referralCode || 'GF-USER'})`,
+      pushAudit({
+        actor: 'System (referral engine)',
+        action: `Referral gift credited (+${reward.toLocaleString()} XAF)`,
+        target: `Referee: ${newReferral.name}`,
         ipAddress: '10.0.8.44',
         status: 'SUCCESS',
-      },
-      ...auditLogs,
-    ]);
-  };
+      });
+    },
+    [user, pushAudit, pushNotification]
+  );
 
-  // KYC Update Handler
-  const handleKycComplete = (updatedFields: Partial<UserProfile>) => {
-    if (!user) return;
-    setUser({
-      ...user,
-      ...updatedFields,
-    });
-  };
+  // ------------------------------------------------------------------ kyc
+  const handleKycComplete = useCallback((updatedFields: Partial<UserProfile>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : prev));
+  }, []);
 
-  // Admin Actions
-  const handleApproveDeposit = (id: string) => {
-    setAdminDeposits(adminDeposits.map((d) => (d.id === id ? { ...d, status: 'APPROVED' } : d)));
-  };
-  const handleRejectDeposit = (id: string) => {
-    setAdminDeposits(adminDeposits.map((d) => (d.id === id ? { ...d, status: 'REJECTED' } : d)));
-  };
-  const handleApproveWithdrawal = (id: string) => {
-    setAdminWithdrawals(adminWithdrawals.map((w) => (w.id === id ? { ...w, status: 'APPROVED' } : w)));
-  };
-  const handleRejectWithdrawal = (id: string) => {
-    setAdminWithdrawals(adminWithdrawals.map((w) => (w.id === id ? { ...w, status: 'REJECTED' } : w)));
-  };
-  const handleApproveKyc = (id: string) => {
-    setKycApplications(kycApplications.filter((k) => k.id !== id));
-  };
-  const handleRejectKyc = (id: string) => {
-    setKycApplications(kycApplications.filter((k) => k.id !== id));
-  };
+  // -------------------------------------------------------- admin actions
+  const handleApproveDeposit = (id: string) =>
+    setAdminDeposits((prev) => prev.map((d) => (d.id === id ? { ...d, status: 'APPROVED' } : d)));
+  const handleRejectDeposit = (id: string) =>
+    setAdminDeposits((prev) => prev.map((d) => (d.id === id ? { ...d, status: 'REJECTED' } : d)));
+  const handleApproveWithdrawal = (id: string) =>
+    setAdminWithdrawals((prev) => prev.map((w) => (w.id === id ? { ...w, status: 'APPROVED' } : w)));
+  const handleRejectWithdrawal = (id: string) =>
+    setAdminWithdrawals((prev) => prev.map((w) => (w.id === id ? { ...w, status: 'REJECTED' } : w)));
+  const handleApproveKyc = (id: string) =>
+    setKycApplications((prev) => prev.filter((k) => k.id !== id));
+  const handleRejectKyc = (id: string) =>
+    setKycApplications((prev) => prev.filter((k) => k.id !== id));
+
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    navigate('home');
+  }, [navigate]);
+
+  // A signed-out visitor on a private view gets an explicit prompt rather than
+  // the blank screen the old routing produced.
+  const needsAuth = !user && PRIVATE_VIEWS.includes(currentView);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-[#191c1d]">
-      {/* Top Navigation */}
+    <div className="min-h-screen flex flex-col bg-canvas text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-emerald focus:text-gold focus:text-sm focus:font-bold"
+      >
+        Skip to main content
+      </a>
+
       <Navbar
         currentView={currentView}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={navigate}
         isAdmin={isAdmin}
-        onToggleAdmin={() => setIsAdmin(!isAdmin)}
+        onToggleAdmin={() => setIsAdmin((prev) => !prev)}
         user={user}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -430,16 +422,13 @@ export default function App() {
         onMarkNotificationAsRead={handleMarkNotificationAsRead}
         onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
         onClearNotifications={handleClearNotifications}
-        onOpenAuth={(mode) => setAuthModalMode(mode)}
-        onOpenKyc={() => setShowKycModal(true)}
-        onOpenDeposit={() => setShowDepositModal(true)}
-        onOpenWithdraw={() => setShowWithdrawModal(true)}
-        onOpenSupport={() => setShowSupportModal(true)}
-        onLogout={() => setUser(null)}
+        onOpenAuth={setAuthModalMode}
+        onOpenDeposit={openDeposit}
+        onOpenWithdraw={openWithdraw}
+        onLogout={handleLogout}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col">
+      <main id="main" className="flex-1 flex flex-col">
         {isAdmin ? (
           <AdminDashboardView
             deposits={adminDeposits}
@@ -453,22 +442,24 @@ export default function App() {
             onApproveKyc={handleApproveKyc}
             onRejectKyc={handleRejectKyc}
           />
+        ) : needsAuth ? (
+          <SignedOutNotice
+            onLogin={() => setAuthModalMode('login')}
+            onRegister={() => setAuthModalMode('register')}
+            onExplorePlans={() => navigate('plans')}
+          />
         ) : (
           <>
             {currentView === 'home' && (
               <HomeView
                 plans={plans}
-                onSelectPlan={() => {
-                  setCurrentView('plans');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                onSelectPlan={(plan) => {
+                  setPlanToOpen(plan);
+                  navigate('plans');
                 }}
-                onExplorePlans={() => {
-                  setCurrentView('plans');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                onOpenDeposit={() => setShowDepositModal(true)}
-                onOpenKyc={() => setShowKycModal(true)}
-                onOpenLegal={(topic) => setLegalModalTopic(topic)}
+                onExplorePlans={() => navigate('plans')}
+                onOpenDeposit={openDeposit}
+                onOpenLegal={setLegalModalTopic}
               />
             )}
 
@@ -476,29 +467,14 @@ export default function App() {
               <PlansView
                 plans={plans}
                 user={user}
+                planToOpen={planToOpen}
+                onPlanOpened={() => setPlanToOpen(null)}
                 onInvestInPlan={handleInvestInPlan}
-                onOpenDeposit={() => setShowDepositModal(true)}
-                onOpenKyc={() => setShowKycModal(true)}
+                onOpenDeposit={openDeposit}
+                onOpenKyc={openKyc}
+                onOpenAuth={() => setAuthModalMode('login')}
+                onViewPortfolio={() => navigate('dashboard')}
               />
-            )}
-
-            {currentView === 'calculator' && (
-              <div className="py-6">
-                <HomeView
-                  plans={plans}
-                  onSelectPlan={() => {
-                    setCurrentView('plans');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  onExplorePlans={() => {
-                    setCurrentView('plans');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  onOpenDeposit={() => setShowDepositModal(true)}
-                  onOpenKyc={() => setShowKycModal(true)}
-                  onOpenLegal={(topic) => setLegalModalTopic(topic)}
-                />
-              </div>
             )}
 
             {currentView === 'dashboard' && user && (
@@ -506,21 +482,25 @@ export default function App() {
                 user={user}
                 activeInvestments={activeInvestments}
                 transactions={transactions}
-                onOpenDeposit={() => setShowDepositModal(true)}
-                onOpenWithdraw={() => setShowWithdrawModal(true)}
-                onExplorePlans={() => setCurrentView('plans')}
-                onOpenKyc={() => setShowKycModal(true)}
-                onSelectTransaction={(tx) => setSelectedTransaction(tx)}
-                onReferralSuccess={handleReferralSuccess}
+                onOpenDeposit={openDeposit}
+                onOpenWithdraw={openWithdraw}
+                onExplorePlans={() => navigate('plans')}
+                onViewReferrals={() => navigate('referrals')}
+                onViewHistory={() => navigate('history')}
+                onSelectTransaction={setSelectedTransaction}
               />
+            )}
+
+            {currentView === 'referrals' && user && (
+              <ReferralsView user={user} onReferralSuccess={handleReferralSuccess} />
             )}
 
             {currentView === 'history' && (
               <TransactionHistoryView
                 transactions={transactions}
-                onSelectTransaction={(tx) => setSelectedTransaction(tx)}
-                onOpenDeposit={() => setShowDepositModal(true)}
-                onOpenWithdraw={() => setShowWithdrawModal(true)}
+                onSelectTransaction={setSelectedTransaction}
+                onOpenDeposit={openDeposit}
+                onOpenWithdraw={openWithdraw}
               />
             )}
 
@@ -530,38 +510,27 @@ export default function App() {
                 theme={theme}
                 onToggleTheme={handleToggleTheme}
                 onUpdateSecurity={(settings) => setUser({ ...user, ...settings })}
-                onOpenKyc={() => setShowKycModal(true)}
+                onOpenKyc={openKyc}
               />
-            )}
-
-            {currentView === 'legal' && (
-              <div className="flex-1 p-6 md:p-12 max-w-[1000px] mx-auto w-full">
-                <LegalModal initialTopic="terms" onClose={() => setCurrentView('home')} />
-              </div>
             )}
           </>
         )}
       </main>
 
-      {/* Floating Support Button on Desktop */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          onClick={() => setShowSupportModal(true)}
-          className="bg-[#002c13] text-[#fed65b] p-3.5 rounded-full shadow-lg hover:bg-[#014421] transition-all flex items-center gap-2 border-2 border-[#fed65b]/40 hover:scale-105 active:scale-95"
-          title="Chat with CEMAC Investment Advisor"
-        >
-          <span className="material-symbols-outlined text-[24px]">support_agent</span>
-          <span className="text-xs font-bold hidden sm:inline pr-1 text-white">Live Advisory</span>
-        </button>
-      </div>
+      {!isAdmin && <SiteFooter onOpenLegal={setLegalModalTopic} onNavigate={navigate} />}
 
-      {/* Modals */}
-      {showDepositModal && (
-        <DepositFlow
-          user={user}
-          onClose={() => setShowDepositModal(false)}
-          onDepositSuccess={handleDepositSuccess}
-        />
+      {/* Support launcher — the single entry point to the helpdesk. */}
+      <button
+        onClick={openSupport}
+        className="fixed bottom-5 right-5 z-40 bg-emerald text-gold pl-3.5 pr-4 py-3 rounded-full shadow-lg hover:bg-emerald-2 transition-all flex items-center gap-2 border border-gold/30 hover:scale-105 active:scale-95 print-hide"
+        title="Chat with a GrowthFund advisor"
+      >
+        <span aria-hidden="true" className="material-symbols-outlined text-[22px]">support_agent</span>
+        <span className="text-xs font-bold hidden sm:inline">Support</span>
+      </button>
+
+      {showDepositModal && user && (
+        <DepositFlow user={user} onClose={() => setShowDepositModal(false)} onDepositSuccess={handleDepositSuccess} />
       )}
 
       {showWithdrawModal && user && (
@@ -577,11 +546,7 @@ export default function App() {
       )}
 
       {showKycModal && user && (
-        <KycVerificationModal
-          user={user}
-          onClose={() => setShowKycModal(false)}
-          onKycComplete={handleKycComplete}
-        />
+        <KycVerificationModal user={user} onClose={() => setShowKycModal(false)} onKycComplete={handleKycComplete} />
       )}
 
       {selectedTransaction && (
@@ -595,26 +560,9 @@ export default function App() {
         />
       )}
 
-      {showSupportModal && (
-        <SupportChatModal
-          onClose={() => setShowSupportModal(false)}
-          onOpenDeposit={() => {
-            setShowSupportModal(false);
-            setShowDepositModal(true);
-          }}
-          onOpenWithdraw={() => {
-            setShowSupportModal(false);
-            setShowWithdrawModal(true);
-          }}
-        />
-      )}
+      {showSupportModal && <SupportChatModal onClose={() => setShowSupportModal(false)} />}
 
-      {legalModalTopic && (
-        <LegalModal
-          initialTopic={legalModalTopic}
-          onClose={() => setLegalModalTopic(null)}
-        />
-      )}
+      {legalModalTopic && <LegalModal initialTopic={legalModalTopic} onClose={() => setLegalModalTopic(null)} />}
 
       {authModalMode && (
         <AuthModal
@@ -623,11 +571,10 @@ export default function App() {
           onAuthSuccess={(loggedInUser) => {
             setUser(loggedInUser);
             setAuthModalMode(null);
-            setCurrentView('dashboard');
+            navigate('dashboard');
           }}
         />
       )}
     </div>
   );
 }
-

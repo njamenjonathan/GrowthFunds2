@@ -1,405 +1,411 @@
-import React, { useState } from 'react';
-import { InvestmentPlan, UserProfile } from '../types';
+import { useEffect, useState } from 'react';
+import { InvestmentPlan, RiskLevel, UserProfile } from '../types';
+import { Modal, ModalHeader } from './Modal';
 
 interface PlansViewProps {
   plans: InvestmentPlan[];
   user: UserProfile | null;
-  onInvestInPlan: (plan: InvestmentPlan, amount: number) => void;
+  /** Plan chosen elsewhere (e.g. the home page) to open straight away. */
+  planToOpen: InvestmentPlan | null;
+  onPlanOpened: () => void;
+  onInvestInPlan: (plan: InvestmentPlan, amount: number) => string | undefined;
   onOpenDeposit: () => void;
   onOpenKyc: () => void;
+  onOpenAuth: () => void;
+  onViewPortfolio: () => void;
 }
+
+/** Badge styling per risk band, shared by the cards and the prospectus dialog. */
+const riskStyles = (risk: RiskLevel) => {
+  if (risk === 'Low' || risk === 'Very Low') return { className: 'bg-pos-bg text-on-pos-bg', icon: 'shield' };
+  if (risk === 'Medium') return { className: 'bg-gold text-on-gold', icon: 'balance' };
+  return { className: 'bg-info text-on-info', icon: 'trending_up' };
+};
+
+const projectedGain = (amount: number, plan: InvestmentPlan) =>
+  Math.round(amount * (plan.projectedReturn / 100) * (plan.termMonths / 12));
 
 export const PlansView: React.FC<PlansViewProps> = ({
   plans,
   user,
+  planToOpen,
+  onPlanOpened,
   onInvestInPlan,
   onOpenDeposit,
   onOpenKyc,
+  onOpenAuth,
+  onViewPortfolio,
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
-  const [investAmount, setInvestAmount] = useState<number>(0);
+  const [investAmount, setInvestAmount] = useState(0);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successModal, setSuccessModal] = useState(false);
+  /** Set once on success so the confirmation shows the real ledger reference. */
+  const [confirmation, setConfirmation] = useState<{ plan: InvestmentPlan; amount: number; reference: string } | null>(
+    null
+  );
 
-  const handleOpenInvest = (plan: InvestmentPlan) => {
+  const openPlan = (plan: InvestmentPlan) => {
     setSelectedPlan(plan);
     setInvestAmount(plan.minInvestment);
     setAgreedTerms(false);
     setErrorMsg(null);
   };
 
+  // Honour a plan pre-selected from the home page's simulator or featured cards.
+  useEffect(() => {
+    if (!planToOpen) return;
+    openPlan(planToOpen);
+    onPlanOpened();
+  }, [planToOpen, onPlanOpened]);
+
   const handleConfirmInvestment = () => {
     if (!selectedPlan) return;
     if (!user) {
-      setErrorMsg('Please login or create an account to start investing.');
+      setErrorMsg('Sign in or create an account to start investing.');
       return;
     }
     if (user.kycStatus !== 'verified') {
-      setErrorMsg('Your account requires KYC Identity Verification before allocating funds.');
+      setErrorMsg('Your account needs identity verification before you can allocate funds.');
       return;
     }
-    if (investAmount < selectedPlan.minInvestment) {
-      setErrorMsg(`Minimum investment for this fund is ${selectedPlan.minInvestment.toLocaleString()} XAF.`);
+    if (!Number.isFinite(investAmount) || investAmount < selectedPlan.minInvestment) {
+      setErrorMsg(`The minimum for this fund is ${selectedPlan.minInvestment.toLocaleString()} XAF.`);
       return;
     }
     if (investAmount > user.availableBalance) {
-      setErrorMsg(`Insufficient available balance (${user.availableBalance.toLocaleString()} XAF). Please deposit funds first.`);
+      setErrorMsg(
+        `That exceeds your available balance of ${user.availableBalance.toLocaleString()} XAF. Deposit funds first.`
+      );
       return;
     }
     if (!agreedTerms) {
-      setErrorMsg('Please review and acknowledge the investment prospectus risk disclosure.');
+      setErrorMsg('Please acknowledge the prospectus risk disclosure.');
       return;
     }
 
-    onInvestInPlan(selectedPlan, investAmount);
-    setSuccessModal(true);
+    const reference = onInvestInPlan(selectedPlan, investAmount);
+    setConfirmation({ plan: selectedPlan, amount: investAmount, reference: reference ?? '—' });
+    setSelectedPlan(null);
   };
 
   return (
-    <div className="flex-1 p-4 md:p-12 bg-[#f8f9fa] flex flex-col min-h-screen relative overflow-hidden">
-      {/* Subtle Pattern Background */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none pattern-bg"></div>
+    <div className="flex-1 p-4 md:p-10 bg-canvas relative">
+      <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
 
-      <div className="max-w-[1200px] mx-auto w-full relative z-10 flex-grow">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fed65b]/20 text-[#735c00] text-xs font-bold mb-3">
-            <span className="material-symbols-outlined text-[14px]">shield</span>
-            <span>COSUMAF Vetted Portfolios</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#191c1d] mb-2 tracking-tight">
-            Explore Investment Plans
-          </h2>
-          <p className="text-sm sm:text-base text-[#404941] max-w-2xl leading-relaxed">
-            Discover institutional-grade opportunities tailored to your risk profile and timeline. Our vetted funds provide transparent paths to regional growth.
+      <div className="max-w-[1200px] mx-auto w-full relative z-10">
+        <header className="mb-7">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/20 text-gold-ink text-xs font-bold mb-3">
+            <span aria-hidden="true" className="material-symbols-outlined text-[14px]">shield</span>
+            COSUMAF-vetted portfolios
+          </span>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-ink mb-2 tracking-tight font-display">
+            Investment plans
+          </h1>
+          <p className="text-sm text-ink-2 max-w-2xl leading-relaxed">
+            Institutional-grade opportunities matched to your risk profile and timeline, each backed by audited
+            regional assets.
           </p>
         </header>
 
-        {/* User Quick Balance Widget if logged in */}
         {user && (
-          <div className="mb-8 bg-white border border-[#c0c9be]/40 rounded-xl p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="mb-7 bg-surface border border-line rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#002c13]/10 flex items-center justify-center text-[#002c13]">
-                <span className="material-symbols-outlined">account_balance_wallet</span>
-              </div>
+              <span className="w-10 h-10 rounded-lg bg-accent-bg flex items-center justify-center text-accent shrink-0">
+                <span aria-hidden="true" className="material-symbols-outlined">account_balance_wallet</span>
+              </span>
               <div>
-                <p className="text-xs text-[#717970] font-medium">Available Cash to Invest</p>
-                <p className="text-xl font-bold text-[#002c13] font-mono">{user.availableBalance.toLocaleString()} XAF</p>
+                <p className="text-xs text-ink-3 font-medium">Available to invest</p>
+                <p className="text-xl font-bold text-accent font-mono">
+                  {user.availableBalance.toLocaleString()} XAF
+                </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button
                 onClick={onOpenDeposit}
-                className="flex-1 sm:flex-initial bg-[#002c13] text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-[#014421] transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
               >
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                Deposit XAF
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">add_circle</span>
+                Deposit
               </button>
               {user.kycStatus !== 'verified' && (
                 <button
                   onClick={onOpenKyc}
-                  className="flex-1 sm:flex-initial bg-[#fed65b] text-[#241a00] text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-[#ffe088] transition-all flex items-center justify-center gap-1.5"
+                  className="flex-1 sm:flex-initial bg-gold text-on-gold text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-gold-2 transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <span className="material-symbols-outlined text-[16px]">verified</span>
-                  Verify KYC
+                  <span aria-hidden="true" className="material-symbols-outlined text-[16px]">verified</span>
+                  Verify identity
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Bento Grid Layout for Plans (Matching Image 6) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-7">
           {plans.map((plan) => {
-            const isMedium = plan.riskLevel === 'Medium';
-            const isLow = plan.riskLevel === 'Low' || plan.riskLevel === 'Very Low';
-
+            const risk = riskStyles(plan.riskLevel);
             return (
-              <div
+              <article
                 key={plan.id}
-                className={`bg-white rounded-xl border transition-all hover:shadow-md flex flex-col relative group overflow-hidden ${
-                  isMedium
-                    ? 'border-[#735c00]/40 shadow-[0px_2px_15px_rgba(115,92,0,0.08)]'
-                    : 'border-[#c0c9be]/40 shadow-xs'
+                className={`bg-surface rounded-2xl border transition-all hover:shadow-lg hover:-translate-y-0.5 flex flex-col relative overflow-hidden ${
+                  plan.isPopular ? 'border-gold shadow-md' : 'border-line shadow-sm'
                 }`}
               >
-                {/* Decorative Top Accent */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1"
-                  style={{
-                    backgroundColor: plan.accentColor,
-                  }}
-                ></div>
+                <div className="absolute top-0 inset-x-0 h-1" style={{ backgroundColor: plan.accentColor }}></div>
 
-                {isMedium && (
-                  <div className="absolute -top-10 -right-10 w-28 h-28 bg-[#fed65b]/10 rounded-full blur-xl pointer-events-none"></div>
+                {plan.isPopular && (
+                  <span className="absolute top-3 right-3 bg-gold text-on-gold text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Popular
+                  </span>
                 )}
 
-                <div className="p-6 flex-grow relative z-10">
-                  <div className="flex justify-between items-start mb-4">
-                    <div
-                      className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${
-                        isLow
-                          ? 'bg-[#b2f1bf] text-[#14512d]'
-                          : isMedium
-                          ? 'bg-[#fed65b] text-[#745c00]'
-                          : 'bg-[#2c3c4a] text-[#d4e4f6]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {isLow ? 'shield' : isMedium ? 'balance' : 'trending_up'}
-                      </span>
-                      {plan.riskLevel} Risk
+                <div className="p-6 flex-grow">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 w-fit mb-4 ${risk.className}`}
+                  >
+                    <span aria-hidden="true" className="material-symbols-outlined text-[14px]">{risk.icon}</span>
+                    {plan.riskLevel} risk
+                  </span>
+
+                  <h2 className="text-xl font-bold text-ink mb-1">{plan.name}</h2>
+                  <p className="text-xs text-ink-2 mb-5 leading-relaxed">{plan.description}</p>
+
+                  <dl className="space-y-3">
+                    <div className="flex justify-between items-end border-b border-line-2 pb-2">
+                      <dt className="text-xs text-ink-2">Projected return</dt>
+                      <dd className="text-3xl font-extrabold text-accent font-mono">{plan.projectedReturn}%</dd>
                     </div>
-                    <span
-                      className="material-symbols-outlined text-3xl opacity-25"
-                      style={{ color: plan.accentColor }}
-                    >
-                      {plan.iconName}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-[#191c1d] mb-1">{plan.name}</h3>
-                  <p className="text-xs text-[#404941] mb-6 leading-relaxed">{plan.description}</p>
-
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between items-end border-b border-[#e1e3e4] pb-2">
-                      <span className="text-xs text-[#404941]">Projected Return</span>
-                      <span
-                        className="text-3xl font-extrabold"
-                        style={{ color: isMedium ? '#735c00' : isLow ? '#002c13' : '#2c3c4a' }}
-                      >
-                        {plan.projectedReturn}%
-                      </span>
-                    </div>
-
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#404941]">Min. Investment</span>
-                      <span className="font-bold text-[#191c1d] font-mono">
-                        {plan.minInvestment.toLocaleString()} XAF
-                      </span>
+                      <dt className="text-ink-2">Minimum</dt>
+                      <dd className="font-bold text-ink font-mono">{plan.minInvestment.toLocaleString()} XAF</dd>
                     </div>
-
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#404941]">Term Length</span>
-                      <span className="font-bold text-[#191c1d]">{plan.termMonths} Months</span>
+                      <dt className="text-ink-2">Term</dt>
+                      <dd className="font-bold text-ink">{plan.termMonths} months</dd>
                     </div>
-
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#404941]">Management Fee</span>
-                      <span className="font-semibold text-[#717970]">{plan.managementFeePercent}% / yr</span>
+                      <dt className="text-ink-2">Management fee</dt>
+                      <dd className="font-semibold text-ink-3">{plan.managementFeePercent}% / yr</dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
-                <div className="p-6 pt-0 mt-auto relative z-10">
+                <div className="p-6 pt-0 mt-auto">
                   <button
-                    onClick={() => handleOpenInvest(plan)}
-                    className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex justify-center items-center gap-2 ${
-                      isMedium
-                        ? 'bg-[#002c13] text-white hover:bg-[#014421] shadow-xs'
-                        : 'bg-white border border-[#c0c9be] text-[#191c1d] hover:bg-[#f3f4f5] hover:border-[#002c13] hover:text-[#002c13]'
+                    onClick={() => openPlan(plan)}
+                    className={`w-full py-3 rounded-xl text-xs font-bold transition-colors flex justify-center items-center gap-2 ${
+                      plan.isPopular
+                        ? 'bg-emerald text-on-emerald hover:bg-emerald-2'
+                        : 'bg-surface border border-line text-ink hover:bg-surface-2 hover:border-accent hover:text-accent'
                     }`}
                   >
-                    <span>View Details &amp; Invest</span>
-                    <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">
-                      arrow_forward
-                    </span>
+                    View prospectus &amp; invest
+                    <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </button>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
 
-        {/* Disclosures Box (Matching Image 6) */}
-        <div className="p-6 bg-white rounded-xl border border-[#c0c9be]/40 shadow-xs flex gap-4 items-start">
-          <span className="material-symbols-outlined text-[#735c00] mt-0.5 text-xl">info</span>
+        <aside className="p-5 sm:p-6 bg-surface rounded-2xl border border-line shadow-sm flex gap-4 items-start">
+          <span aria-hidden="true" className="material-symbols-outlined text-gold-ink mt-0.5 shrink-0">info</span>
           <div>
-            <h4 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-1">Important Disclosure</h4>
-            <p className="text-xs text-[#404941] leading-relaxed">
-              Past performance does not guarantee future results. All investments carry risk, including the potential loss of principal. Projected returns are estimates supported by regional economic assessments and may be affected by market volatility in the CEMAC region. Please review the full prospectus before committing capital.
+            <h2 className="text-xs font-bold text-ink uppercase tracking-wider mb-1">Important disclosure</h2>
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Past performance does not guarantee future results. All investments carry risk, including the potential
+              loss of principal. Projected returns are estimates supported by regional economic assessments and may be
+              affected by market volatility in the CEMAC region. Review the full prospectus before committing capital.
             </p>
           </div>
-        </div>
+        </aside>
       </div>
 
-      {/* Invest Details & Allocation Modal */}
+      {/* Prospectus & allocation */}
       {selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#c0c9be]/50 p-6 md:p-8">
-            <div className="flex justify-between items-start pb-4 border-b border-[#e1e3e4]">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#b2f1bf] text-[#14512d]">
-                    {selectedPlan.riskLevel} Risk
-                  </span>
-                  <span className="text-xs font-mono text-[#717970]">{selectedPlan.category}</span>
-                </div>
-                <h3 className="text-2xl font-bold text-[#002c13] mt-1">{selectedPlan.name}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedPlan(null)}
-                className="p-1 text-[#717970] hover:text-[#191c1d] rounded-lg"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
+        <Modal onClose={() => setSelectedPlan(null)} size="max-w-xl" label={`${selectedPlan.name} prospectus`}>
+          <ModalHeader
+            icon={selectedPlan.iconName}
+            title={selectedPlan.name}
+            subtitle={`${selectedPlan.category} • ${selectedPlan.riskLevel} risk`}
+            onClose={() => setSelectedPlan(null)}
+          />
+
+          <div className="p-6 space-y-4 overflow-y-auto">
+            <p className="text-xs text-ink-2 leading-relaxed">{selectedPlan.longDescription}</p>
+
+            <div className="bg-surface-2 p-4 rounded-xl border border-line-2">
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-2">Underlying assets</h3>
+              <ul className="space-y-1.5">
+                {selectedPlan.underlyingAssets.map((asset) => (
+                  <li key={asset} className="text-xs text-ink-2 flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></span>
+                    {asset}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="py-4 space-y-4">
-              <p className="text-xs text-[#404941] leading-relaxed">{selectedPlan.longDescription}</p>
-
-              {/* Underlying Assets */}
-              <div className="bg-[#f8f9fa] p-4 rounded-xl border border-[#e1e3e4]">
-                <h5 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-2">
-                  Audited Asset Allocation
-                </h5>
-                <ul className="space-y-1.5">
-                  {selectedPlan.underlyingAssets.map((asset, idx) => (
-                    <li key={idx} className="text-xs text-[#404941] flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#002c13]"></span>
-                      {asset}
-                    </li>
-                  ))}
-                </ul>
+            <div>
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-2">Historical performance</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {selectedPlan.historicalPerformance.map((hp) => (
+                  <div key={hp.year} className="bg-surface border border-line p-2.5 rounded-lg text-center">
+                    <span className="text-[10px] text-ink-3 font-semibold">{hp.year}</span>
+                    <p className="text-sm font-bold text-pos">+{hp.returnPct}%</p>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              {/* Historical Track Record */}
-              <div>
-                <h5 className="text-xs font-bold text-[#191c1d] uppercase tracking-wider mb-2">
-                  Annual Realized Performance (Historical)
-                </h5>
-                <div className="grid grid-cols-3 gap-2">
-                  {selectedPlan.historicalPerformance.map((hp) => (
-                    <div key={hp.year} className="bg-white border border-[#c0c9be]/50 p-2.5 rounded-lg text-center">
-                      <span className="text-[10px] text-[#717970] font-semibold">{hp.year}</span>
-                      <p className="text-sm font-bold text-[#002c13]">+{hp.returnPct}%</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Investment Amount Input */}
-              <div className="pt-2">
-                <label className="block text-xs font-bold text-[#191c1d] uppercase mb-1">
-                  Commitment Amount (XAF)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-xs text-[#717970]">
-                    FCFA
-                  </span>
-                  <input
-                    type="number"
-                    min={selectedPlan.minInvestment}
-                    step={10000}
-                    value={investAmount || ''}
-                    onChange={(e) => setInvestAmount(Number(e.target.value))}
-                    className="w-full pl-14 pr-4 py-3 rounded-lg border border-[#c0c9be] text-lg font-bold font-mono text-[#002c13] focus:border-[#002c13] focus:ring-1 focus:ring-[#002c13]"
-                  />
-                </div>
-                <div className="flex justify-between items-center text-[11px] text-[#717970] mt-1.5">
-                  <span>Min: {selectedPlan.minInvestment.toLocaleString()} XAF</span>
-                  {user && <span>Available: {user.availableBalance.toLocaleString()} XAF</span>}
-                </div>
-              </div>
-
-              {/* Summary Calculations */}
-              <div className="bg-[#002c13]/5 border border-[#002c13]/15 rounded-xl p-4 space-y-2 text-xs">
-                <div className="flex justify-between text-[#404941]">
-                  <span>Lockup Term</span>
-                  <span className="font-bold text-[#191c1d]">{selectedPlan.termMonths} Months</span>
-                </div>
-                <div className="flex justify-between text-[#404941]">
-                  <span>Annual Target Return</span>
-                  <span className="font-bold text-[#002c13]">+{selectedPlan.projectedReturn}% / yr</span>
-                </div>
-                <div className="flex justify-between text-[#404941]">
-                  <span>Estimated Total Return at Maturity</span>
-                  <span className="font-bold text-[#735c00] font-mono">
-                    +{Math.round(investAmount * (selectedPlan.projectedReturn / 100) * (selectedPlan.termMonths / 12)).toLocaleString()} XAF
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold text-sm text-[#002c13] pt-2 border-t border-[#002c13]/10">
-                  <span>Projected Value at Maturity</span>
-                  <span className="font-mono">
-                    {(
-                      investAmount +
-                      Math.round(investAmount * (selectedPlan.projectedReturn / 100) * (selectedPlan.termMonths / 12))
-                    ).toLocaleString()}{' '}
-                    XAF
-                  </span>
-                </div>
-              </div>
-
-              {/* Risk checkbox */}
-              <label className="flex items-start gap-2.5 cursor-pointer pt-2">
-                <input
-                  type="checkbox"
-                  checked={agreedTerms}
-                  onChange={(e) => setAgreedTerms(e.target.checked)}
-                  className="mt-0.5 rounded text-[#002c13] focus:ring-[#002c13]"
-                />
-                <span className="text-xs text-[#404941]">
-                  I acknowledge that returns are projected and not guaranteed, and that I have reviewed the COSUMAF prospectus risk disclosures.
-                </span>
+            <div className="pt-1">
+              <label htmlFor="invest-amount" className="block text-xs font-bold text-ink uppercase mb-1.5">
+                Commitment amount
               </label>
-
-              {errorMsg && (
-                <div className="p-3 rounded-lg bg-[#ffdad6] text-[#ba1a1a] text-xs font-medium flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">error</span>
-                  <span>{errorMsg}</span>
-                </div>
-              )}
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-ink-3 pointer-events-none">
+                  FCFA
+                </span>
+                <input
+                  id="invest-amount"
+                  type="number"
+                  inputMode="numeric"
+                  min={selectedPlan.minInvestment}
+                  step={10000}
+                  value={investAmount || ''}
+                  onChange={(e) => setInvestAmount(Number(e.target.value))}
+                  className="w-full pl-14 pr-4 py-3 rounded-lg border border-line text-lg font-bold font-mono text-accent focus:border-accent outline-none"
+                />
+              </div>
+              <div className="flex justify-between items-center text-[11px] text-ink-3 mt-1.5">
+                <span>Min {selectedPlan.minInvestment.toLocaleString()} XAF</span>
+                {user && <span>Available {user.availableBalance.toLocaleString()} XAF</span>}
+              </div>
             </div>
 
-            <div className="pt-4 border-t border-[#e1e3e4] flex gap-3">
-              <button
-                onClick={() => setSelectedPlan(null)}
-                className="flex-1 py-3 border border-[#c0c9be] text-[#191c1d] rounded-lg text-xs font-bold hover:bg-[#f3f4f5]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmInvestment}
-                className="flex-1 py-3 bg-[#002c13] text-white rounded-lg text-xs font-bold hover:bg-[#014421] shadow-xs flex items-center justify-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                Confirm &amp; Allocate
-              </button>
-            </div>
+            <dl className="bg-accent-bg border border-accent/20 rounded-xl p-4 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <dt className="text-ink-2">Lock-up term</dt>
+                <dd className="font-bold text-ink">{selectedPlan.termMonths} months</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink-2">Annual target return</dt>
+                <dd className="font-bold text-accent">+{selectedPlan.projectedReturn}% / yr</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink-2">Estimated return at maturity</dt>
+                <dd className="font-bold text-gold-ink font-mono">
+                  +{projectedGain(investAmount, selectedPlan).toLocaleString()} XAF
+                </dd>
+              </div>
+              <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-accent/15">
+                <dt>Projected value at maturity</dt>
+                <dd className="font-mono">
+                  {(investAmount + projectedGain(investAmount, selectedPlan)).toLocaleString()} XAF
+                </dd>
+              </div>
+            </dl>
+
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedTerms}
+                onChange={(e) => setAgreedTerms(e.target.checked)}
+                className="mt-0.5 accent-[var(--gf-accent)]"
+              />
+              <span className="text-xs text-ink-2 leading-relaxed">
+                I acknowledge that returns are projected, not guaranteed, and that I have reviewed the COSUMAF
+                prospectus risk disclosures.
+              </span>
+            </label>
+
+            {errorMsg && (
+              <p role="alert" className="p-3 rounded-lg bg-neg-bg text-on-neg-bg text-xs font-medium flex items-center gap-2">
+                <span aria-hidden="true" className="material-symbols-outlined text-sm">error</span>
+                {errorMsg}
+              </p>
+            )}
           </div>
-        </div>
+
+          <div className="p-5 border-t border-line-2 flex gap-3 shrink-0">
+            {!user ? (
+              <button
+                onClick={onOpenAuth}
+                className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors"
+              >
+                Sign in to invest
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setSelectedPlan(null)}
+                  className="flex-1 py-3 border border-line text-ink rounded-lg text-xs font-bold hover:bg-surface-2 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmInvestment}
+                  className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-[16px]">check_circle</span>
+                  Confirm &amp; allocate
+                </button>
+              </>
+            )}
+          </div>
+        </Modal>
       )}
 
-      {/* Success Modal */}
-      {successModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl border border-[#c0c9be]/50">
-            <div className="w-16 h-16 bg-[#b2f1bf] text-[#002c13] rounded-full flex items-center justify-center mx-auto shadow-xs">
-              <span className="material-symbols-outlined text-3xl">verified</span>
+      {/* Confirmation */}
+      {confirmation && (
+        <Modal onClose={() => setConfirmation(null)} size="max-w-md" label="Investment confirmed">
+          <div className="p-7 text-center space-y-4">
+            <div className="w-16 h-16 bg-pos-bg text-on-pos-bg rounded-full flex items-center justify-center mx-auto">
+              <span aria-hidden="true" className="material-symbols-outlined text-3xl">verified</span>
             </div>
-            <h3 className="text-xl font-bold text-[#002c13]">Investment Successfully Allocated!</h3>
-            <p className="text-xs text-[#404941] leading-relaxed">
-              Your commitment of <strong className="font-mono text-[#002c13]">{investAmount.toLocaleString()} XAF</strong> into <strong className="text-[#002c13]">{selectedPlan?.name}</strong> has been secured in your portfolio.
+            <h2 className="text-xl font-bold text-accent">Investment allocated</h2>
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Your commitment of{' '}
+              <strong className="font-mono text-accent">{confirmation.amount.toLocaleString()} XAF</strong> to{' '}
+              <strong className="text-accent">{confirmation.plan.name}</strong> is now active.
             </p>
-            <div className="bg-[#f8f9fa] p-3 rounded-lg border border-[#e1e3e4] text-left text-xs space-y-1">
-              <p className="text-[#717970]">Transaction ID: <span className="font-mono font-bold text-[#191c1d]">GF-IV-{Math.floor(1000000 + Math.random() * 9000000)}</span></p>
-              <p className="text-[#717970]">Status: <span className="font-bold text-[#306a43]">Active / Compounding</span></p>
-              <p className="text-[#717970]">Maturity Term: <span className="font-bold text-[#191c1d]">{selectedPlan?.termMonths} Months</span></p>
+
+            <dl className="bg-surface-2 p-4 rounded-lg border border-line-2 text-left text-xs space-y-1.5">
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Reference</dt>
+                <dd className="font-mono font-bold text-ink">{confirmation.reference}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Status</dt>
+                <dd className="font-bold text-pos">Active / compounding</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Term</dt>
+                <dd className="font-bold text-ink">{confirmation.plan.termMonths} months</dd>
+              </div>
+            </dl>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setConfirmation(null)}
+                className="flex-1 py-3 border border-line text-ink rounded-lg text-xs font-bold hover:bg-surface-2 transition-colors"
+              >
+                Keep browsing
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmation(null);
+                  onViewPortfolio();
+                }}
+                className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors"
+              >
+                Go to portfolio
+              </button>
             </div>
-            <button
-              onClick={() => {
-                setSuccessModal(false);
-                setSelectedPlan(null);
-              }}
-              className="w-full py-3 bg-[#002c13] text-white rounded-lg font-bold text-xs hover:bg-[#014421]"
-            >
-              Go to Portfolio
-            </button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

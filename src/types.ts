@@ -1,3 +1,7 @@
+/** Every route the app can render. Typing this stops navigation targets
+ *  (including notification deep links) from pointing at views that don't exist. */
+export type View = 'home' | 'plans' | 'dashboard' | 'referrals' | 'history' | 'security';
+
 export type RiskLevel = 'Very Low' | 'Low' | 'Medium' | 'High';
 
 export interface InvestmentPlan {
@@ -116,6 +120,6 @@ export interface AppNotification {
   read: boolean;
   amount?: number;
   reference?: string;
-  targetView?: string;
+  targetView?: View;
 }
 
