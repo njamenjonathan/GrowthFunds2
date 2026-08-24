@@ -1,4 +1,3 @@
-import React from 'react';
 
 interface GrowthFundLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -32,18 +31,18 @@ export const GrowthFundLogo: React.FC<GrowthFundLogoProps> = ({
       {/* GrowthFund Emblem: Upward ascending growth bar & geometric gold crest */}
       <div
         className={`relative ${sizeClasses[size]} rounded-xl p-1.5 flex items-center justify-center shadow-xs transition-transform hover:scale-105 ${
-          isLight ? 'bg-white/10 ring-1 ring-white/20' : 'bg-[#002c13] ring-1 ring-[#fed65b]/30'
+          isLight ? 'bg-white/10 ring-1 ring-white/20' : 'bg-emerald ring-1 ring-gold/30'
         }`}
       >
         <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           {/* Gold Sun / Financial Ring */}
-          <circle cx="24" cy="24" r="20" stroke="#fed65b" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+          <circle cx="24" cy="24" r="20" stroke="var(--gf-gold)" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
           
           {/* Ascending Fund Columns */}
-          <rect x="10" y="28" width="5" height="10" rx="2" fill="#97d5a5" />
-          <rect x="18" y="22" width="5" height="16" rx="2" fill="#b2f1bf" />
-          <rect x="26" y="16" width="5" height="22" rx="2" fill="#e9c349" />
-          <rect x="34" y="10" width="5" height="28" rx="2" fill="#fed65b" />
+          <rect x="10" y="28" width="5" height="10" rx="2" fill="var(--gf-emerald-tint)" />
+          <rect x="18" y="22" width="5" height="16" rx="2" fill="#b7ecc6" />
+          <rect x="26" y="16" width="5" height="22" rx="2" fill="var(--gf-gold-3)" />
+          <rect x="34" y="10" width="5" height="28" rx="2" fill="var(--gf-gold)" />
 
           {/* Dynamic Growth Trendline & Arrowhead */}
           <path
@@ -60,17 +59,17 @@ export const GrowthFundLogo: React.FC<GrowthFundLogoProps> = ({
         <div className="flex flex-col">
           <div className="flex items-center gap-0.5 leading-none">
             <span
-              className={`font-extrabold tracking-tight font-['Inter'] ${textClasses[size]} ${
-                isLight ? 'text-white' : 'text-[#002c13]'
+              className={`font-extrabold tracking-tight ${textClasses[size]} ${
+                isLight ? 'text-on-emerald' : 'text-ink'
               }`}
             >
-              Growth<span className={isLight ? 'text-[#fed65b]' : 'text-[#735c00]'}>Fund</span>
+              Growth<span className={isLight ? 'text-gold' : 'text-gold-ink'}>Fund</span>
             </span>
           </div>
           {showTagline && (
             <span
               className={`text-[10px] tracking-wider uppercase font-semibold mt-0.5 ${
-                isLight ? 'text-white/75' : 'text-[#717970]'
+                isLight ? 'text-on-emerald/70' : 'text-ink-3'
               }`}
             >
               Central Africa • CEMAC

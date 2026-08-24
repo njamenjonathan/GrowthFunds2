@@ -1,435 +1,270 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@theme {
-  --color-primary: #002c13;
-  --color-primary-container: #014421;
-  --color-on-primary-container: #76b284;
-  --color-primary-fixed: #b2f1bf;
-  --color-primary-fixed-dim: #97d5a5;
-  --color-on-primary-fixed-variant: #14512d;
-  --color-surface-tint: #306a43;
+/* =========================================================================
+   GrowthFund design tokens
+   -------------------------------------------------------------------------
+   Two kinds of token:
 
-  --color-secondary: #735c00;
-  --color-secondary-container: #fed65b;
-  --color-secondary-fixed: #ffe088;
-  --color-secondary-fixed-dim: #e9c349;
-  --color-on-secondary-container: #745c00;
-  --color-on-secondary-fixed: #241a00;
+   1. FIXED tokens (--gf-emerald*, --gf-gold*, --gf-on-*) keep the same value
+      in both themes. They are the brand surfaces — deep emerald and gold —
+      that always carry light/dark text respectively, so they never need a
+      per-theme override and text on them can never lose contrast.
 
-  --color-tertiary: #162634;
-  --color-tertiary-container: #2c3c4a;
-  --color-on-tertiary-container: #96a6b7;
-  --color-tertiary-fixed: #d4e4f6;
-  --color-tertiary-fixed-dim: #b8c8da;
+   2. ADAPTIVE tokens (canvas/surface/ink/line/accent/pos/neg/info) are
+      redefined under the dark theme. Every component references these by
+      name, so switching themes is a variable swap, not a pile of overrides.
+   ========================================================================= */
 
-  --color-surface: #f8f9fa;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f3f4f5;
-  --color-surface-container: #edeeef;
-  --color-surface-container-high: #e7e8e9;
-  --color-surface-container-highest: #e1e3e4;
-  --color-surface-variant: #e1e3e4;
-  --color-surface-dim: #d9dadb;
-  --color-surface-bright: #f8f9fa;
+:root {
+  color-scheme: light;
 
-  --color-on-surface: #191c1d;
-  --color-on-surface-variant: #404941;
-  --color-on-background: #191c1d;
-  --color-outline: #717970;
-  --color-outline-variant: #c0c9be;
+  /* --- Fixed brand ------------------------------------------------------ */
+  --gf-emerald: #043d21;
+  --gf-emerald-2: #0a5c33;
+  --gf-emerald-3: #02240f;
+  --gf-on-emerald: #ffffff;
+  --gf-emerald-tint: #97d5a5;
 
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
+  --gf-gold: #f5cf5a;
+  --gf-gold-2: #ffe08a;
+  --gf-gold-3: #d9ae3d;
+  --gf-on-gold: #2a1f00;
+
+  --gf-bronze: #cd7f32;
+  --gf-whatsapp: #25d366;
+
+  /* Solid destructive buttons. Fixed in both themes: the adaptive --gf-neg
+     lightens for dark backgrounds, which would leave white button text
+     unreadable. */
+  --gf-danger: #b93028;
+  --gf-danger-hover: #9a231d;
+  --gf-on-danger: #ffffff;
+
+  /* --- Adaptive: surfaces ---------------------------------------------- */
+  --gf-canvas: #f5f8f6;
+  --gf-surface: #ffffff;
+  --gf-surface-2: #f1f5f2;
+  --gf-surface-3: #e5ebe7;
+
+  /* --- Adaptive: text --------------------------------------------------- */
+  --gf-ink: #111815;
+  --gf-ink-2: #3d4a43;
+  --gf-ink-3: #6c7b73;
+
+  /* --- Adaptive: lines -------------------------------------------------- */
+  --gf-line: #d3ddd7;
+  --gf-line-2: #e6ece8;
+
+  /* --- Adaptive: accents & status --------------------------------------- */
+  --gf-accent: #0a5c33;
+  --gf-accent-bg: #e7f3eb;
+  --gf-gold-ink: #8a6a00;
+
+  --gf-pos: #1d7a45;
+  --gf-pos-bg: #d2f2dd;
+  --gf-on-pos-bg: #0d4a28;
+
+  --gf-neg: #b3261e;
+  --gf-neg-bg: #fcdcd9;
+  --gf-on-neg-bg: #8c1d18;
+
+  --gf-info: #1d3a52;
+  --gf-info-bg: #dce9f7;
+  --gf-on-info: #d4e4f6;
+
+  /* --- Elevation -------------------------------------------------------- */
+  --gf-shadow-color: 145 30% 12%;
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --gf-canvas: #0a1310;
+  --gf-surface: #111c17;
+  --gf-surface-2: #16241d;
+  --gf-surface-3: #1e3126;
+
+  --gf-ink: #e9f0ec;
+  --gf-ink-2: #c2d1c8;
+  --gf-ink-3: #91a69a;
+
+  --gf-line: #26382d;
+  --gf-line-2: #1d2c24;
+
+  --gf-accent: #6fd897;
+  --gf-accent-bg: #10291b;
+  --gf-gold-ink: #f5cf5a;
+
+  --gf-pos: #4fcd83;
+  --gf-pos-bg: #123a25;
+  --gf-on-pos-bg: #a8ecc2;
+
+  --gf-neg: #ff9b93;
+  --gf-neg-bg: #3d1512;
+  --gf-on-neg-bg: #ffb4ab;
+
+  --gf-info: #c5dcf5;
+  --gf-info-bg: #16283a;
+  --gf-on-info: #d4e4f6;
+
+  --gf-shadow-color: 150 60% 2%;
+}
+
+/* Expose the tokens to Tailwind. `inline` keeps the var() reference in the
+   generated utility, so a theme swap re-resolves without rebuilding CSS. */
+@theme inline {
+  --color-emerald: var(--gf-emerald);
+  --color-emerald-2: var(--gf-emerald-2);
+  --color-emerald-3: var(--gf-emerald-3);
+  --color-emerald-tint: var(--gf-emerald-tint);
+  --color-on-emerald: var(--gf-on-emerald);
+
+  --color-gold: var(--gf-gold);
+  --color-gold-2: var(--gf-gold-2);
+  --color-gold-3: var(--gf-gold-3);
+  --color-on-gold: var(--gf-on-gold);
+  --color-gold-ink: var(--gf-gold-ink);
+
+  --color-bronze: var(--gf-bronze);
+  --color-whatsapp: var(--gf-whatsapp);
+
+  --color-danger: var(--gf-danger);
+  --color-danger-hover: var(--gf-danger-hover);
+  --color-on-danger: var(--gf-on-danger);
+
+  --color-canvas: var(--gf-canvas);
+  --color-surface: var(--gf-surface);
+  --color-surface-2: var(--gf-surface-2);
+  --color-surface-3: var(--gf-surface-3);
+
+  --color-ink: var(--gf-ink);
+  --color-ink-2: var(--gf-ink-2);
+  --color-ink-3: var(--gf-ink-3);
+
+  --color-line: var(--gf-line);
+  --color-line-2: var(--gf-line-2);
+
+  --color-accent: var(--gf-accent);
+  --color-accent-bg: var(--gf-accent-bg);
+
+  --color-pos: var(--gf-pos);
+  --color-pos-bg: var(--gf-pos-bg);
+  --color-on-pos-bg: var(--gf-on-pos-bg);
+
+  --color-neg: var(--gf-neg);
+  --color-neg-bg: var(--gf-neg-bg);
+  --color-on-neg-bg: var(--gf-on-neg-bg);
+
+  --color-info: var(--gf-info);
+  --color-info-bg: var(--gf-info-bg);
+  --color-on-info: var(--gf-on-info);
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
 }
 
+/* =========================================================================
+   Base
+   ========================================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--gf-canvas);
+  color: var(--gf-ink);
+}
+
+/* Theme swaps animate, but never at the cost of a janky first paint or of
+   users who asked for less motion. */
+body,
+body * {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  body,
+  body *,
+  body *::before,
+  body *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* A single visible focus treatment for every interactive element. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--gf-accent);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
+}
+
+::selection {
+  background: var(--gf-emerald);
+  color: var(--gf-gold);
+}
+
+/* Scrollbars that match the theme instead of punching a light hole in it. */
+* {
+  scrollbar-color: var(--gf-line) transparent;
+  scrollbar-width: thin;
+}
+
+/* =========================================================================
+   Typography helpers
+   ========================================================================= */
+
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
 }
 
-.font-sans-ui {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-/* Luxury Accents and Shimmer */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #d4af37 0%, #fed65b 50%, #e2be42 100%);
+  background: linear-gradient(135deg, var(--gf-gold-3) 0%, var(--gf-gold-2) 50%, var(--gf-gold) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
-.emerald-gradient-text {
-  background: linear-gradient(135deg, #002c13 0%, #035226 50%, #014421 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-html.dark .emerald-gradient-text {
-  background: linear-gradient(135deg, #97d5a5 0%, #b2f1bf 50%, #fed65b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.luxury-gold-border {
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.08);
-}
+/* =========================================================================
+   Motion & decoration
+   ========================================================================= */
 
 .shimmer-badge {
-  background: linear-gradient(90deg, rgba(254, 214, 91, 0.1) 0%, rgba(254, 214, 91, 0.3) 50%, rgba(254, 214, 91, 0.1) 100%);
+  background: linear-gradient(
+    90deg,
+    rgb(245 207 90 / 0.1) 0%,
+    rgb(245 207 90 / 0.3) 50%,
+    rgb(245 207 90 / 0.1) 100%
+  );
   background-size: 200% 100%;
   animation: shimmerMove 3s infinite;
 }
 
 @keyframes shimmerMove {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-/* Glass Panels */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(192, 201, 190, 0.45);
-}
-
-html.dark .glass-panel {
-  background: rgba(18, 30, 23, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(254, 214, 91, 0.18);
-}
-
-/* Base Transition for Theme Switching & Smooth Motion */
-html, body {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  scroll-behavior: smooth;
-}
-
-/* ========================================================================= */
-/* HIGH-CONTRAST DARK MODE SYSTEM (Optimized for Low-Light Viewing) */
-/* ========================================================================= */
-
-html.dark {
-  color-scheme: dark;
-  background-color: #0b120e;
-  color: #f3f7f4;
-}
-
-html.dark body {
-  background-color: #0b120e;
-  color: #f3f7f4;
-}
-
-/* Dark Mode Canvas & Backgrounds */
-html.dark .bg-white {
-  background-color: #121e17 !important;
-}
-
-html.dark .bg-\[\#f8f9fa\],
-html.dark .bg-\[\#fafbfc\],
-html.dark .bg-\[\#f9fafb\],
-html.dark .bg-\[\#faf9f6\],
-html.dark .bg-\[\#f0f5f2\],
-html.dark .bg-\[\#f8faf9\] {
-  background-color: #0b120e !important;
-}
-
-html.dark .bg-\[\#f3f4f5\],
-html.dark .bg-\[\#f0f2f3\] {
-  background-color: #16261e !important;
-}
-
-html.dark .bg-\[\#fdfdfd\] {
-  background-color: #132019 !important;
-}
-
-html.dark .bg-\[\#edeeef\] {
-  background-color: #192b22 !important;
-}
-
-html.dark .bg-\[\#e7e8e9\] {
-  background-color: #1f3429 !important;
-}
-
-html.dark .bg-\[\#e1e3e4\] {
-  background-color: #243c30 !important;
-}
-
-/* Dark Mode Deep Green Surfaces */
-html.dark .bg-\[\#002c13\] {
-  background-color: #091710 !important;
-}
-
-html.dark .bg-\[\#014421\] {
-  background-color: #0d281a !important;
-}
-
-html.dark .bg-\[\#002410\] {
-  background-color: #060e0a !important;
-}
-
-html.dark .bg-\[\#f0fbf3\],
-html.dark .bg-\[\#f0f7f3\],
-html.dark .bg-\[\#e6f3eb\] {
-  background-color: #10271b !important;
-}
-
-html.dark .hover\:bg-\[\#e6f3eb\]:hover {
-  background-color: #183726 !important;
-}
-
-html.dark .bg-\[\#002c13\]\/5,
-html.dark .bg-\[\#002c13\]\/10,
-html.dark .bg-\[\#002c13\]\/15 {
-  background-color: rgba(72, 199, 116, 0.12) !important;
-}
-
-html.dark .bg-\[\#fed65b\]\/10,
-html.dark .bg-\[\#fed65b\]\/20,
-html.dark .bg-\[\#fed65b\]\/30,
-html.dark .bg-\[\#fed65b\]\/40 {
-  background-color: rgba(254, 214, 91, 0.15) !important;
-}
-
-html.dark .bg-\[\#ffdad6\] {
-  background-color: #3b1616 !important;
-}
-
-html.dark .bg-\[\#ffdad6\]\/40 {
-  background-color: rgba(186, 26, 26, 0.2) !important;
-}
-
-html.dark .bg-\[\#b2f1bf\] {
-  background-color: #14512d !important;
-}
-
-/* Dark Mode High-Contrast Typography */
-html.dark .text-\[\#191c1d\],
-html.dark .text-\[\#002c13\] {
-  color: #f3f7f4 !important;
-}
-
-html.dark .text-\[\#404941\] {
-  color: #d1ded5 !important;
-}
-
-html.dark .text-\[\#717970\] {
-  color: #a9beaf !important;
-}
-
-html.dark .text-\[\#735c00\],
-html.dark .text-\[\#745c00\],
-html.dark .text-\[\#544300\],
-html.dark .text-\[\#241a00\] {
-  color: #fed65b !important;
-}
-
-html.dark .text-\[\#14512d\],
-html.dark .text-\[\#014421\] {
-  color: #97d5a5 !important;
-}
-
-html.dark .text-\[\#306a43\],
-html.dark .text-\[\#20bd5a\],
-html.dark .text-\[\#48c774\] {
-  color: #48c774 !important;
-}
-
-html.dark .text-\[\#162634\],
-html.dark .text-\[\#004a77\] {
-  color: #d4e4f6 !important;
-}
-
-html.dark .text-\[\#ba1a1a\],
-html.dark .text-\[\#93000a\] {
-  color: #ff9e9e !important;
-}
-
-/* Ensure bright yellow/gold solid backgrounds maintain crisp dark text */
-html.dark .bg-\[\#fed65b\],
-html.dark .bg-\[\#fed65b\] *,
-html.dark [class*="bg-[#fed65b]"]:not([class*="bg-[#fed65b]/"]),
-html.dark [class*="bg-[#fed65b]"]:not([class*="bg-[#fed65b]/"]) *,
-html.dark .bg-\[\#ffe088\],
-html.dark .bg-\[\#ffe088\] *,
-html.dark [class*="bg-[#ffe088]"]:not([class*="bg-[#ffe088]/"]),
-html.dark [class*="bg-[#ffe088]"]:not([class*="bg-[#ffe088]/"]) * {
-  color: #002c13 !important;
-}
-
-/* Badges with bright mint or red backgrounds */
-html.dark .bg-\[\#b2f1bf\] {
-  background-color: #14512d !important;
-  color: #b2f1bf !important;
-}
-html.dark .bg-\[\#b2f1bf\] * {
-  color: #b2f1bf !important;
-}
-
-html.dark .bg-\[\#ffdad6\] {
-  background-color: #3b1616 !important;
-  color: #ff9e9e !important;
-}
-html.dark .bg-\[\#ffdad6\] * {
-  color: #ff9e9e !important;
-}
-
-/* Dark Mode Borders & Dividers */
-html.dark .border-\[\#c0c9be\],
-html.dark .border-\[\#c0c9be\]\/30,
-html.dark .border-\[\#c0c9be\]\/40,
-html.dark .border-\[\#c0c9be\]\/50,
-html.dark .border-\[\#e1e3e4\],
-html.dark .border-\[\#f0f2f3\],
-html.dark .border-\[\#717970\] {
-  border-color: #273d31 !important;
-}
-
-html.dark .border-b-\[\#e1e3e4\],
-html.dark .border-t-\[\#e1e3e4\],
-html.dark .border-r-\[\#e1e3e4\],
-html.dark .border-l-\[\#e1e3e4\],
-html.dark .border-b-\[\#f0f2f3\],
-html.dark .border-t-\[\#f0f2f3\] {
-  border-color: #273d31 !important;
-}
-
-html.dark .divide-\[\#e1e3e4\] > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-\[\#c0c9be\] > :not([hidden]) ~ :not([hidden]) {
-  border-color: #273d31 !important;
-}
-
-/* Dark Mode Form Inputs & Selects */
-html.dark input[type="text"],
-html.dark input[type="number"],
-html.dark input[type="password"],
-html.dark input[type="email"],
-html.dark input[type="tel"],
-html.dark input[type="date"],
-html.dark select,
-html.dark textarea {
-  background-color: #15241b !important;
-  color: #f3f7f4 !important;
-  border-color: #2f493b !important;
-}
-
-html.dark select option {
-  background-color: #121e17 !important;
-  color: #f3f7f4 !important;
-}
-
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: #7b9485 !important;
-}
-
-html.dark input:focus,
-html.dark select:focus,
-html.dark textarea:focus {
-  border-color: #fed65b !important;
-  box-shadow: 0 0 0 1px #fed65b;
-}
-
-/* Dark Mode Tables & Data Views */
-html.dark th {
-  color: #a9beaf !important;
-}
-
-html.dark tr.hover\:bg-\[\#f8f9fa\]:hover,
-html.dark tr.hover\:bg-\[\#f3f4f5\]:hover,
-html.dark tr:hover {
-  background-color: #16261e !important;
-}
-
-/* Dark Mode Recharts */
-html.dark .recharts-cartesian-grid line {
-  stroke: #1e3327 !important;
-}
-
-html.dark .recharts-text {
-  fill: #a9beaf !important;
-}
-
-/* Dark Mode Hover States */
-html.dark .hover\:bg-\[\#f3f4f5\]:hover,
-html.dark .hover\:bg-\[\#f8f9fa\]:hover {
-  background-color: #192c21 !important;
-}
-
-html.dark .hover\:bg-\[\#e7e8e9\]:hover {
-  background-color: #20372a !important;
-}
-
-html.dark .hover\:border-\[\#002c13\]:hover {
-  border-color: #fed65b !important;
-}
-
-/* Dark Mode Modals & Shadows */
-html.dark .shadow-xs,
-html.dark .shadow-sm,
-html.dark .shadow-md,
-html.dark .shadow-lg,
-html.dark .shadow-xl,
-html.dark .shadow-2xl {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.65), 0 2px 6px -1px rgba(0, 0, 0, 0.45);
-}
-
-/* Dark Mode Patterns */
-html.dark .pattern-bg {
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23fed65b' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-html.dark .pattern-diamonds {
-  background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16 0l16 16-16 16L0 16z' fill='%23fed65b' fill-opacity='0.035' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-html.dark .pattern-geometric {
-  background-image: linear-gradient(135deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
-                    linear-gradient(225deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
-                    linear-gradient(45deg, rgba(254,214,91,0.03) 25%, transparent 25%), 
-                    linear-gradient(315deg, rgba(254,214,91,0.03) 25%, #121e17 25%);
-  background-position: 10px 0, 10px 0, 0 0, 0 0;
-  background-size: 20px 20px;
-  background-repeat: repeat;
-}
-
-/* African Geometric & Diamond Motif Patterns (Light Default) */
+/* Subtle woven motif drawn from the token colours, so it re-tints per theme
+   instead of needing a separate dark-mode image. */
 .pattern-bg {
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23002c13' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-.pattern-diamonds {
-  background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16 0l16 16-16 16L0 16z' fill='%23002c13' fill-opacity='0.025' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-.pattern-geometric {
-  background-image: linear-gradient(135deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
-                    linear-gradient(225deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
-                    linear-gradient(45deg, rgba(200,200,200,0.05) 25%, transparent 25%), 
-                    linear-gradient(315deg, rgba(200,200,200,0.05) 25%, #ffffff 25%);
-  background-position: 10px 0, 10px 0, 0 0, 0 0;
-  background-size: 20px 20px;
-  background-repeat: repeat;
-}
-
-.gf-accent-bar,
-.cauri-accent-bar {
-  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0l10 10-10 10L0 10z' fill='%23fed65b' fill-opacity='0.9' fill-rule='evenodd'/%3E%3C/svg%3E");
-  background-size: 16px 16px;
+  background-image:
+    linear-gradient(135deg, color-mix(in srgb, var(--gf-accent) 7%, transparent) 25%, transparent 25%),
+    linear-gradient(225deg, color-mix(in srgb, var(--gf-accent) 7%, transparent) 25%, transparent 25%);
+  background-size: 28px 28px;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -440,7 +275,48 @@ html.dark .pattern-geometric {
   scrollbar-width: none;
 }
 
-/* Material Symbols configuration */
+/* =========================================================================
+   Form controls
+   ========================================================================= */
+
+input,
+select,
+textarea {
+  background-color: var(--gf-surface);
+  color: var(--gf-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--gf-ink-3);
+}
+
+select option {
+  background-color: var(--gf-surface);
+  color: var(--gf-ink);
+}
+
+/* Range sliders read as brand-coloured tracks in both themes. */
+input[type='range'] {
+  accent-color: var(--gf-accent);
+}
+
+/* =========================================================================
+   Charts
+   ========================================================================= */
+
+.recharts-cartesian-grid line {
+  stroke: var(--gf-line-2);
+}
+
+.recharts-text {
+  fill: var(--gf-ink-3);
+}
+
+/* =========================================================================
+   Material Symbols
+   ========================================================================= */
+
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
@@ -454,6 +330,69 @@ html.dark .pattern-geometric {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+  /* Icons are decorative next to their labels; keep them out of text selections. */
+  user-select: none;
+  /* Reserve the glyph box so nothing reflows when the font resolves. */
+  width: 1em;
+  overflow: hidden;
+  /* Hidden until we know the font arrived — see the loader in index.html.
+     Without this a blocked font download paints the ligature source text
+     ("swap_horiz", "notifications_active") across the interface. */
+  visibility: hidden;
 }
 
+html.icons-ready .material-symbols-outlined {
+  visibility: visible;
+}
 
+/* Font unavailable: show a neutral marker so icon-only controls (close, bell,
+   theme toggle) still read as buttons. Their accessible names come from
+   aria-label, so meaning is preserved either way. */
+html.icons-failed .material-symbols-outlined {
+  visibility: visible;
+  font-family: var(--font-sans);
+  color: transparent;
+  position: relative;
+}
+
+html.icons-failed .material-symbols-outlined::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0.45em;
+  height: 0.45em;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: currentColor;
+  color: inherit;
+  opacity: 0.55;
+}
+
+/* =========================================================================
+   Print — only the receipt, not the whole application shell
+   ========================================================================= */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-receipt,
+  .print-receipt * {
+    visibility: visible;
+  }
+
+  .print-receipt {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+}

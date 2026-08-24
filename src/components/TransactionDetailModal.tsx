@@ -1,135 +1,133 @@
-import React from 'react';
 import { Transaction } from '../types';
+import { Modal, ModalHeader } from './Modal';
 
 interface TransactionDetailModalProps {
-  transaction: Transaction | null;
+  transaction: Transaction;
   onClose: () => void;
   onOpenSupport: () => void;
 }
+
+const STATUS_STYLES: Record<Transaction['status'], string> = {
+  completed: 'bg-pos-bg text-on-pos-bg',
+  processing: 'bg-gold text-on-gold',
+  pending: 'bg-gold text-on-gold',
+  failed: 'bg-neg-bg text-on-neg-bg',
+  rejected: 'bg-neg-bg text-on-neg-bg',
+};
+
+const TYPE_LABELS: Record<Transaction['type'], string> = {
+  deposit: 'Deposit',
+  withdrawal: 'Withdrawal',
+  investment: 'Investment',
+  dividend: 'Dividend',
+  liquidation: 'Liquidation',
+  referral_gift: 'Referral gift',
+};
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   transaction,
   onClose,
   onOpenSupport,
 }) => {
-  if (!transaction) return null;
-
-  const isCredit = transaction.type === 'deposit' || transaction.type === 'dividend' || transaction.type === 'referral_gift';
-
-  const handlePrintReceipt = () => {
-    window.print();
-  };
+  const isCredit =
+    transaction.type === 'deposit' ||
+    transaction.type === 'dividend' ||
+    transaction.type === 'referral_gift';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-[#c0c9be]/50 overflow-hidden flex flex-col">
-        {/* Header (Matching Image 22) */}
-        <div className="p-6 border-b border-[#e1e3e4] flex justify-between items-center bg-[#f8f9fa]">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#002c13]">receipt</span>
-            <h3 className="text-base font-bold text-[#002c13]">Transaction Details</h3>
-          </div>
-          <button onClick={onClose} className="p-1 text-[#717970] hover:text-[#191c1d] rounded-lg">
-            <span className="material-symbols-outlined">close</span>
-          </button>
+    <Modal onClose={onClose} size="max-w-md" label="Transaction receipt">
+      <ModalHeader icon="receipt_long" title="Receipt" subtitle={transaction.reference} onClose={onClose} />
+
+      {/* `print-receipt` is what the print stylesheet isolates, so printing
+          produces the receipt alone rather than the whole application shell. */}
+      <div className="p-6 space-y-5 overflow-y-auto print-receipt">
+        <div className="text-center">
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase mb-2 ${
+              STATUS_STYLES[transaction.status]
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+            {transaction.status}
+          </span>
+          <p className={`text-3xl font-extrabold font-mono ${isCredit ? 'text-pos' : 'text-ink'}`}>
+            {isCredit ? '+' : '−'}
+            {transaction.amount.toLocaleString()} XAF
+          </p>
+          <p className="text-xs text-ink-3 mt-1 font-mono">{transaction.reference}</p>
         </div>
 
-        {/* Content (Matching Image 22) */}
-        <div className="p-6 space-y-6">
-          <div className="text-center pb-2">
-            <span
-              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase mb-2 ${
-                transaction.status === 'completed'
-                  ? 'bg-[#b2f1bf] text-[#14512d]'
-                  : transaction.status === 'processing' || transaction.status === 'pending'
-                  ? 'bg-[#fed65b] text-[#745c00]'
-                  : 'bg-[#ffdad6] text-[#ba1a1a]'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-              {transaction.status}
-            </span>
-            <h2 className="text-3xl font-extrabold text-[#191c1d] font-mono">
-              {isCredit ? '+' : '-'}
-              {transaction.amount.toLocaleString()} XAF
-            </h2>
-            <p className="text-xs text-[#717970] mt-1 font-mono">{transaction.reference}</p>
+        <dl className="bg-surface-2 rounded-xl p-4 border border-line-2 space-y-3 text-xs">
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-3">Type</dt>
+            <dd className="font-bold text-ink">{TYPE_LABELS[transaction.type]}</dd>
           </div>
 
-          <div className="bg-[#f8f9fa] rounded-xl p-4 border border-[#e1e3e4] space-y-3 text-xs">
-            <div className="flex justify-between">
-              <span className="text-[#717970]">Transaction Type</span>
-              <span className="font-bold text-[#191c1d] uppercase">{transaction.type}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-[#717970]">Payment Method</span>
-              <span className="font-bold text-[#191c1d]">{transaction.method}</span>
-            </div>
-
-            {transaction.destinationOrSource && (
-              <div className="flex justify-between">
-                <span className="text-[#717970]">Account / Destination</span>
-                <span className="font-mono font-semibold text-[#191c1d]">{transaction.destinationOrSource}</span>
-              </div>
-            )}
-
-            {transaction.planName && (
-              <div className="flex justify-between">
-                <span className="text-[#717970]">Target Portfolio</span>
-                <span className="font-bold text-[#002c13]">{transaction.planName}</span>
-              </div>
-            )}
-
-            <div className="flex justify-between">
-              <span className="text-[#717970]">Processing Fee</span>
-              <span className="font-mono text-[#717970]">{transaction.fee.toLocaleString()} XAF</span>
-            </div>
-
-            <div className="flex justify-between font-bold text-[#002c13] pt-2 border-t border-[#e1e3e4]">
-              <span>Net Settled Amount</span>
-              <span className="font-mono text-sm">{transaction.netAmount.toLocaleString()} XAF</span>
-            </div>
-
-            <div className="flex justify-between pt-1 text-[11px] text-[#717970]">
-              <span>Timestamp</span>
-              <span>{transaction.date}</span>
-            </div>
-
-            <div className="flex justify-between text-[10px] text-[#717970] font-mono">
-              <span>COSUMAF Audit Clearance</span>
-              <span className="text-[#306a43]">CERT-CLR-2026-XAF</span>
-            </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-3">Method</dt>
+            <dd className="font-bold text-ink text-right">{transaction.method}</dd>
           </div>
 
-          {transaction.notes && (
-            <div className="p-3 bg-white border border-[#c0c9be]/50 rounded-lg text-xs text-[#404941]">
-              <p className="font-bold text-[#191c1d] mb-0.5">Notes:</p>
-              <p>{transaction.notes}</p>
+          {transaction.destinationOrSource && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-3">Account</dt>
+              <dd className="font-mono font-semibold text-ink text-right break-all">
+                {transaction.destinationOrSource}
+              </dd>
             </div>
           )}
 
-          <div className="flex gap-2">
-            <button
-              onClick={handlePrintReceipt}
-              className="flex-1 py-3 bg-[#002c13] text-white rounded-xl text-xs font-bold hover:bg-[#014421] flex items-center justify-center gap-1.5 shadow-xs"
-            >
-              <span className="material-symbols-outlined text-[16px]">download</span>
-              <span>Download Receipt (PDF)</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                onOpenSupport();
-              }}
-              className="py-3 px-4 border border-[#c0c9be] text-[#404941] rounded-xl text-xs font-bold hover:bg-[#f3f4f5] flex items-center justify-center gap-1"
-              title="Report an issue or dispute"
-            >
-              <span className="material-symbols-outlined text-[16px]">flag</span>
-            </button>
+          {transaction.planName && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-3">Portfolio</dt>
+              <dd className="font-bold text-accent text-right">{transaction.planName}</dd>
+            </div>
+          )}
+
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-3">Fee</dt>
+            <dd className="font-mono text-ink-2">{transaction.fee.toLocaleString()} XAF</dd>
           </div>
-        </div>
+
+          <div className="flex justify-between gap-3 font-bold text-accent pt-2 border-t border-line-2">
+            <dt>Net settled</dt>
+            <dd className="font-mono text-sm">{transaction.netAmount.toLocaleString()} XAF</dd>
+          </div>
+
+          <div className="flex justify-between gap-3 pt-1 text-[11px] text-ink-3">
+            <dt>Date</dt>
+            <dd>{transaction.date}</dd>
+          </div>
+        </dl>
+
+        {transaction.notes && (
+          <div className="p-3 bg-surface border border-line rounded-lg text-xs text-ink-2">
+            <p className="font-bold text-ink mb-0.5">Notes</p>
+            <p className="leading-relaxed">{transaction.notes}</p>
+          </div>
+        )}
       </div>
-    </div>
+
+      <div className="p-5 border-t border-line-2 flex gap-2 shrink-0 print-hide">
+        <button
+          onClick={() => window.print()}
+          className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px]">print</span>
+          Print receipt
+        </button>
+        <button
+          onClick={() => {
+            onClose();
+            onOpenSupport();
+          }}
+          className="py-3 px-4 border border-line text-ink-2 rounded-xl text-xs font-bold hover:bg-surface-2 transition-colors flex items-center gap-1.5"
+          title="Report a problem with this transaction"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px]">flag</span>
+          <span className="hidden sm:inline">Dispute</span>
+        </button>
+      </div>
+    </Modal>
   );
 };

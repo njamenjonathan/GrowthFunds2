@@ -1,18 +1,68 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GrowthFund - Regulated Investment & Savings for Central Africa</title>
-    <meta name="description" content="Transparent, COSUMAF-regulated investment and savings platform in XAF (FCFA). High-grade security, mobile money funding, institutional portfolios." />
+    <title>GrowthFund — Regulated investment &amp; savings for Central Africa</title>
+    <meta
+      name="description"
+      content="Transparent, COSUMAF-regulated investment and savings in XAF (FCFA). Mobile money funding, institutional portfolios and bank-grade security across the CEMAC region."
+    />
+    <meta name="theme-color" content="#043d21" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a1310" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
+      rel="stylesheet"
+    />
+    <script>
+      // Apply the saved theme before first paint so a dark-mode user never sees
+      // a white flash while the React bundle boots.
+      (function () {
+        try {
+          var saved = localStorage.getItem('growthfund_theme');
+          var dark = saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* storage unavailable — fall back to the light theme */
+        }
+      })();
+
+      // Material Symbols draws icons from ligature text, so a blocked or slow
+      // font download leaves literal words ("swap_horiz") all over the UI.
+      // Flag the outcome on <html> and let CSS decide what to render.
+      (function () {
+        var root = document.documentElement;
+        var done = function (cls) {
+          return function () {
+            root.classList.add(cls);
+          };
+        };
+        if (!document.fonts || !document.fonts.load) {
+          done('icons-ready')();
+          return;
+        }
+        var settle = setTimeout(done('icons-failed'), 4000);
+        document.fonts
+          .load('24px "Material Symbols Outlined"', 'settings')
+          .then(function (faces) {
+            clearTimeout(settle);
+            (faces && faces.length ? done('icons-ready') : done('icons-failed'))();
+          })
+          .catch(function () {
+            clearTimeout(settle);
+            done('icons-failed')();
+          });
+      })();
+    </script>
   </head>
-  <body class="bg-[#f8f9fa] text-[#191c1d] font-['Plus_Jakarta_Sans',sans-serif] antialiased selection:bg-[#014421] selection:text-[#fed65b]">
+  <body class="font-sans antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

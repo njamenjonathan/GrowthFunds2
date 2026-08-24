@@ -1,4 +1,12 @@
 import { InvestmentPlan, Transaction, UserProfile, ActiveInvestment, AuditLog, AppNotification } from '../types';
+import { avatarFor } from '../lib/avatar';
+
+/** ISO date `months` from today; keeps demo holdings consistently in-term. */
+const monthsFromNow = (months: number): string => {
+  const date = new Date();
+  date.setMonth(date.getMonth() + months);
+  return date.toISOString().split('T')[0];
+};
 
 export const INITIAL_PLANS: InvestmentPlan[] = [
   {
@@ -105,7 +113,7 @@ export const INITIAL_USER: UserProfile = {
   investedBalance: 1250000,
   lifetimeEarnings: 168450,
   createdAt: '2024-01-15',
-  avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuArMg7NE44Mo6rm5u1KT_kWLsiO8wZAcnKiUQqw6xGDiPqh0tNK7Sn08-WmX2av-dCS47k790m1I15-d8fDlMdF8-BMb5CB8ty49wJgV5GFSnjApGo9DblGS6EgqoBHCdQNY-Jv5jV7rZCrQ7xphFEEfiokyVpad6dBQ5SdFFHX9VRZ4_TAHuEP_dMmSUrKQAeXcLJKE5Tle4jL9MVMxeEeCTU3HNsqiERLAZC9tEbcLzXzGnkeqrh1',
+  avatarUrl: avatarFor('Samuel E. Nguema'),
   referralCode: 'GF-SAM882',
   referralCount: 3,
   referralEarnings: 3000,
@@ -151,8 +159,8 @@ export const INITIAL_ACTIVE_INVESTMENTS: ActiveInvestment[] = [
     planId: 'real-estate-fund',
     planName: 'Real Estate Fund',
     amountInvested: 1000000,
-    startDate: '2024-03-01',
-    maturityDate: '2026-03-01',
+    startDate: monthsFromNow(-8),
+    maturityDate: monthsFromNow(16),
     projectedReturn: 12,
     accruedEarnings: 120000,
     currentValuation: 1120000,
@@ -163,8 +171,8 @@ export const INITIAL_ACTIVE_INVESTMENTS: ActiveInvestment[] = [
     planId: 'agri-growth',
     planName: 'Agri-Growth',
     amountInvested: 250000,
-    startDate: '2024-06-15',
-    maturityDate: '2025-06-15',
+    startDate: monthsFromNow(-5),
+    maturityDate: monthsFromNow(7),
     projectedReturn: 8,
     accruedEarnings: 16000,
     currentValuation: 266000,
@@ -212,7 +220,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
     reference: 'GF-IV-3829104',
     date: 'Today, 09:15 AM',
     timestamp: Date.now() - 1000 * 60 * 60 * 5,
-    planName: 'Growth Alpha',
+    planName: 'CEMAC Sovereign Bond Fund',
     notes: 'Capital allocation awaiting market batch settlement.',
   },
   {
@@ -288,14 +296,14 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
     id: 'notif_01',
     title: 'Investment Maturity Alert',
-    message: 'Your Agri-Growth investment of 250,000 XAF has reached its 12-month maturity! Total payout: 266,000 XAF (8% net yield accrued).',
+    message: 'Your Agri-Growth holding is approaching maturity. Projected payout at term: 266,000 XAF (8% net yield).',
     timestamp: Date.now() - 1000 * 60 * 25, // 25 mins ago
     timeAgo: '25m ago',
     type: 'maturity',
     read: false,
     amount: 266000,
     reference: 'MAT-AGRI-102',
-    targetView: 'investments',
+    targetView: 'dashboard',
   },
   {
     id: 'notif_02',
@@ -343,7 +351,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
     read: true,
     amount: 1120000,
     reference: 'NOTIF-RE-101',
-    targetView: 'investments',
+    targetView: 'dashboard',
   },
   {
     id: 'notif_06',
