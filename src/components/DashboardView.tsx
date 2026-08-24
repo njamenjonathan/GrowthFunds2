@@ -1,5 +1,7 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
-import { UserProfile, ActiveInvestment, Transaction } from '../types';
+import { UserProfile, ActiveInvestment, Transaction, ReferralRecord } from '../types';
+import { ReferralProgram, referralLinkFor } from './ReferralProgram';
+import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
 
 const PortfolioChart = lazy(() => import('./PortfolioChart'));
 
@@ -10,9 +12,9 @@ interface DashboardViewProps {
   onOpenDeposit: () => void;
   onOpenWithdraw: () => void;
   onExplorePlans: () => void;
-  onViewReferrals: () => void;
   onViewHistory: () => void;
   onSelectTransaction: (tx: Transaction) => void;
+  onReferralSuccess: (referral: ReferralRecord) => void;
 }
 
 type ChartRange = '6M' | '1Y' | 'ALL';
@@ -34,9 +36,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenDeposit,
   onOpenWithdraw,
   onExplorePlans,
-  onViewReferrals,
   onViewHistory,
   onSelectTransaction,
+  onReferralSuccess,
 }) => {
   const [range, setRange] = useState<ChartRange>('6M');
 
@@ -193,6 +195,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ))}
         </div>
 
+        {/* Invite & earn */}
+        <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner />
+
+        <TopReferrersLeaderboard
+          currentUser={user}
+          onInviteFriend={() => navigator.clipboard?.writeText(referralLinkFor(user)).catch(() => {})}
+        />
+
         {/* Growth chart + allocation */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <section className="lg:col-span-8 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-sm space-y-4">
@@ -276,20 +286,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
 
-            <button
-              onClick={onViewReferrals}
-              className="mt-5 pt-4 border-t border-line-2 flex items-center justify-between text-left group"
-            >
-              <span>
-                <span className="block text-xs font-bold text-ink">Invite &amp; earn</span>
-                <span className="block text-[11px] text-ink-3 mt-0.5">
-                  +{(user.referralEarnings ?? 0).toLocaleString()} XAF from {user.referralCount ?? 0} referrals
-                </span>
-              </span>
-              <span aria-hidden="true" className="material-symbols-outlined text-ink-3 group-hover:text-accent group-hover:translate-x-0.5 transition-all">
-                chevron_right
-              </span>
-            </button>
+            {/* Tier-based withdrawal ceiling — a COSUMAF compliance figure the
+                investor needs alongside their allocation. */}
+            <div className="mt-5 pt-4 border-t border-line-2">
+              <div className="bg-surface-2 border border-line-2 p-3.5 rounded-xl">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-ink">Daily liquidity cap</span>
+                  <span className="font-mono font-bold text-accent">10,000,000 XAF</span>
+                </div>
+                <p className="text-[11px] text-ink-3 mt-1">
+                  Tier {user.kycTier} verified account limit under COSUMAF guidelines.
+                </p>
+              </div>
+            </div>
           </section>
         </div>
 
@@ -361,9 +370,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <h2 className="text-lg font-bold text-ink">Recent activity</h2>
               <p className="text-xs text-ink-3">Select any entry to open its receipt</p>
             </div>
-            <button onClick={onViewHistory} className="text-xs font-bold text-accent hover:underline shrink-0">
-              View all
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              {recentTransactions.length > 0 && (
+                <button
+                  onClick={() => onSelectTransaction(recentTransactions[0])}
+                  className="text-xs font-bold text-accent hover:underline"
+                >
+                  Latest receipt
+                </button>
+              )}
+              <button onClick={onViewHistory} className="text-xs font-bold text-accent hover:underline">
+                View all
+              </button>
+            </div>
           </div>
 
           {recentTransactions.length === 0 ? (

@@ -485,9 +485,9 @@ export default function App() {
                 onOpenDeposit={openDeposit}
                 onOpenWithdraw={openWithdraw}
                 onExplorePlans={() => navigate('plans')}
-                onViewReferrals={() => navigate('referrals')}
                 onViewHistory={() => navigate('history')}
                 onSelectTransaction={setSelectedTransaction}
+                onReferralSuccess={handleReferralSuccess}
               />
             )}
 
