@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { UserProfile, ReferralRecord } from '../types';
+import { REFERRAL_REWARD_XAF } from '../lib/constants';
+
+/** The reward as it is written on screen, e.g. "800". */
+const REWARD_LABEL = REFERRAL_REWARD_XAF.toLocaleString();
 
 interface ReferralProgramProps {
   user: UserProfile;
@@ -79,10 +83,10 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
       phoneOrEmail: inviteContact.trim(),
       joinedDate: 'Today',
       status: 'signed_up',
-      giftAmount: 1000,
+      giftAmount: REFERRAL_REWARD_XAF,
     });
 
-    showToast(`Invite sent to ${inviteName.trim()}. You'll be credited 1,000 XAF once they verify.`);
+    showToast(`Invite sent to ${inviteName.trim()}. You'll be credited ${REWARD_LABEL} XAF once they verify.`);
     setInviteName('');
     setInviteContact('');
   };
@@ -105,9 +109,9 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
       phoneOrEmail: contact,
       joinedDate: 'Today, just now',
       status: 'rewarded',
-      giftAmount: 1000,
+      giftAmount: REFERRAL_REWARD_XAF,
     });
-    showToast(`${name} signed up with your code. 1,000 XAF credited to your balance.`);
+    showToast(`${name} signed up with your code. ${REWARD_LABEL} XAF credited to your balance.`);
   };
 
   const shareOnWhatsApp = () => {
@@ -142,15 +146,15 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
             <div className="relative z-10 max-w-2xl space-y-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold text-on-gold text-xs font-bold">
                 <span aria-hidden="true" className="material-symbols-outlined text-[15px]">card_giftcard</span>
-                1,000 XAF gift programme
+                {REWARD_LABEL} XAF gift programme
               </span>
               <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                Invite friends, earn 1,000 XAF per sign-up
+                Invite friends, earn {REWARD_LABEL} XAF per sign-up
               </h2>
               <p className="text-xs sm:text-sm text-on-emerald/80 leading-relaxed">
                 Help your network build wealth across the CEMAC region. When a friend joins GrowthFund with your
                 code and completes verification, you receive an instant{' '}
-                <strong className="text-gold">1,000 XAF cash gift</strong> in your available balance.
+                <strong className="text-gold">{REWARD_LABEL} XAF cash gift</strong> in your available balance.
               </p>
             </div>
           </div>
@@ -272,7 +276,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
                   className="bg-emerald text-on-emerald hover:bg-emerald-2 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-xs">add</span>
-                  Simulate a sign-up (+1,000 XAF)
+                  Simulate a sign-up (+{REWARD_LABEL} XAF)
                 </button>
               </div>
             )}
@@ -368,7 +372,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
  * Gift money credited for referrals.
  *
  * Exported so the leaderboard reports the same figure this card does — it used
- * to multiply the invite count by 1,000 itself, which disagreed with this the
+ * to multiply the invite count by the reward itself, which disagreed with this the
  * moment a referral was pending rather than rewarded.
  */
 export const referralEarningsFor = (user: UserProfile): number =>

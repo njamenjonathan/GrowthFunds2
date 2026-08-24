@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
 import { avatarFor } from '../lib/avatar';
+import { REFERRAL_REWARD_XAF } from '../lib/constants';
 import { referralEarningsFor } from './ReferralProgram';
 
 export interface LeaderboardMember {
@@ -46,7 +47,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Douala, Cameroon',
       flag: '🇨🇲',
       invitesCount: 52,
-      totalGiftsXAF: 52000,
+      totalGiftsXAF: 52 * REFERRAL_REWARD_XAF,
       tier: 'Diamond',
     },
     {
@@ -56,7 +57,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Yaoundé, Cameroon',
       flag: '🇨🇲',
       invitesCount: 41,
-      totalGiftsXAF: 41000,
+      totalGiftsXAF: 41 * REFERRAL_REWARD_XAF,
       tier: 'Platinum',
     },
     {
@@ -66,7 +67,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Libreville, Gabon',
       flag: '🇬🇦',
       invitesCount: 34,
-      totalGiftsXAF: 34000,
+      totalGiftsXAF: 34 * REFERRAL_REWARD_XAF,
       tier: 'Gold',
     },
     {
@@ -76,7 +77,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Brazzaville, Congo',
       flag: '🇨🇬',
       invitesCount: 26,
-      totalGiftsXAF: 26000,
+      totalGiftsXAF: 26 * REFERRAL_REWARD_XAF,
       tier: 'Silver',
     },
     {
@@ -86,7 +87,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Bafoussam, Cameroon',
       flag: '🇨🇲',
       invitesCount: 19,
-      totalGiftsXAF: 19000,
+      totalGiftsXAF: 19 * REFERRAL_REWARD_XAF,
       tier: 'Silver',
     },
     {
@@ -96,7 +97,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: "N'Djamena, Chad",
       flag: '🇹🇩',
       invitesCount: 15,
-      totalGiftsXAF: 15000,
+      totalGiftsXAF: 15 * REFERRAL_REWARD_XAF,
       tier: 'Rising',
     },
   ];
@@ -110,7 +111,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Yaoundé, Cameroon',
       flag: '🇨🇲',
       invitesCount: 184,
-      totalGiftsXAF: 184000,
+      totalGiftsXAF: 184 * REFERRAL_REWARD_XAF,
       tier: 'Diamond',
     },
     {
@@ -120,7 +121,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Douala, Cameroon',
       flag: '🇨🇲',
       invitesCount: 168,
-      totalGiftsXAF: 168000,
+      totalGiftsXAF: 168 * REFERRAL_REWARD_XAF,
       tier: 'Diamond',
     },
     {
@@ -130,7 +131,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Port-Gentil, Gabon',
       flag: '🇬🇦',
       invitesCount: 122,
-      totalGiftsXAF: 122000,
+      totalGiftsXAF: 122 * REFERRAL_REWARD_XAF,
       tier: 'Platinum',
     },
     {
@@ -140,7 +141,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Libreville, Gabon',
       flag: '🇬🇦',
       invitesCount: 97,
-      totalGiftsXAF: 97000,
+      totalGiftsXAF: 97 * REFERRAL_REWARD_XAF,
       tier: 'Gold',
     },
     {
@@ -150,7 +151,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       location: 'Pointe-Noire, Congo',
       flag: '🇨🇬',
       invitesCount: 81,
-      totalGiftsXAF: 81000,
+      totalGiftsXAF: 81 * REFERRAL_REWARD_XAF,
       tier: 'Silver',
     },
   ];
@@ -178,7 +179,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       minInvites: '50+ Invites',
       badge: '🏆',
       reward: '50,000 XAF Seasonal Grand Bonus',
-      perk: 'VIP Dedicated Wealth Advisor + 0% Withdrawal Fees',
+      perk: 'A dedicated advisor and free withdrawals',
       color: 'border-gold bg-gold/15',
     },
     {
@@ -201,7 +202,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       tier: 'Community Champion',
       minInvites: '5 - 14 Invites',
       badge: '🌟',
-      reward: '1,000 XAF Instant Gift per invitee',
+      reward: `${REFERRAL_REWARD_XAF.toLocaleString()} XAF Instant Gift per invitee`,
       perk: 'Official GrowthFund Verified Investor Badge',
       color: 'border-accent/30 bg-accent-bg',
     },
@@ -301,7 +302,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
           >
             <p className="font-bold text-accent">Gamified Referral Rules &amp; Ranking:</p>
             <ul className="list-disc list-inside space-y-1 text-[11px]">
-              <li>Every successful friend referral instantly grants you <strong>1,000 XAF</strong> in cash gift.</li>
+              <li>Every successful friend referral instantly grants you <strong>{REFERRAL_REWARD_XAF.toLocaleString()} XAF</strong> in cash gift.</li>
               <li>Each referral earns you <strong>+1 Rank Point</strong> on the monthly leaderboards.</li>
               <li>At midnight on the last day of every month, top 3 ranking investors are awarded extra bonus funds directly to their available balance.</li>
               <li>Rank 1: <strong>+50,000 XAF</strong> • Rank 2: <strong>+25,000 XAF</strong> • Rank 3: <strong>+10,000 XAF</strong>.</li>

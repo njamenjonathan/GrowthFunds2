@@ -1,6 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { ActiveInvestment, PaymentMethodType, UserProfile } from '../types';
 import { formatRemaining, lockStateFor } from '../lib/commitment';
+import {
+  MIN_WITHDRAWAL_XAF,
+  WITHDRAWAL_FEE_XAF,
+  WITHDRAWAL_PRESETS,
+  WITHDRAWAL_STEP_XAF,
+} from '../lib/constants';
 import { Modal, ModalHeader } from './Modal';
 
 interface WithdrawalFlowProps {
@@ -18,8 +24,6 @@ interface WithdrawalFlowProps {
   onOpenKyc: () => void;
 }
 
-const MIN_WITHDRAWAL = 2500;
-const FLAT_FEE = 250;
 const OTP_LENGTH = 6;
 
 const DESTINATIONS: PaymentMethodType[] = [
@@ -37,7 +41,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
   onOpenKyc,
 }) => {
   const [step, setStep] = useState<'amount' | 'verify' | 'success'>('amount');
-  const [amount, setAmount] = useState(25000);
+  const [amount, setAmount] = useState(MIN_WITHDRAWAL_XAF);
   const [method, setMethod] = useState<PaymentMethodType>('MTN MoMo');
   const [destinationAccount, setDestinationAccount] = useState(user.phone);
   const [otpCode, setOtpCode] = useState('');
@@ -47,12 +51,12 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
   const referenceRef = useRef<string | null>(null);
 
   const isVerified = user.kycStatus === 'verified';
-  const netReceived = Math.max(0, amount - FLAT_FEE);
+  const netReceived = Math.max(0, amount - WITHDRAWAL_FEE_XAF);
 
   /**
-   * Capital sitting inside lock-ups, and the soonest any of it frees up.
+   * Money still inside running packages, and the soonest any of it frees up.
    * Withdrawals have always been capped at the available balance; this states
-   * plainly why the rest of the portfolio is not part of that figure.
+   * plainly why the rest of the money is not part of that figure.
    */
   const locked = useMemo(() => {
     const held = activeInvestments.filter((inv) => inv.status !== 'liquidated');
@@ -72,8 +76,19 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
       setErrorMsg('Identity verification is required before you can withdraw.');
       return;
     }
-    if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL) {
-      setErrorMsg(`The minimum withdrawal is ${MIN_WITHDRAWAL.toLocaleString()} XAF.`);
+    if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL_XAF) {
+      setErrorMsg(`The smallest withdrawal is ${MIN_WITHDRAWAL_XAF.toLocaleString()} XAF.`);
+      return;
+    }
+    // Payouts are dispatched in whole 5,000 XAF notes, so anything in between
+    // is rejected here rather than silently rounded.
+    if (amount % WITHDRAWAL_STEP_XAF !== 0) {
+      const lower = Math.floor(amount / WITHDRAWAL_STEP_XAF) * WITHDRAWAL_STEP_XAF;
+      setErrorMsg(
+        `Withdrawals go in steps of ${WITHDRAWAL_STEP_XAF.toLocaleString()} XAF — try ${lower.toLocaleString()} or ${(
+          lower + WITHDRAWAL_STEP_XAF
+        ).toLocaleString()} XAF.`
+      );
       return;
     }
     if (amount > user.availableBalance) {
@@ -102,7 +117,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
     setErrorMsg(null);
     const reference = `GF-WD-${Math.floor(1000000 + Math.random() * 9000000)}`;
     referenceRef.current = reference;
-    onWithdrawSuccess(amount, FLAT_FEE, method, destinationAccount, reference);
+    onWithdrawSuccess(amount, WITHDRAWAL_FEE_XAF, method, destinationAccount, reference);
     setStep('success');
   };
 
@@ -123,7 +138,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
               <div className="text-xs">
                 <p className="font-bold text-on-neg-bg">Verification incomplete</p>
                 <p className="text-on-neg-bg/90 mt-0.5">
-                  COSUMAF rules require identity verification before a payout can be dispatched.
+                  Verify your identity before we can send a payout.
                 </p>
                 <button
                   onClick={onOpenKyc}
@@ -140,11 +155,11 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
               <span aria-hidden="true" className="material-symbols-outlined text-gold-ink shrink-0">lock_clock</span>
               <div className="text-xs">
                 <p className="font-bold text-ink">
-                  {locked.total.toLocaleString()} XAF is locked in {locked.count}{' '}
-                  {locked.count === 1 ? 'holding' : 'holdings'}
+                  {locked.total.toLocaleString()} XAF is still invested in {locked.count}{' '}
+                  {locked.count === 1 ? 'package' : 'packages'}
                 </p>
                 <p className="text-ink-2 mt-0.5 leading-relaxed">
-                  Invested capital cannot be withdrawn until its lock-up ends.
+                  Money in a package cannot be withdrawn until its run finishes.
                   {locked.next && (
                     <>
                       {' '}
@@ -156,8 +171,8 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
                 </p>
                 {locked.redeemable > 0 && (
                   <p className="text-pos font-semibold mt-1.5">
-                    {locked.redeemable.toLocaleString()} XAF has finished its lock-up — redeem it from your
-                    holdings to make it withdrawable.
+                    {locked.redeemable.toLocaleString()} XAF has finished — collect it from your investments to
+                    make it withdrawable.
                   </p>
                 )}
               </div>
@@ -176,27 +191,42 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
                 id="withdraw-amount"
                 type="number"
                 inputMode="numeric"
-                step={5000}
-                min={MIN_WITHDRAWAL}
+                step={WITHDRAWAL_STEP_XAF}
+                min={MIN_WITHDRAWAL_XAF}
                 value={amount || ''}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full pl-16 pr-4 py-3 rounded-xl border border-line text-2xl font-bold font-mono text-accent focus:border-accent outline-none"
-                placeholder="25000"
+                placeholder={String(MIN_WITHDRAWAL_XAF)}
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-2 mt-2">
-              {[0.25, 0.5, 0.75, 1].map((pct) => (
+            {/* The five standard amounts, so the common case is one tap and
+                the 5,000 XAF step is obvious without reading a rule. */}
+            <div className="grid grid-cols-5 gap-2 mt-2">
+              {WITHDRAWAL_PRESETS.map((preset) => (
                 <button
-                  key={pct}
+                  key={preset}
                   type="button"
-                  onClick={() => setAmount(Math.round(user.availableBalance * pct))}
-                  className="py-1.5 rounded-lg text-xs font-bold border border-line bg-surface-2 hover:border-accent text-ink transition-colors"
+                  onClick={() => {
+                    setAmount(preset);
+                    setErrorMsg(null);
+                  }}
+                  aria-pressed={amount === preset}
+                  className={`py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                    amount === preset
+                      ? 'border-accent bg-accent-bg text-accent'
+                      : 'border-line bg-surface-2 hover:border-accent text-ink'
+                  }`}
                 >
-                  {pct === 1 ? 'Max' : `${pct * 100}%`}
+                  {(preset / 1000).toLocaleString()}k
                 </button>
               ))}
             </div>
+
+            <p className="text-[11px] text-ink-3 mt-2">
+              From {MIN_WITHDRAWAL_XAF.toLocaleString()} XAF, in steps of{' '}
+              {WITHDRAWAL_STEP_XAF.toLocaleString()} XAF.
+            </p>
           </div>
 
           <fieldset>
@@ -251,7 +281,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
             </div>
             <div className="flex justify-between text-ink-3">
               <dt>Processing fee</dt>
-              <dd className="font-mono text-neg">−{FLAT_FEE.toLocaleString()} XAF</dd>
+              <dd className="font-mono text-neg">−{WITHDRAWAL_FEE_XAF.toLocaleString()} XAF</dd>
             </div>
             <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-line-2">
               <dt>You receive</dt>

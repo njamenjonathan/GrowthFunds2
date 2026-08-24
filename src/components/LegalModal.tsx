@@ -54,11 +54,15 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               </p>
               <h4 className="text-sm font-bold text-ink">2. Settlement Currency</h4>
               <p>
-                All account transactions, deposits, valuations, dividend distributions, and withdrawal requests are denominated exclusively in Central African CFA Franc (XAF / FCFA), backed by the Bank of Central African States (BEAC).
+                All deposits, investments, payouts and withdrawals are denominated exclusively in Central African CFA Franc (XAF / FCFA), backed by the Bank of Central African States (BEAC).
               </p>
-              <h4 className="text-sm font-bold text-ink">3. Liquidity and Lockup Periods</h4>
+              <h4 className="text-sm font-bold text-ink">3. Investment Terms</h4>
               <p>
-                Each investment strategy maintains a distinct maturity timeline (ranging from 6 to 24 months). Early redemptions prior to contractual maturity may be subject to a secondary market liquidity discount of up to 1.5% to preserve collective fund stability.
+                Every package runs for a fixed number of days, from 5 days on the smallest package up to a platform maximum of 30 days. Money placed in a package cannot be withdrawn before the package finishes; on its finish date the amount invested and its stated profit are returned to your available balance.
+              </p>
+              <h4 className="text-sm font-bold text-ink">4. Withdrawals</h4>
+              <p>
+                Withdrawals start at 5,000 XAF and are dispatched in multiples of 5,000 XAF. A flat processing fee of 250 XAF applies to each payout; deposits are free.
               </p>
             </div>
           )}
@@ -70,11 +74,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({
               </div>
               <h4 className="text-sm font-bold text-ink">1. Projected vs. Guaranteed Yields</h4>
               <p>
-                GrowthFund strictly prohibits guarantees of absolute returns. All projected annual yields (e.g. 8%, 12%, 18%) reflect actuarial modeling and historic asset yields across Central African agricultural, real estate, and fixed income markets.
+                GrowthFund does not guarantee returns. The profit stated on a package is the target it is built to pay, modelled on the real assets behind it across Central African agricultural, real estate, technology and fixed income projects.
               </p>
               <h4 className="text-sm font-bold text-ink">2. Regional Economic Factors</h4>
               <p>
-                Investments may be influenced by regional commodity price fluctuations (cocoa, coffee, timber), sovereign bond yield adjustments, and local inflation rates across CEMAC member states.
+                Investments may be influenced by regional commodity price movements (cocoa, coffee, timber), government bond markets, and local inflation across CEMAC member states.
               </p>
             </div>
           )}
@@ -83,23 +87,23 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             <div className="space-y-3">
               <h4 className="text-sm font-bold text-ink">Transparent Fee Architecture</h4>
               <p>
-                GrowthFund adheres to zero-hidden-fee transparency. Our revenue is aligned strictly with performance and management integrity:
+                There are only two numbers on this page, and neither is a percentage:
               </p>
               <div className="bg-surface-2 rounded-xl p-4 border border-line-2 space-y-2">
                 <div className="flex justify-between border-b border-line-2 pb-2">
-                  <span className="font-bold text-ink">Annual Fund Management Fee</span>
-                  <span className="font-mono font-bold text-accent">0.50% - 1.00% / yr</span>
+                  <span className="font-bold text-ink">Deposits</span>
+                  <span className="font-mono font-bold text-pos">0 XAF (Free)</span>
                 </div>
                 <div className="flex justify-between border-b border-line-2 pb-2">
-                  <span className="font-bold text-ink">Mobile Money Deposit Processing</span>
-                  <span className="font-mono font-bold text-accent">0.50% (Telecom Pass-through)</span>
+                  <span className="font-bold text-ink">Investing in a package</span>
+                  <span className="font-mono font-bold text-pos">0 XAF (Free)</span>
                 </div>
                 <div className="flex justify-between border-b border-line-2 pb-2">
-                  <span className="font-bold text-ink">Standard Withdrawal Interbank Fee</span>
+                  <span className="font-bold text-ink">Withdrawal</span>
                   <span className="font-mono font-bold text-accent">250 XAF Flat</span>
                 </div>
                 <div className="flex justify-between pt-1">
-                  <span className="font-bold text-ink">Account Custody &amp; Maintenance</span>
+                  <span className="font-bold text-ink">Account maintenance</span>
                   <span className="font-mono font-bold text-pos">0 XAF (Free)</span>
                 </div>
               </div>
@@ -110,13 +114,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             <div className="space-y-3">
               <h4 className="text-sm font-bold text-ink">Anti-Money Laundering (AML) &amp; KYC Directive</h4>
               <p>
-                In compliance with GABAC (Groupe d'Action contre le blanchiment d'argent en Afrique Centrale) standards, all accounts must satisfy tiered customer due diligence:
+                In compliance with GABAC (Groupe d'Action contre le blanchiment d'argent en Afrique Centrale) standards, every account is verified before it can invest or withdraw:
               </p>
               <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Tier 1:</strong> Mobile number verification &amp; basic ID. Cumulative limit: 1,000,000 XAF.</li>
-                <li><strong>Tier 2:</strong> Government ID scan, selfie liveness match, and proof of address. Cumulative limit: 10,000,000 XAF.</li>
-                <li><strong>Tier 3 (Institutional):</strong> Articles of incorporation and beneficial ownership registry. Unlimited tier.</li>
+                <li>A verified mobile number.</li>
+                <li>A government ID scan — national ID, passport, driver licence or resident permit.</li>
+                <li>A selfie, matched against the ID photo.</li>
               </ul>
+              <p>Verification usually completes in under 20 minutes.</p>
             </div>
           )}
 

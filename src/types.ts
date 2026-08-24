@@ -1,26 +1,35 @@
 /** Every route the app can render. Typing this stops navigation targets
  *  (including notification deep links) from pointing at views that don't exist. */
-export type View = 'home' | 'plans' | 'dashboard' | 'referrals' | 'history' | 'security';
+export type View = 'home' | 'plans' | 'plan' | 'dashboard' | 'referrals' | 'checkin' | 'history' | 'security';
 
-/** Sections within the investor dashboard, shown one at a time. */
-export type DashboardTab = 'overview' | 'holdings' | 'deposits' | 'withdrawals' | 'activity' | 'invite';
-
-export type RiskLevel = 'Very Low' | 'Low' | 'Medium' | 'High';
+/** Sections within the investor profile, shown one at a time. */
+export type DashboardTab =
+  | 'overview'
+  | 'holdings'
+  | 'checkin'
+  | 'deposits'
+  | 'withdrawals'
+  | 'activity'
+  | 'invite';
 
 /**
- * A concrete opportunity inside a plan — the thing capital actually goes into
- * (a housing block, a cocoa cooperative, a solar site). Every one of them opens
- * at `MIN_INVESTMENT_XAF`, so a plan is a category rather than a price barrier.
+ * One concrete package inside a plan — the thing money actually goes into.
+ *
+ * A package is fixed on all three sides: you stake `amount`, wait
+ * `durationDays`, and collect `amount + profit`. Packages inside a plan are
+ * ordered smallest first, and the bigger the stake the longer it runs and the
+ * more it pays.
  */
 export interface SubInvestment {
   id: string;
   name: string;
   description: string;
-  /** Entry ticket in XAF. Uniformly `MIN_INVESTMENT_XAF` across the catalogue. */
-  minInvestment: number;
-  /** Annual target return for this specific opportunity. */
-  projectedReturn: number;
-  termMonths: number;
+  /** The exact stake, in XAF. */
+  amount: number;
+  /** Profit paid on top of the stake when the package finishes, in XAF. */
+  profit: number;
+  /** How many days the money stays in, never more than 30. */
+  durationDays: number;
   iconName: string;
 }
 
@@ -28,18 +37,10 @@ export interface InvestmentPlan {
   id: string;
   name: string;
   category: 'Agriculture' | 'Real Estate' | 'Technology' | 'Bonds' | 'SME Growth';
-  riskLevel: RiskLevel;
-  projectedReturn: number; // e.g. 8 for 8%
-  minInvestment: number; // in XAF
-  termMonths: number;
   description: string;
   longDescription: string;
-  managementFeePercent: number;
-  /** The 3-5 concrete opportunities an investor picks between inside this plan. */
+  /** The packages an investor picks between, ordered smallest stake first. */
   subInvestments: SubInvestment[];
-  underlyingAssets: string[];
-  historicalPerformance: { year: string; returnPct: number }[];
-  regulatoryNotice: string;
   iconName: string;
   accentColor: string;
   isPopular?: boolean;
@@ -49,27 +50,29 @@ export interface ActiveInvestment {
   id: string;
   planId: string;
   planName: string;
-  /** Which opportunity inside the plan the capital went into. */
+  /** Which package inside the plan the money went into. */
   subInvestmentId?: string;
   subInvestmentName?: string;
   amountInvested: number;
   startDate: string;
-  /** End of the lock-up: capital cannot be redeemed before this date. */
+  /** The day the money can be collected; nothing can be taken out before it. */
   maturityDate: string;
-  /** Total months locked, base term plus the commitment tier's extension. */
-  lockMonths: number;
-  /** Commitment tier the original amount fell into, e.g. `growth`. */
-  tierId: string;
-  /** Annual target return actually granted, tier bonus included. */
-  projectedReturn: number;
-  accruedEarnings: number;
-  currentValuation: number;
-  /** What the holding pays out once the lock-up ends. */
+  /** How many days the package runs for in total. */
+  durationDays: number;
+  /** Profit paid on top of the stake, in XAF. */
+  profit: number;
+  /** What the investment pays out on its finish date: stake plus profit. */
   maturityValue: number;
   status: 'active' | 'matured' | 'liquidating' | 'liquidated';
 }
 
-export type TransactionType = 'deposit' | 'withdrawal' | 'investment' | 'dividend' | 'liquidation' | 'referral_gift';
+export type TransactionType =
+  | 'deposit'
+  | 'withdrawal'
+  | 'investment'
+  | 'payout'
+  | 'referral_gift'
+  | 'daily_checkin';
 export type TransactionStatus = 'completed' | 'processing' | 'pending' | 'failed' | 'rejected';
 export type PaymentMethodType = 'MTN MoMo' | 'Orange Money' | 'Express Union Mobile' | 'Bank Transfer' | 'GrowthFund Wallet';
 
@@ -79,7 +82,8 @@ export interface ReferralRecord {
   phoneOrEmail: string;
   joinedDate: string;
   status: 'rewarded' | 'signed_up' | 'pending_verification';
-  giftAmount: number; // 1000 XAF
+  /** `REFERRAL_REWARD_XAF` for every invite. */
+  giftAmount: number;
 }
 
 export interface Transaction {
@@ -106,7 +110,6 @@ export interface UserProfile {
   phone: string;
   country: string; // CEMAC country (Cameroon, Gabon, Congo, Chad, CAR, Equatorial Guinea)
   kycStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
-  kycTier: 1 | 2 | 3;
   idDocumentType?: 'National ID' | 'Passport' | 'Driver License' | 'Resident Permit';
   idNumber?: string;
   expiryDate?: string;
@@ -123,11 +126,16 @@ export interface UserProfile {
   referralCount?: number;
   referralEarnings?: number;
   referralList?: ReferralRecord[];
+  /** `YYYY-MM-DD` of the last collected daily check-in, if any. */
+  lastCheckInDate?: string;
+  /** Consecutive days collected, ending on `lastCheckInDate`. */
+  checkInStreak?: number;
+  /** Everything the daily check-in has paid out so far, in XAF. */
+  checkInEarnings?: number;
 }
 
 export interface AdminStats {
   totalAum: number;
-  monthlyGrowthRate: number;
   totalUsers: number;
   activeInvestors: number;
   pendingKycCount: number;
@@ -150,10 +158,9 @@ export interface AppNotification {
   message: string;
   timestamp: number;
   timeAgo: string;
-  type: 'deposit' | 'withdrawal' | 'investment' | 'maturity' | 'dividend' | 'referral' | 'security' | 'kyc';
+  type: 'deposit' | 'withdrawal' | 'investment' | 'maturity' | 'referral' | 'checkin' | 'security' | 'kyc';
   read: boolean;
   amount?: number;
   reference?: string;
   targetView?: View;
 }
-

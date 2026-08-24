@@ -70,9 +70,9 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
               { id: 'deposit', label: 'Deposits' },
               { id: 'withdrawal', label: 'Withdrawals' },
               { id: 'investment', label: 'Investments' },
-              { id: 'dividend', label: 'Dividends' },
-              { id: 'liquidation', label: 'Redemptions' },
+              { id: 'payout', label: 'Payouts' },
               { id: 'referral_gift', label: 'Referral gifts' },
+              { id: 'daily_checkin', label: 'Check-ins' },
             ].map((tab) => (
               <button
                 key={tab.id}

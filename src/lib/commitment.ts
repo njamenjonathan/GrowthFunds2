@@ -1,107 +1,87 @@
 import { SubInvestment } from '../types';
 
 /**
- * A commitment band. Larger commitments lock up for longer and, in exchange
- * for that longer lock-up, earn a higher annual return than the opportunity's
- * headline rate — so more money means more time, and more time means more
- * profit.
+ * How long capital stays locked, and what it earns.
+ *
+ * Every opportunity in the catalogue is a fixed package: one stake, one run
+ * time in days, one profit in XAF. The rule the ladder encodes is the one an
+ * investor is told on the plan page — the smallest stake runs for the shortest
+ * time and pays the least, and each step up stakes more, runs longer and pays
+ * more. Nothing runs longer than `MAX_TERM_DAYS`.
  */
-export interface CommitmentTier {
-  id: string;
-  label: string;
-  /** Smallest commitment that reaches this band, in XAF. */
-  minAmount: number;
-  /** Months added to the opportunity's base lock-up. */
-  extraMonths: number;
-  /** Percentage points added to the annual target return. */
-  bonusReturn: number;
-  blurb: string;
-}
 
-/** Ordered smallest first; `tierFor` walks it backwards to find the match. */
-export const COMMITMENT_TIERS: CommitmentTier[] = [
-  {
-    id: 'starter',
-    label: 'Starter',
-    minAmount: 5000,
-    extraMonths: 0,
-    bonusReturn: 0,
-    blurb: 'The opportunity’s own term and rate, with no lock-up extension.',
-  },
-  {
-    id: 'builder',
-    label: 'Builder',
-    minAmount: 50000,
-    extraMonths: 3,
-    bonusReturn: 1,
-    blurb: 'Three more months locked in, one extra point of annual return.',
-  },
-  {
-    id: 'growth',
-    label: 'Growth',
-    minAmount: 250000,
-    extraMonths: 6,
-    bonusReturn: 2,
-    blurb: 'Six more months locked in, two extra points of annual return.',
-  },
-  {
-    id: 'premier',
-    label: 'Premier',
-    minAmount: 1000000,
-    extraMonths: 12,
-    bonusReturn: 3.5,
-    blurb: 'A full extra year locked in, three and a half extra points of return.',
-  },
-];
+/** No package may run longer than this. */
+export const MAX_TERM_DAYS = 30;
 
-/** The band a commitment falls into. Anything below the floor uses Starter. */
-export const tierFor = (amount: number): CommitmentTier => {
-  for (let index = COMMITMENT_TIERS.length - 1; index >= 0; index -= 1) {
-    if (amount >= COMMITMENT_TIERS[index].minAmount) return COMMITMENT_TIERS[index];
-  }
-  return COMMITMENT_TIERS[0];
+/**
+ * The run times, shortest first: 5 days for the entry package, then 8, then a
+ * four-day step for every rung above it, stopping short of 30 days.
+ */
+export const TERM_DAYS_LADDER = [5, 8, 12, 16, 20, 24, 28];
+
+/** The stakes each rung of the ladder opens at, smallest first. */
+export const STAKE_LADDER = [5000, 10000, 15000, 20000, 25000, 50000, 100000];
+
+/**
+ * Profit for the rung at `index`, as a whole number of XAF.
+ *
+ * The profit share widens as the stake grows (8% of the stake at the bottom
+ * rung, two more points on every rung above), so both the money earned and the
+ * share it represents rise together as an investor moves up the ladder. The
+ * result is baked into the catalogue as a plain XAF figure — investors see
+ * "+400 XAF", never a rate to work out.
+ */
+export const profitForRung = (index: number, stake: number): number =>
+  Math.round((stake * (8 + index * 2)) / 100);
+
+/** The stake, run time and profit of one rung, ready to drop into a package. */
+export const rung = (index: number): { amount: number; durationDays: number; profit: number } => {
+  const safeIndex = Math.min(Math.max(index, 0), STAKE_LADDER.length - 1);
+  const amount = STAKE_LADDER[safeIndex];
+  return {
+    amount,
+    durationDays: TERM_DAYS_LADDER[safeIndex],
+    profit: profitForRung(safeIndex, amount),
+  };
 };
 
-/** Total months the capital stays locked for this commitment. */
-export const lockMonthsFor = (sub: SubInvestment, amount: number): number =>
-  sub.termMonths + tierFor(amount).extraMonths;
+/** Total paid back when a package finishes: the stake plus its profit. */
+export const payoutFor = (sub: SubInvestment): number => sub.amount + sub.profit;
 
-/** Annual target return for this commitment, tier bonus included. */
-export const annualReturnFor = (sub: SubInvestment, amount: number): number =>
-  Number((sub.projectedReturn + tierFor(amount).bonusReturn).toFixed(2));
-
-/** Profit earned across the whole lock-up. */
-export const projectedProfitFor = (sub: SubInvestment, amount: number): number =>
-  Math.round(amount * (annualReturnFor(sub, amount) / 100) * (lockMonthsFor(sub, amount) / 12));
-
-/** What the holding pays out the day its lock-up ends. */
-export const maturityValueFor = (sub: SubInvestment, amount: number): number =>
-  amount + projectedProfitFor(sub, amount);
-
-/** The date `months` from `from`, as the `YYYY-MM-DD` the ledger stores. */
-export const maturityDateFrom = (from: Date, months: number): string => {
+/** The `YYYY-MM-DD` a package bought today would finish on. */
+export const maturityDateInDays = (days: number, from: Date = new Date()): string => {
   const date = new Date(from);
-  date.setMonth(date.getMonth() + months);
+  date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
 };
+
+/** "in 5 days" / "tomorrow" — how far off a date is, in words. */
+export const formatDays = (days: number): string => {
+  if (days <= 0) return 'today';
+  if (days === 1) return '1 day';
+  return `${days} days`;
+};
+
+/** Kept for callers that speak in remaining time rather than a date. */
+export const formatRemaining = formatDays;
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
 export interface LockState {
-  /** True while the capital cannot be redeemed. */
+  /** True while the money cannot be collected yet. */
   locked: boolean;
   daysRemaining: number;
   daysElapsed: number;
   totalDays: number;
-  /** How far through the lock-up the holding is, 0-100. */
+  /** How far through its run the investment is, 0-100. */
   progressPercent: number;
 }
 
 /**
- * Where a holding sits in its lock-up.
+ * Where an investment sits in its run.
  *
- * The single place the "can this be redeemed yet?" question is answered, so the
- * table badge, the redeem button and the redemption guard in `App` cannot drift
+ * The single place the "can this be collected yet?" question is answered, so
+ * the table badge, the collect button and the guard in `App` cannot drift
  * apart on the boundary day.
  */
 export const lockStateFor = (
@@ -123,14 +103,4 @@ export const lockStateFor = (
     totalDays,
     progressPercent: Math.min(100, Math.max(0, (daysElapsed / totalDays) * 100)),
   };
-};
-
-/** "3 days" / "1 month, 12 days" — how long is left, in words. */
-export const formatRemaining = (days: number): string => {
-  if (days <= 0) return 'unlocked';
-  if (days < 31) return `${days} ${days === 1 ? 'day' : 'days'}`;
-  const months = Math.floor(days / 30);
-  const rest = days % 30;
-  const monthPart = `${months} ${months === 1 ? 'month' : 'months'}`;
-  return rest === 0 ? monthPart : `${monthPart}, ${rest} ${rest === 1 ? 'day' : 'days'}`;
 };

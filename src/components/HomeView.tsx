@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { InvestmentPlan, RiskLevel } from '../types';
+import { InvestmentPlan } from '../types';
+import { MAX_TERM_DAYS, STAKE_LADDER, TERM_DAYS_LADDER, payoutFor, profitForRung } from '../lib/commitment';
+import { DAILY_CHECKIN_XAF, MIN_INVESTMENT_XAF, REFERRAL_REWARD_XAF } from '../lib/constants';
+import { currency } from '../lib/transactions';
 
 interface HomeViewProps {
   plans: InvestmentPlan[];
@@ -10,13 +13,14 @@ interface HomeViewProps {
   onOpenLegal: (topic: string) => void;
 }
 
+/** The rules of the platform, stated as plainly as a ticker can state them. */
 const TICKER_ITEMS = [
-  { label: 'BVMAC Composite', value: '1,482.30', change: '+1.45%' },
-  { label: 'BEAC policy rate', value: '5.00%', change: 'Stable' },
-  { label: 'Cocoa & agri yield', value: '+14.2% YTD', change: '+2.1%' },
-  { label: 'Douala prime RE', value: '+11.8% YTD', change: '+0.8%' },
-  { label: 'CEMAC sovereign 5Y', value: '7.60%', change: '+0.4%' },
-  { label: 'EUR / XAF', value: '655.957', change: 'Fixed peg' },
+  { label: 'Smallest investment', value: '5,000 XAF', change: '5 days' },
+  { label: 'Longest run', value: `${MAX_TERM_DAYS} days`, change: 'Never more' },
+  { label: 'Daily check-in', value: `${DAILY_CHECKIN_XAF} XAF`, change: 'Every day' },
+  { label: 'Invite a friend', value: `${REFERRAL_REWARD_XAF} XAF`, change: 'Per sign-up' },
+  { label: 'Smallest withdrawal', value: '5,000 XAF', change: 'Steps of 5,000' },
+  { label: 'Currency', value: 'XAF (FCFA)', change: 'Everywhere' },
 ];
 
 const PARTNERS = [
@@ -37,15 +41,15 @@ const STEPS = [
   },
   {
     title: 'Choose a strategy',
-    body: 'Allocate across vetted portfolios — cocoa agro-export, commercial real estate, sovereign bonds — matched to your risk profile and holding horizon.',
-    note: '6.5% – 18% projected yields',
+    body: 'Open an area — agriculture, real estate, technology, government bonds — and pick a package. Each one names the amount, the number of days and the profit up front.',
+    note: 'From 5,000 XAF',
     icon: 'trending_up',
     featured: true,
   },
   {
     title: 'Collect audited returns',
-    body: 'Track live performance with downloadable receipts. At maturity, withdraw principal and yield to your phone or bank within minutes.',
-    note: 'Direct payouts',
+    body: 'When the days are up, your money and its profit go back into your balance. Withdraw to your phone or bank from 5,000 XAF.',
+    note: 'In 30 days or less',
     icon: 'account_balance_wallet',
   },
 ];
@@ -55,28 +59,28 @@ const TESTIMONIALS = [
     name: 'Dr. Martin Mbarga',
     role: 'Chief medical officer',
     location: 'Douala, Cameroon',
-    amount: '3,500,000 XAF',
-    yieldEarned: '+420,000 XAF',
+    amount: '25,000 XAF package',
+    yieldEarned: '+4,000 XAF in 20 days',
     comment:
-      'As a busy medical professional, GrowthFund gives me the peace of mind of COSUMAF-supervised institutional asset backing. Withdrawals to my MTN MoMo wallet land within a minute.',
+      'I knew the exact day my money was coming back and exactly how much. It landed in my MTN MoMo wallet the same afternoon I asked for it.',
   },
   {
     name: 'Jeanne-Marie Nguesso',
     role: 'Managing director, logistics',
     location: 'Libreville, Gabon',
-    amount: '5,000,000 XAF',
-    yieldEarned: '+710,000 XAF',
+    amount: '15,000 XAF package',
+    yieldEarned: '+1,800 XAF in 12 days',
     comment:
-      'The transparency is unmatched in CEMAC. Every portfolio asset is physically audited, and quarterly returns match the prospectus figures with no hidden charges.',
+      'No small print and no percentages to work out. The page told me what I put in and what I collect, and that is exactly what happened.',
   },
   {
     name: 'Christian Kouassi',
     role: 'Senior software engineer',
     location: 'Yaoundé & diaspora',
-    amount: '1,800,000 XAF',
-    yieldEarned: '+136,800 XAF',
+    amount: '5,000 XAF package',
+    yieldEarned: '+400 XAF in 5 days',
     comment:
-      'Investing in local infrastructure from abroad used to be full of uncertainty. GrowthFund makes regional wealth building modern, secure and fully compliant.',
+      'I started with the smallest package to see if it was real. Five days later the money was back with its profit, so now I run one every week.',
   },
 ];
 
@@ -100,28 +104,22 @@ const SAFEGUARDS = [
 
 const FAQS = [
   {
-    q: 'How are investor funds protected and custodied?',
-    a: 'Client capital is held in segregated trust accounts at premier CEMAC commercial banks and regional depositories. GrowthFund cannot co-mingle investor capital with operational expenses, ensuring full segregation and legal ring-fencing under COSUMAF oversight.',
+    q: 'How is my money protected?',
+    a: 'Your money is held in separate trust accounts at CEMAC commercial banks and regional depositories. It is never mixed with the money GrowthFund runs on, and the separation is supervised by COSUMAF.',
   },
   {
     q: 'How do deposits and withdrawals work?',
-    a: 'Fund your portfolio instantly in XAF using MTN Mobile Money, Orange Money, Express Union, or direct bank transfer (Ecobank, UBA, Afriland). Withdrawals at maturity are processed within 5–15 minutes back to your verified mobile number or bank account.',
+    a: 'Add money in XAF with MTN Mobile Money, Orange Money, Express Union or a bank transfer. Withdrawals start at 5,000 XAF and go in steps of 5,000 — 5,000, 10,000, 15,000, 20,000, 25,000 — straight back to your verified number or bank account.',
   },
   {
     q: 'What is the minimum amount to start?',
-    a: 'Every opportunity in the catalogue opens at 5,000 XAF — residential houses, cocoa farm shares, treasury bills or solar mini-grids alike. Each plan breaks into several opportunities you can back individually, and you can allocate larger amounts across them with no entry penalties.',
+    a: 'Every area starts with a 5,000 XAF package that runs for 5 days. Bigger packages run longer and pay more — 10,000 XAF for 8 days, 15,000 XAF for 12 days, and so on — and nothing on the platform runs longer than 30 days.',
   },
   {
     q: 'Are returns guaranteed?',
-    a: 'No. Under COSUMAF market regulations, returns are projections based on vetted regional assets — real estate leases, export contracts, treasury bills — and verified quarterly audits. We maintain strict risk management and emergency liquidity reserves, but capital is at risk.',
+    a: 'No. The profit shown on a package is the target it is built to pay, based on the real assets behind it — building sites, export contracts, treasury bills. We hold reserves and run every project under supervision, but investing always carries risk.',
   },
 ];
-
-const riskBadge = (risk: RiskLevel) => {
-  if (risk === 'Low' || risk === 'Very Low') return { className: 'bg-pos-bg text-on-pos-bg', icon: 'shield' };
-  if (risk === 'Medium') return { className: 'bg-gold text-on-gold', icon: 'balance' };
-  return { className: 'bg-info text-on-info', icon: 'trending_up' };
-};
 
 export const HomeView: React.FC<HomeViewProps> = ({
   plans,
@@ -130,15 +128,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenDeposit,
   onOpenLegal,
 }) => {
-  const [calcAmount, setCalcAmount] = useState(250000);
-  const [calcMonths, setCalcMonths] = useState(12);
-  const [calcPlanId, setCalcPlanId] = useState(plans[1]?.id ?? plans[0]?.id ?? '');
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
-
-  const activeCalcPlan = plans.find((p) => p.id === calcPlanId) ?? plans[0];
-  const projectedGain = Math.round(calcAmount * ((activeCalcPlan.projectedReturn / 100) * (calcMonths / 12)));
-  const estimatedTotal = calcAmount + projectedGain;
-  const monthlyPayout = Math.round(projectedGain / calcMonths);
 
   return (
     <div className="flex flex-col">
@@ -194,8 +184,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </h1>
 
             <p className="text-base sm:text-lg text-ink-2 max-w-xl leading-relaxed">
-              Central Africa's asset management gateway. Seamless XAF deposits via mobile money and banks,
-              high-yield regional funds, and transparent COSUMAF-supervised governance.
+              Put in from 5,000 XAF, wait a set number of days, and collect your money with its profit. Every
+              package tells you all three numbers before you commit — nothing to work out, nothing hidden.
             </p>
 
             <div className="pt-1 flex flex-col sm:flex-row gap-3">
@@ -225,9 +215,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <dl className="pt-5 grid grid-cols-3 gap-5 border-t border-line">
               {[
-                { label: 'Assets in custody', value: '45.2M XAF', note: '100% segregated', tone: 'text-accent' },
+                { label: 'Start from', value: '5,000 XAF', note: 'Back in 5 days', tone: 'text-accent' },
                 { label: 'Active investors', value: '1,248+', note: 'CEMAC region', tone: 'text-accent' },
-                { label: 'Avg. historical yield', value: '12.4% / yr', note: 'Net of all fees', tone: 'text-gold-ink' },
+                { label: 'Longest wait', value: `${MAX_TERM_DAYS} days`, note: 'Never longer', tone: 'text-gold-ink' },
               ].map((stat) => (
                 <div key={stat.label}>
                   <dt className="text-[11px] uppercase tracking-wider text-ink-3 font-bold">{stat.label}</dt>
@@ -258,7 +248,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <p className="text-xs font-bold text-ink">Samuel E. Nguema</p>
                     <p className="text-[10px] text-pos flex items-center gap-1 font-bold">
                       <span className="w-1.5 h-1.5 rounded-full bg-pos"></span>
-                      Verified · Tier 2
+                      Verified
                     </p>
                   </div>
                 </div>
@@ -274,29 +264,29 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <span className="text-[10px] uppercase font-bold text-gold tracking-wider">
                       Total portfolio value
                     </span>
-                    <p className="text-2xl sm:text-3xl font-extrabold font-mono mt-1">2,450,000 XAF</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono mt-1">127,500 XAF</p>
                   </div>
                   <span className="px-2 py-1 bg-gold/20 border border-gold/40 rounded-lg text-[10px] font-bold text-gold shrink-0">
-                    +14.8% YTD
+                    +12,400 earned
                   </span>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-xs relative">
                   <div>
                     <span className="text-on-emerald/60 text-[10px]">Available</span>
-                    <p className="font-bold font-mono">1,200,000 XAF</p>
+                    <p className="font-bold font-mono">82,500 XAF</p>
                   </div>
                   <div>
                     <span className="text-on-emerald/60 text-[10px]">Invested</span>
-                    <p className="font-bold font-mono text-gold">1,250,000 XAF</p>
+                    <p className="font-bold font-mono text-gold">45,000 XAF</p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 space-y-1.5">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="font-semibold text-ink">Compound performance</span>
-                  <span className="text-pos font-bold">+168,450 XAF paid out</span>
+                  <span className="font-semibold text-ink">Profit paid out</span>
+                  <span className="text-pos font-bold">+12,400 XAF</span>
                 </div>
                 <div className="h-28 w-full bg-surface-2 rounded-xl p-2 border border-line-2">
                   <svg className="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none" role="img">
@@ -331,7 +321,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   </div>
                 </div>
                 <span className="font-bold font-mono text-pos bg-pos-bg px-2 py-0.5 rounded text-xs shrink-0">
-                  +100,000
+                  +50,000
                 </span>
               </div>
             </div>
@@ -411,20 +401,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
             <div>
               <span className="text-xs uppercase tracking-widest font-extrabold text-gold-ink">
-                Institutional due diligence
+                Where your money goes
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
-                Curated regional portfolios
+                Pick an area, then a package
               </h2>
               <p className="text-sm text-ink-2 mt-1.5">
-                Asset-backed allocations vetted under COSUMAF investor protection standards.
+                Real projects across Central Africa, each broken into packages you can take on their own.
               </p>
             </div>
             <button
               onClick={onExplorePlans}
               className="text-xs font-bold text-accent flex items-center gap-1.5 group bg-surface-2 px-4 py-2.5 rounded-xl border border-line hover:bg-surface-3 transition-colors shrink-0"
             >
-              View all {plans.length} portfolios
+              View all {plans.length} areas
               <span aria-hidden="true" className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
                 arrow_forward
               </span>
@@ -433,7 +423,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.slice(0, 3).map((plan) => {
-              const badge = riskBadge(plan.riskLevel);
+              const entry = plan.subInvestments[0];
               return (
                 <motion.article
                   whileHover={{ y: -6 }}
@@ -444,11 +434,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                   <div>
                     <div className="flex justify-between items-start mb-4 gap-2">
-                      <span
-                        className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 ${badge.className}`}
-                      >
-                        <span aria-hidden="true" className="material-symbols-outlined text-[14px]">{badge.icon}</span>
-                        {plan.riskLevel} risk
+                      <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 bg-accent-bg text-accent">
+                        <span aria-hidden="true" className="material-symbols-outlined text-[14px]">inventory_2</span>
+                        {plan.subInvestments.length} packages
                       </span>
                       <span aria-hidden="true" className="material-symbols-outlined text-2xl text-accent group-hover:scale-110 transition-transform">
                         {plan.iconName}
@@ -458,30 +446,30 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <h3 className="text-xl font-extrabold text-ink mb-1.5">{plan.name}</h3>
                     <p className="text-xs text-ink-2 mb-5">{plan.description}</p>
 
+                    {/* The smallest package, stated in full: the three numbers
+                        an investor actually decides on. */}
                     <dl className="space-y-3 mb-6 bg-surface p-4 rounded-2xl border border-line-2">
                       <div className="flex justify-between items-baseline">
-                        <dt className="text-xs text-ink-3 font-semibold">Projected yield</dt>
+                        <dt className="text-xs text-ink-3 font-semibold">Starts at</dt>
                         <dd className="text-2xl font-extrabold text-accent font-mono">
-                          {plan.projectedReturn}%
-                          <span className="text-xs font-normal text-ink-3"> / yr</span>
+                          {entry.amount.toLocaleString()}
+                          <span className="text-xs font-normal text-ink-3"> XAF</span>
                         </dd>
                       </div>
                       <div className="flex justify-between text-xs pt-1 border-t border-line-2">
-                        <dt className="text-ink-3">Minimum</dt>
-                        <dd className="font-bold text-pos font-mono">
-                          From {plan.minInvestment.toLocaleString()} XAF
-                        </dd>
+                        <dt className="text-ink-3">Runs for</dt>
+                        <dd className="font-bold text-ink">{entry.durationDays} days</dd>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <dt className="text-ink-3">Term</dt>
-                        <dd className="font-bold text-ink">{plan.termMonths} months</dd>
+                        <dt className="text-ink-3">You collect</dt>
+                        <dd className="font-bold text-pos font-mono">{currency(payoutFor(entry))}</dd>
                       </div>
                     </dl>
 
                     {/* Name the opportunities inside the plan, so the category
                         reads as something concrete before the prospectus opens. */}
                     <ul className="flex flex-wrap gap-1.5 mb-6">
-                      {plan.subInvestments.map((sub) => (
+                      {plan.subInvestments.slice(0, 4).map((sub) => (
                         <li
                           key={sub.id}
                           className="px-2.5 py-1 rounded-full bg-surface border border-line-2 text-[10px] font-bold text-ink-2"
@@ -497,7 +485,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     onClick={() => onSelectPlan(plan)}
                     className="w-full py-3 bg-surface border border-accent text-accent rounded-xl text-xs font-extrabold hover:bg-emerald hover:text-on-emerald hover:border-emerald transition-colors flex items-center justify-center gap-2"
                   >
-                    View prospectus
+                    See the packages
                     <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </motion.button>
                 </motion.article>
@@ -507,167 +495,93 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* Return simulator */}
-      <section id="simulator" className="py-16 md:py-20 bg-canvas border-b border-line">
+      {/* The ladder — the one rule that governs every package on the platform */}
+      <section id="ladder" className="py-16 md:py-20 bg-canvas border-b border-line">
         <div className="max-w-[1240px] mx-auto px-4 md:px-8">
           <div className="bg-surface rounded-3xl border border-line p-6 md:p-10 shadow-sm">
             <div className="max-w-2xl mb-8">
               <span className="text-xs font-extrabold uppercase tracking-widest text-gold-ink">
-                Return simulator
+                How much, how long, how much back
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
-                Model your returns
+                The whole rule, one line each
               </h2>
               <p className="text-sm text-ink-2 mt-2">
-                Forecast compound outcomes in XAF from historical regional fund yields and holding periods.
+                Put in more and it runs longer and pays more. That is the entire system — the same in every area of
+                the platform, and nothing runs past {MAX_TERM_DAYS} days.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              <div className="lg:col-span-7 space-y-7">
-                <fieldset>
-                  <legend className="block text-xs font-extrabold text-ink mb-2.5 uppercase tracking-wider">
-                    Target strategy
-                  </legend>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {plans.map((plan) => (
-                      <label
-                        key={plan.id}
-                        className={`p-3.5 rounded-2xl border text-left text-xs cursor-pointer transition-colors ${
-                          calcPlanId === plan.id
-                            ? 'border-emerald bg-emerald text-on-emerald'
-                            : 'border-line bg-surface text-ink hover:bg-surface-2'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="calc-plan"
-                          value={plan.id}
-                          checked={calcPlanId === plan.id}
-                          onChange={() => setCalcPlanId(plan.id)}
-                          className="sr-only"
-                        />
-                        <span className="block font-bold truncate">{plan.name}</span>
-                        <span
-                          className={`block text-[11px] mt-0.5 font-bold ${
-                            calcPlanId === plan.id ? 'text-gold' : 'text-gold-ink'
-                          }`}
-                        >
-                          {plan.projectedReturn}% projected
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[520px]">
+                <thead>
+                  <tr className="bg-surface-2 border-b border-line-2 text-[11px] font-bold uppercase tracking-wider text-ink-3">
+                    <th scope="col" className="p-4">You put in</th>
+                    <th scope="col" className="p-4">It runs for</th>
+                    <th scope="col" className="p-4">Profit</th>
+                    <th scope="col" className="p-4 text-right">You collect</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line-2 text-sm">
+                  {STAKE_LADDER.map((stake, index) => {
+                    const profit = profitForRung(index, stake);
+                    return (
+                      <tr key={stake} className="hover:bg-surface-2 transition-colors">
+                        <td className="p-4 font-mono font-bold text-ink">{stake.toLocaleString()} XAF</td>
+                        <td className="p-4 font-bold text-gold-ink">{TERM_DAYS_LADDER[index]} days</td>
+                        <td className="p-4 font-mono text-pos font-semibold">+{profit.toLocaleString()} XAF</td>
+                        <td className="p-4 text-right font-mono font-extrabold text-accent">
+                          {(stake + profit).toLocaleString()} XAF
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-2 gap-3">
-                    <label htmlFor="calc-amount" className="text-xs font-extrabold text-ink uppercase tracking-wider">
-                      Initial capital
-                    </label>
-                    <output
-                      htmlFor="calc-amount"
-                      className="text-base font-extrabold text-accent font-mono bg-accent-bg px-3 py-1 rounded-lg"
-                    >
-                      {calcAmount.toLocaleString()} XAF
-                    </output>
-                  </div>
-                  <input
-                    id="calc-amount"
-                    type="range"
-                    min={50000}
-                    max={10000000}
-                    step={50000}
-                    value={calcAmount}
-                    onChange={(e) => setCalcAmount(Number(e.target.value))}
-                    className="w-full h-2.5 bg-surface-3 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[11px] text-ink-3 mt-1 font-mono font-semibold">
-                    <span>50k</span>
-                    <span>5M</span>
-                    <span>10M</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-2 gap-3">
-                    <label htmlFor="calc-months" className="text-xs font-extrabold text-ink uppercase tracking-wider">
-                      Holding term
-                    </label>
-                    <output
-                      htmlFor="calc-months"
-                      className="text-base font-extrabold text-accent font-mono bg-accent-bg px-3 py-1 rounded-lg"
-                    >
-                      {calcMonths} months
-                    </output>
-                  </div>
-                  <input
-                    id="calc-months"
-                    type="range"
-                    min={6}
-                    max={36}
-                    step={6}
-                    value={calcMonths}
-                    onChange={(e) => setCalcMonths(Number(e.target.value))}
-                    className="w-full h-2.5 bg-surface-3 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[11px] text-ink-3 mt-1 font-mono font-semibold">
-                    <span>6</span>
-                    <span>18</span>
-                    <span>36</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:col-span-5 bg-gradient-to-br from-emerald to-emerald-3 text-on-emerald p-6 rounded-3xl border border-gold/40 shadow-xl relative overflow-hidden">
-                <div
-                  className="absolute top-0 right-0 w-40 h-40 bg-gold/10 rounded-full blur-2xl pointer-events-none"
-                  aria-hidden="true"
-                ></div>
-
-                <div className="relative">
-                  <span className="text-[11px] uppercase font-bold text-gold tracking-widest">
-                    Projected value at maturity
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: 'savings',
+                  title: `Start at ${MIN_INVESTMENT_XAF.toLocaleString()} XAF`,
+                  body: 'The smallest package finishes in five days, so you can watch a whole cycle before committing more.',
+                },
+                {
+                  icon: 'calendar_month',
+                  title: `${DAILY_CHECKIN_XAF} XAF every day`,
+                  body: 'Open the Check-in tab once a day and collect it. It lands in your balance immediately.',
+                },
+                {
+                  icon: 'card_giftcard',
+                  title: `${REFERRAL_REWARD_XAF} XAF per friend`,
+                  body: 'Share your invite code. Every friend who joins and verifies pays you a gift.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="p-5 rounded-2xl border border-line bg-surface-2">
+                  <span className="w-10 h-10 rounded-xl bg-emerald text-gold flex items-center justify-center mb-3">
+                    <span aria-hidden="true" className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   </span>
-                  <p className="text-3xl sm:text-4xl font-extrabold mt-1.5 font-mono">
-                    {estimatedTotal.toLocaleString()} XAF
-                  </p>
-
-                  <dl className="mt-6 pt-5 border-t border-white/15 space-y-2.5 text-xs">
-                    <div className="flex justify-between text-on-emerald/80 gap-3">
-                      <dt>Initial principal</dt>
-                      <dd className="font-mono font-bold text-on-emerald">{calcAmount.toLocaleString()} XAF</dd>
-                    </div>
-                    <div className="flex justify-between text-gold font-bold gap-3">
-                      <dt>Estimated yield (+{activeCalcPlan.projectedReturn}%)</dt>
-                      <dd className="font-mono">+{projectedGain.toLocaleString()} XAF</dd>
-                    </div>
-                    <div className="flex justify-between text-on-emerald/70 gap-3">
-                      <dt>Monthly run-rate</dt>
-                      <dd className="font-mono">~{monthlyPayout.toLocaleString()} XAF</dd>
-                    </div>
-                    <div className="flex justify-between text-on-emerald/50 text-[11px] pt-1 gap-3">
-                      <dt>Management fee</dt>
-                      <dd>{activeCalcPlan.managementFeePercent}% / yr (factored in)</dd>
-                    </div>
-                  </dl>
-
-                  <div className="mt-7 pt-5 border-t border-white/15">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => onSelectPlan(activeCalcPlan)}
-                      className="w-full py-3.5 bg-gold text-on-gold font-extrabold text-xs rounded-xl hover:bg-gold-2 transition-colors flex items-center justify-center gap-2"
-                    >
-                      Invest in {activeCalcPlan.name}
-                      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </motion.button>
-                    <p className="text-[10px] text-on-emerald/60 text-center mt-2.5">
-                      Projections follow COSUMAF financial modelling guidelines and are not guarantees.
-                    </p>
-                  </div>
+                  <h3 className="text-sm font-extrabold text-ink">{item.title}</h3>
+                  <p className="text-xs text-ink-2 mt-1 leading-relaxed">{item.body}</p>
                 </div>
-              </div>
+              ))}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-line-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-xs text-ink-3 max-w-md">
+                Profit figures are the target each package is built to pay. Investing carries risk, and money stays
+                in until the package finishes.
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onExplorePlans}
+                className="w-full sm:w-auto px-6 py-3.5 bg-emerald text-on-emerald font-extrabold text-xs rounded-xl hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 shrink-0"
+              >
+                Browse every package
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -771,12 +685,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
             <dl className="grid grid-cols-2 gap-3 mt-6">
               <div className="p-3 bg-white/10 rounded-xl border border-white/10 text-center">
-                <dd className="text-base font-extrabold text-gold font-mono">100%</dd>
-                <dt className="text-[10px] text-on-emerald/70">Capital segregation</dt>
+                <dd className="text-base font-extrabold text-gold font-mono">Separate</dd>
+                <dt className="text-[10px] text-on-emerald/70">Trust accounts, never mixed</dt>
               </div>
               <div className="p-3 bg-white/10 rounded-xl border border-white/10 text-center">
-                <dd className="text-base font-extrabold text-gold font-mono">0.0%</dd>
-                <dt className="text-[10px] text-on-emerald/70">Historical default rate</dt>
+                <dd className="text-base font-extrabold text-gold font-mono">Every payout</dd>
+                <dt className="text-[10px] text-on-emerald/70">Made on its due date</dt>
               </div>
             </dl>
             <button

@@ -26,28 +26,31 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
           <span aria-hidden="true">•</span>
           <span>BEAC interbank cleared</span>
           <span aria-hidden="true">•</span>
-          <span>COSUMAF Tier 1 depository</span>
+          <span>COSUMAF supervised</span>
         </div>
       </div>
 
       <nav aria-label="Platform">
         <h2 className="text-[11px] uppercase font-extrabold text-gold mb-3 tracking-widest">Platform</h2>
+        {/* Every screen in the app, so the footer is a one-click route to any
+            of them from wherever the reader has ended up. */}
         <ul className="space-y-2 text-xs text-on-emerald/80">
-          <li>
-            <button onClick={() => onNavigate('plans')} className="hover:text-on-emerald hover:underline">
-              Investment plans
-            </button>
-          </li>
-          <li>
-            <button onClick={() => onNavigate('dashboard')} className="hover:text-on-emerald hover:underline">
-              My portfolio
-            </button>
-          </li>
-          <li>
-            <button onClick={() => onNavigate('security')} className="hover:text-on-emerald hover:underline">
-              Security &amp; 2FA
-            </button>
-          </li>
+          {(
+            [
+              ['plans', 'Invest'],
+              ['dashboard', 'My money'],
+              ['checkin', 'Daily check-in'],
+              ['history', 'Transactions'],
+              ['referrals', 'Invite & earn'],
+              ['security', 'Security & 2FA'],
+            ] as [View, string][]
+          ).map(([view, label]) => (
+            <li key={view}>
+              <button onClick={() => onNavigate(view)} className="hover:text-on-emerald hover:underline">
+                {label}
+              </button>
+            </li>
+          ))}
         </ul>
       </nav>
 
