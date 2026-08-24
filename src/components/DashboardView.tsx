@@ -1,7 +1,10 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { UserProfile, ActiveInvestment, Transaction, ReferralRecord, DashboardTab } from '../types';
-import { ReferralProgram, referralLinkFor } from './ReferralProgram';
+import { COMMITMENT_TIERS, formatRemaining, lockStateFor } from '../lib/commitment';
+import { STATUS_CHIP, currency } from '../lib/transactions';
+import { ReferralProgram } from './ReferralProgram';
 import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
+import { TransactionRow } from './TransactionRow';
 import { Tabs, TabItem, tabPanelProps } from './Tabs';
 
 const PortfolioChart = lazy(() => import('./PortfolioChart'));
@@ -16,6 +19,8 @@ interface DashboardViewProps {
   onViewHistory: () => void;
   onSelectTransaction: (tx: Transaction) => void;
   onReferralSuccess: (referral: ReferralRecord) => void;
+  /** Releases a holding whose lock-up has elapsed. */
+  onRedeemInvestment: (investmentId: string) => void;
   /** Section to open on mount — lets the nav and notifications deep-link in. */
   initialTab?: DashboardTab;
   /** Reports the active section so it survives navigating away and back. */
@@ -31,8 +36,6 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 /** Sector colours, keyed off the plan a holding belongs to. */
 const SECTOR_COLORS = ['var(--gf-accent)', 'var(--gf-gold-3)', 'var(--gf-info)', 'var(--gf-pos)'];
-
-const currency = (value: number) => `${value.toLocaleString()} XAF`;
 
 const buildTabs = (
   holdings: number,
@@ -78,14 +81,6 @@ const MOVEMENT_COPY = {
     sign: '\u2212',
   },
 } as const;
-
-const STATUS_CHIP: Record<Transaction['status'], string> = {
-  completed: 'bg-pos-bg text-on-pos-bg',
-  processing: 'bg-gold text-on-gold',
-  pending: 'bg-gold text-on-gold',
-  failed: 'bg-neg-bg text-neg',
-  rejected: 'bg-neg-bg text-neg',
-};
 
 interface MovementPanelProps {
   kind: 'deposits' | 'withdrawals';
@@ -233,6 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onViewHistory,
   onSelectTransaction,
   onReferralSuccess,
+  onRedeemInvestment,
   initialTab = 'overview',
   onTabChange,
 }) => {
@@ -294,6 +290,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const recentTransactions = transactions.slice(0, 5);
 
+  /** What is locked, what has come free, and how soon the next holding does. */
+  const lockSummary = useMemo(() => {
+    const held = activeInvestments.filter((inv) => inv.status !== 'liquidated');
+    const states = held.map((inv) => ({ inv, lock: lockStateFor(inv) }));
+    const stillLocked = states.filter(({ lock }) => lock.locked);
+    return {
+      lockedTotal: stillLocked.reduce((sum, { inv }) => sum + inv.amountInvested, 0),
+      redeemableTotal: states
+        .filter(({ lock }) => !lock.locked)
+        .reduce((sum, { inv }) => sum + inv.maturityValue, 0),
+      nextUnlock: stillLocked.length
+        ? Math.min(...stillLocked.map(({ lock }) => lock.daysRemaining))
+        : null,
+    };
+  }, [activeInvestments]);
+
   const deposits = useMemo(() => transactions.filter((tx) => tx.type === 'deposit'), [transactions]);
   const withdrawals = useMemo(() => transactions.filter((tx) => tx.type === 'withdrawal'), [transactions]);
 
@@ -330,7 +342,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     {
       label: 'Capital invested',
       value: currency(user.investedBalance),
-      caption: `${activeInvestments.length} active ${activeInvestments.length === 1 ? 'holding' : 'holdings'}`,
+      caption:
+        lockSummary.lockedTotal > 0
+          ? `${currency(lockSummary.lockedTotal)} locked until maturity`
+          : `${activeInvestments.length} active ${activeInvestments.length === 1 ? 'holding' : 'holdings'}`,
       icon: 'domain',
       accent: 'text-gold-ink',
       chip: 'bg-gold/25 text-gold-ink',
@@ -432,23 +447,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {tab === 'invite' && (
         <div {...tabPanelProps('invite')} className="space-y-5 outline-none">
-        <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner showDemoControls />
+          {/* One invite surface and one demo control for the whole tab: the
+              referral card owns copying the code, sharing it and simulating a
+              sign-up, and the leaderboard points back at it rather than
+              carrying its own second copy of both. */}
+          <div id="referral-programme">
+            <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner showDemoControls />
+          </div>
 
-        <TopReferrersLeaderboard
-          currentUser={user}
-          onInviteFriend={() => navigator.clipboard?.writeText(referralLinkFor(user)).catch(() => {})}
-          onSimulateSignup={() =>
-            onReferralSuccess({
-              id: `ref_${Date.now()}`,
-              name: 'Demo invitee',
-              phoneOrEmail: 'demo@growthfund.africa',
-              joinedDate: 'Today, just now',
-              status: 'rewarded',
-              giftAmount: 1000,
-            })
-          }
-        />
-
+          <TopReferrersLeaderboard
+            currentUser={user}
+            onInviteFriend={() =>
+              document.getElementById('referral-programme')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          />
         </div>
         )}
 
@@ -557,7 +569,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="p-5 sm:p-6 border-b border-line-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
               <h2 className="text-lg font-bold text-ink">Active holdings</h2>
-              <p className="text-xs text-ink-3">Instruments currently compounding</p>
+              <p className="text-xs text-ink-3">
+                {lockSummary.lockedTotal > 0
+                  ? `${currency(lockSummary.lockedTotal)} locked${
+                      lockSummary.nextUnlock ? ` • next unlocks in ${formatRemaining(lockSummary.nextUnlock)}` : ''
+                    }`
+                  : 'Nothing is locked — every holding can be redeemed'}
+              </p>
             </div>
             <button
               onClick={onExplorePlans}
@@ -566,6 +584,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> Add investment
             </button>
           </div>
+
+          {lockSummary.redeemableTotal > 0 && (
+            <div className="px-5 sm:px-6 py-3 bg-pos-bg border-b border-pos/25 flex items-center gap-2.5 text-xs">
+              <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-on-pos-bg">lock_open</span>
+              <p className="text-on-pos-bg">
+                <strong>{currency(lockSummary.redeemableTotal)}</strong> has finished its lock-up. Redeem it to move
+                the capital and its profit into your available balance.
+              </p>
+            </div>
+          )}
 
           {activeInvestments.length === 0 ? (
             <div className="p-12 text-center">
@@ -581,37 +609,83 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <th scope="col" className="p-4">Fund</th>
                     <th scope="col" className="p-4">Invested</th>
                     <th scope="col" className="p-4">Yield</th>
-                    <th scope="col" className="p-4">Accrued</th>
-                    <th scope="col" className="p-4">Valuation</th>
-                    <th scope="col" className="p-4">Matures</th>
+                    <th scope="col" className="p-4">Lock-up</th>
+                    <th scope="col" className="p-4">Pays out</th>
                     <th scope="col" className="p-4 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line-2 text-xs">
-                  {activeInvestments.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-surface-2 transition-colors">
-                      <td className="p-4 whitespace-nowrap">
-                        <span className="block font-bold text-ink">{inv.subInvestmentName ?? inv.planName}</span>
-                        {inv.subInvestmentName && (
-                          <span className="block text-[11px] text-ink-3">{inv.planName}</span>
-                        )}
-                      </td>
-                      <td className="p-4 font-mono text-ink">{currency(inv.amountInvested)}</td>
-                      <td className="p-4 font-bold text-accent whitespace-nowrap">+{inv.projectedReturn}% / yr</td>
-                      <td className="p-4 font-mono font-bold text-pos">+{currency(inv.accruedEarnings)}</td>
-                      <td className="p-4 font-mono font-bold text-ink">{currency(inv.currentValuation)}</td>
-                      <td className="p-4 text-ink-3 whitespace-nowrap">{inv.maturityDate}</td>
-                      <td className="p-4 text-right">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            inv.status === 'active' ? 'bg-pos-bg text-on-pos-bg' : 'bg-gold text-on-gold'
-                          }`}
-                        >
-                          {inv.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {activeInvestments.map((inv) => {
+                    const lock = lockStateFor(inv);
+                    const released = inv.status === 'liquidated';
+                    const tier = COMMITMENT_TIERS.find((t) => t.id === inv.tierId);
+                    return (
+                      <tr key={inv.id} className="hover:bg-surface-2 transition-colors">
+                        <td className="p-4 whitespace-nowrap">
+                          <span className="block font-bold text-ink">{inv.subInvestmentName ?? inv.planName}</span>
+                          <span className="block text-[11px] text-ink-3">
+                            {inv.planName}
+                            {tier && ` • ${tier.label} tier`}
+                          </span>
+                        </td>
+                        <td className="p-4 font-mono text-ink">{currency(inv.amountInvested)}</td>
+                        <td className="p-4 font-bold text-accent whitespace-nowrap">+{inv.projectedReturn}% / yr</td>
+
+                        <td className="p-4 min-w-[190px]">
+                          {released ? (
+                            <span className="text-[11px] text-ink-3">Released</span>
+                          ) : (
+                            <>
+                              <span className="flex items-center justify-between gap-2 text-[11px] mb-1.5">
+                                <span className={`font-bold ${lock.locked ? 'text-gold-ink' : 'text-pos'}`}>
+                                  {lock.locked ? `${formatRemaining(lock.daysRemaining)} left` : 'Lock-up complete'}
+                                </span>
+                                <span className="text-ink-3 font-mono">{inv.lockMonths}mo</span>
+                              </span>
+                              <span className="block w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                                <span
+                                  className={`block h-full rounded-full ${lock.locked ? 'bg-gold-3' : 'bg-pos'}`}
+                                  style={{ width: `${Math.max(3, lock.progressPercent)}%` }}
+                                ></span>
+                              </span>
+                              <span className="block text-[10px] text-ink-3 mt-1">Unlocks {inv.maturityDate}</span>
+                            </>
+                          )}
+                        </td>
+
+                        <td className="p-4 whitespace-nowrap">
+                          <span className="block font-mono font-bold text-ink">{currency(inv.maturityValue)}</span>
+                          <span className="block text-[11px] font-mono text-pos">
+                            +{currency(inv.maturityValue - inv.amountInvested)} profit
+                          </span>
+                        </td>
+
+                        <td className="p-4 text-right">
+                          {released ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-surface-3 text-ink-2">
+                              redeemed
+                            </span>
+                          ) : lock.locked ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase bg-gold text-on-gold"
+                              title={`Locked until ${inv.maturityDate}`}
+                            >
+                              <span aria-hidden="true" className="material-symbols-outlined text-[13px]">lock</span>
+                              Locked
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => onRedeemInvestment(inv.id)}
+                              className="inline-flex items-center gap-1.5 bg-emerald text-on-emerald text-[11px] font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-2 transition-colors"
+                            >
+                              <span aria-hidden="true" className="material-symbols-outlined text-[14px]">lock_open</span>
+                              Redeem
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -673,66 +747,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           ) : (
             <div className="divide-y divide-line-2">
-              {recentTransactions.map((tx) => {
-                const isCredit = tx.type === 'deposit' || tx.type === 'dividend' || tx.type === 'referral_gift';
-                return (
-                  <button
-                    key={tx.id}
-                    onClick={() => onSelectTransaction(tx)}
-                    className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-surface-2 transition-colors"
-                  >
-                    <span className="flex items-center gap-3.5 min-w-0">
-                      <span
-                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                          tx.type === 'withdrawal' ? 'bg-neg-bg text-neg' : isCredit ? 'bg-pos-bg text-on-pos-bg' : 'bg-surface-3 text-ink-2'
-                        }`}
-                      >
-                        <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
-                          {tx.type === 'deposit'
-                            ? 'arrow_downward'
-                            : tx.type === 'withdrawal'
-                            ? 'arrow_upward'
-                            : tx.type === 'dividend'
-                            ? 'payments'
-                            : tx.type === 'referral_gift'
-                            ? 'redeem'
-                            : 'show_chart'}
-                        </span>
-                      </span>
-
-                      <span className="min-w-0">
-                        <span className="block text-sm font-bold text-ink truncate">
-                          {tx.type === 'referral_gift'
-                            ? 'Referral gift'
-                            : `${tx.method} ${tx.type.replace('_', ' ')}`}
-                        </span>
-                        <span className="flex items-center gap-2 mt-0.5 text-[11px] text-ink-3">
-                          <span
-                            className={`px-1.5 py-0.5 rounded font-bold uppercase text-[9px] ${
-                              tx.status === 'completed'
-                                ? 'bg-pos-bg text-on-pos-bg'
-                                : tx.status === 'processing' || tx.status === 'pending'
-                                ? 'bg-gold text-on-gold'
-                                : 'bg-neg-bg text-neg'
-                            }`}
-                          >
-                            {tx.status}
-                          </span>
-                          <span className="truncate">{tx.date}</span>
-                        </span>
-                      </span>
-                    </span>
-
-                    <span className="text-right shrink-0">
-                      <span className={`text-sm font-bold font-mono block ${isCredit ? 'text-pos' : 'text-ink'}`}>
-                        {isCredit ? '+' : '−'}
-                        {tx.amount.toLocaleString()} XAF
-                      </span>
-                      <span className="text-[10px] text-ink-3 font-mono">{tx.reference}</span>
-                    </span>
-                  </button>
-                );
-              })}
+              {recentTransactions.map((tx) => (
+                <TransactionRow key={tx.id} transaction={tx} onSelect={onSelectTransaction} />
+              ))}
             </div>
           )}
         </section>

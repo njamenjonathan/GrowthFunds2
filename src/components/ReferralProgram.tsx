@@ -42,7 +42,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
   const referrals = user.referralList ?? [];
   const rewarded = referrals.filter((r) => r.status === 'rewarded');
   const pending = referrals.filter((r) => r.status !== 'rewarded');
-  const totalGiftEarned = user.referralEarnings ?? rewarded.reduce((sum, r) => sum + r.giftAmount, 0);
+  const totalGiftEarned = referralEarningsFor(user);
   const visible = filter === 'all' ? referrals : filter === 'rewarded' ? rewarded : pending;
 
   const showToast = (message: string) => {
@@ -363,6 +363,19 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
     </>
   );
 };
+
+/**
+ * Gift money credited for referrals.
+ *
+ * Exported so the leaderboard reports the same figure this card does — it used
+ * to multiply the invite count by 1,000 itself, which disagreed with this the
+ * moment a referral was pending rather than rewarded.
+ */
+export const referralEarningsFor = (user: UserProfile): number =>
+  user.referralEarnings ??
+  (user.referralList ?? [])
+    .filter((r) => r.status === 'rewarded')
+    .reduce((sum, r) => sum + r.giftAmount, 0);
 
 /** Shared helper so callers can offer "copy my invite link" without duplicating it. */
 export const referralLinkFor = (user: UserProfile): string => {

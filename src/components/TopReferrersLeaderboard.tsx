@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
 import { avatarFor } from '../lib/avatar';
+import { referralEarningsFor } from './ReferralProgram';
 
 export interface LeaderboardMember {
   id: string;
@@ -17,16 +18,14 @@ export interface LeaderboardMember {
 
 interface TopReferrersLeaderboardProps {
   currentUser: UserProfile;
+  /** Sends the reader to the referral card, which owns every invite action. */
   onInviteFriend?: () => void;
-  /** Demo control: advance the user's standing by one invite. */
-  onSimulateSignup?: () => void;
   className?: string;
 }
 
 export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = ({
   currentUser,
   onInviteFriend,
-  onSimulateSignup,
   className = '',
 }) => {
   const [activePeriod, setActivePeriod] = useState<'month' | 'alltime' | 'perks'>('month');
@@ -34,7 +33,9 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
 
   // User's actual referral count from props
   const userInvites = currentUser.referralCount || (currentUser.referralList ? currentUser.referralList.length : 3);
-  const userEarnings = userInvites * 1000;
+  // Read from the referral programme rather than re-deriving it here, so the
+  // two cards in this tab never quote different totals.
+  const userEarnings = referralEarningsFor(currentUser);
 
   // Base monthly leaderboard data
   const monthlyLeaders: LeaderboardMember[] = [
@@ -543,16 +544,6 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                {onSimulateSignup && (
-                  <button
-                    onClick={onSimulateSignup}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-dashed border-white/30 transition-colors flex items-center justify-center gap-1"
-                    title="Demo: add one invite to preview rank advancement"
-                  >
-                    <span aria-hidden="true" className="material-symbols-outlined text-[14px]">add</span>
-                    <span>+1 invite</span>
-                  </button>
-                )}
                 {onInviteFriend && (
                   <button
                     onClick={onInviteFriend}

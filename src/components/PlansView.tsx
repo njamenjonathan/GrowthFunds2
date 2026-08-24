@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { InvestmentPlan, RiskLevel, SubInvestment, UserProfile } from '../types';
 import { MIN_INVESTMENT_XAF } from '../lib/constants';
+import {
+  COMMITMENT_TIERS,
+  annualReturnFor,
+  lockMonthsFor,
+  maturityDateFrom,
+  projectedProfitFor,
+  tierFor,
+} from '../lib/commitment';
 import { Modal, ModalHeader } from './Modal';
 
 interface PlansViewProps {
@@ -23,9 +31,8 @@ const riskStyles = (risk: RiskLevel) => {
   return { className: 'bg-info text-on-info', icon: 'trending_up' };
 };
 
-/** Return at maturity for a commitment, using the chosen opportunity's own terms. */
-const projectedGain = (amount: number, sub: SubInvestment) =>
-  Math.round(amount * (sub.projectedReturn / 100) * (sub.termMonths / 12));
+/** Human date for the day a commitment made today would unlock. */
+const unlockDate = (months: number) => maturityDateFrom(new Date(), months);
 
 export const PlansView: React.FC<PlansViewProps> = ({
   plans,
@@ -50,6 +57,11 @@ export const PlansView: React.FC<PlansViewProps> = ({
     sub: SubInvestment;
     amount: number;
     reference: string;
+    lockMonths: number;
+    tierLabel: string;
+    annualRate: number;
+    profit: number;
+    unlocksOn: string;
   } | null>(null);
 
   /** Opens a plan's prospectus with its first opportunity pre-selected. */
@@ -77,6 +89,13 @@ export const PlansView: React.FC<PlansViewProps> = ({
     onPlanOpened();
   }, [planToOpen, onPlanOpened]);
 
+  // Recomputed on every keystroke in the amount field, so the tier badge, the
+  // lock-up and the payout all move together as the amount changes.
+  const activeTier = tierFor(investAmount);
+  const lockMonths = selectedSub ? lockMonthsFor(selectedSub, investAmount) : 0;
+  const annualRate = selectedSub ? annualReturnFor(selectedSub, investAmount) : 0;
+  const projectedProfit = selectedSub ? projectedProfitFor(selectedSub, investAmount) : 0;
+
   const handleConfirmInvestment = () => {
     if (!selectedPlan || !selectedSub) return;
     if (!user) {
@@ -103,7 +122,17 @@ export const PlansView: React.FC<PlansViewProps> = ({
     }
 
     const reference = onInvestInPlan(selectedPlan, investAmount, selectedSub);
-    setConfirmation({ plan: selectedPlan, sub: selectedSub, amount: investAmount, reference: reference ?? '—' });
+    setConfirmation({
+      plan: selectedPlan,
+      sub: selectedSub,
+      amount: investAmount,
+      reference: reference ?? '—',
+      lockMonths,
+      tierLabel: activeTier.label,
+      annualRate,
+      profit: projectedProfit,
+      unlocksOn: unlockDate(lockMonths),
+    });
     setSelectedPlan(null);
   };
 
@@ -124,7 +153,9 @@ export const PlansView: React.FC<PlansViewProps> = ({
             Institutional-grade opportunities matched to your risk profile and timeline, each backed by audited
             regional assets. Every plan breaks down into specific opportunities you can back individually — all of
             them opening from{' '}
-            <strong className="text-pos font-mono">{MIN_INVESTMENT_XAF.toLocaleString()} XAF</strong>.
+            <strong className="text-pos font-mono">{MIN_INVESTMENT_XAF.toLocaleString()} XAF</strong>. Capital stays
+            locked until its term ends, and the larger the commitment, the longer it locks and the higher the rate it
+            earns.
           </p>
         </header>
 
@@ -204,7 +235,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
                       </dd>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <dt className="text-ink-2">Term</dt>
+                      <dt className="text-ink-2">Lock-up from</dt>
                       <dd className="font-bold text-ink">{plan.termMonths} months</dd>
                     </div>
                     <div className="flex justify-between items-center text-xs">
@@ -336,7 +367,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
                         </span>
                         <span className="block text-[11px] text-ink-2 leading-relaxed mt-1">{sub.description}</span>
                         <span className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] font-bold text-ink-3 uppercase tracking-wider">
-                          <span>{sub.termMonths} month term</span>
+                          <span>{sub.termMonths} month lock-up</span>
                           <span className="text-pos">From {sub.minInvestment.toLocaleString()} XAF</span>
                         </span>
                       </span>
@@ -396,32 +427,98 @@ export const PlansView: React.FC<PlansViewProps> = ({
             </div>
 
             {selectedSub && (
-              <dl className="bg-accent-bg border border-accent/20 rounded-xl p-4 space-y-2 text-xs">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-ink-2">Selected opportunity</dt>
-                  <dd className="font-bold text-ink text-right">{selectedSub.name}</dd>
+              <>
+                {/* The ladder makes the trade explicit: a bigger commitment
+                    locks up for longer and earns more for doing so. */}
+                <div>
+                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <span aria-hidden="true" className="material-symbols-outlined text-[15px] text-gold-ink">
+                      lock_clock
+                    </span>
+                    Commitment tiers
+                  </h3>
+                  <ul className="space-y-1.5">
+                    {COMMITMENT_TIERS.map((tier) => {
+                      const active = tier.id === activeTier.id;
+                      return (
+                        <li
+                          key={tier.id}
+                          className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 rounded-lg border text-[11px] ${
+                            active ? 'border-gold bg-gold/15' : 'border-line-2 bg-surface-2'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className={`font-bold ${active ? 'text-gold-ink' : 'text-ink'}`}>{tier.label}</span>
+                            <span className="text-ink-3 font-mono">
+                              {tier.minAmount.toLocaleString()}+ XAF
+                            </span>
+                            {active && (
+                              <span className="px-1.5 py-0.5 rounded bg-gold text-on-gold text-[9px] font-extrabold uppercase">
+                                Your tier
+                              </span>
+                            )}
+                          </span>
+                          <span className="font-bold text-ink-2 shrink-0">
+                            {tier.extraMonths === 0 ? 'Base term' : `+${tier.extraMonths} months`}
+                            {' · '}
+                            {tier.bonusReturn === 0 ? 'base rate' : `+${tier.bonusReturn}% / yr`}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
-                <div className="flex justify-between">
-                  <dt className="text-ink-2">Lock-up term</dt>
-                  <dd className="font-bold text-ink">{selectedSub.termMonths} months</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-ink-2">Annual target return</dt>
-                  <dd className="font-bold text-accent">+{selectedSub.projectedReturn}% / yr</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-ink-2">Estimated return at maturity</dt>
-                  <dd className="font-bold text-gold-ink font-mono">
-                    +{projectedGain(investAmount, selectedSub).toLocaleString()} XAF
-                  </dd>
-                </div>
-                <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-accent/15">
-                  <dt>Projected value at maturity</dt>
-                  <dd className="font-mono">
-                    {(investAmount + projectedGain(investAmount, selectedSub)).toLocaleString()} XAF
-                  </dd>
-                </div>
-              </dl>
+
+                <dl className="bg-accent-bg border border-accent/20 rounded-xl p-4 space-y-2 text-xs">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink-2">Selected opportunity</dt>
+                    <dd className="font-bold text-ink text-right">{selectedSub.name}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink-2">Lock-up</dt>
+                    <dd className="font-bold text-ink text-right">
+                      {lockMonths} months
+                      {activeTier.extraMonths > 0 && (
+                        <span className="block text-[10px] font-semibold text-gold-ink">
+                          {selectedSub.termMonths} base + {activeTier.extraMonths} from {activeTier.label}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink-2">Funds unlock on</dt>
+                    <dd className="font-bold text-ink font-mono">{unlockDate(lockMonths)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink-2">Annual target return</dt>
+                    <dd className="font-bold text-accent text-right">
+                      +{annualRate}% / yr
+                      {activeTier.bonusReturn > 0 && (
+                        <span className="block text-[10px] font-semibold text-gold-ink">
+                          {selectedSub.projectedReturn}% base + {activeTier.bonusReturn}% from {activeTier.label}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-ink-2">Profit over the lock-up</dt>
+                    <dd className="font-bold text-gold-ink font-mono">+{projectedProfit.toLocaleString()} XAF</dd>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm text-accent pt-2 border-t border-accent/15">
+                    <dt>Paid out when it unlocks</dt>
+                    <dd className="font-mono">{(investAmount + projectedProfit).toLocaleString()} XAF</dd>
+                  </div>
+                </dl>
+
+                <p className="flex items-start gap-2 p-3 rounded-lg bg-gold/15 border border-gold/40 text-[11px] text-gold-ink leading-relaxed">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[15px] shrink-0 mt-px">lock</span>
+                  <span>
+                    This capital is locked for the full {lockMonths} months. It cannot be withdrawn before{' '}
+                    <strong className="font-mono">{unlockDate(lockMonths)}</strong> — committing more moves you up a
+                    tier, which lengthens the lock-up and raises the rate.
+                  </span>
+                </p>
+              </>
             )}
 
             <label className="flex items-start gap-2.5 cursor-pointer">
@@ -432,8 +529,9 @@ export const PlansView: React.FC<PlansViewProps> = ({
                 className="mt-0.5 accent-[var(--gf-accent)]"
               />
               <span className="text-xs text-ink-2 leading-relaxed">
-                I acknowledge that returns are projected, not guaranteed, and that I have reviewed the COSUMAF
-                prospectus risk disclosures.
+                I acknowledge that returns are projected, not guaranteed, that this capital stays locked for{' '}
+                {lockMonths} months and cannot be withdrawn before {unlockDate(lockMonths)}, and that I have reviewed
+                the COSUMAF prospectus risk disclosures.
               </span>
             </label>
 
@@ -485,8 +583,8 @@ export const PlansView: React.FC<PlansViewProps> = ({
             <p className="text-xs text-ink-2 leading-relaxed">
               Your commitment of{' '}
               <strong className="font-mono text-accent">{confirmation.amount.toLocaleString()} XAF</strong> to{' '}
-              <strong className="text-accent">{confirmation.sub.name}</strong> ({confirmation.plan.name}) is now
-              active.
+              <strong className="text-accent">{confirmation.sub.name}</strong> ({confirmation.plan.name}) is locked in
+              until <strong className="font-mono">{confirmation.unlocksOn}</strong>.
             </p>
 
             <dl className="bg-surface-2 p-4 rounded-lg border border-line-2 text-left text-xs space-y-1.5">
@@ -499,12 +597,24 @@ export const PlansView: React.FC<PlansViewProps> = ({
                 <dd className="font-bold text-pos">Active / compounding</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-ink-3">Term</dt>
-                <dd className="font-bold text-ink">{confirmation.sub.termMonths} months</dd>
+                <dt className="text-ink-3">Lock-up</dt>
+                <dd className="font-bold text-ink">
+                  {confirmation.lockMonths} months ({confirmation.tierLabel} tier)
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Unlocks on</dt>
+                <dd className="font-bold text-ink font-mono">{confirmation.unlocksOn}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-3">Target return</dt>
-                <dd className="font-bold text-accent">+{confirmation.sub.projectedReturn}% / yr</dd>
+                <dd className="font-bold text-accent">+{confirmation.annualRate}% / yr</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-3">Pays out</dt>
+                <dd className="font-bold text-gold-ink font-mono">
+                  {(confirmation.amount + confirmation.profit).toLocaleString()} XAF
+                </dd>
               </div>
             </dl>
 
