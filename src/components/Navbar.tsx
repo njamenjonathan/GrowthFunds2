@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { GrowthFundLogo } from './GrowthFundLogo';
 import { UserProfile, AppNotification, View } from '../types';
+import { ThemeMode, THEME_OPTIONS } from '../lib/theme';
 
 interface NavbarProps {
   currentView: View;
@@ -9,7 +10,9 @@ interface NavbarProps {
   onToggleAdmin: () => void;
   user: UserProfile | null;
   theme: 'light' | 'dark';
+  themeMode: ThemeMode;
   onToggleTheme: () => void;
+  onSetThemeMode: (mode: ThemeMode) => void;
   notifications: AppNotification[];
   onMarkNotificationAsRead: (id: string) => void;
   onMarkAllNotificationsAsRead: () => void;
@@ -46,7 +49,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleAdmin,
   user,
   theme,
+  themeMode,
   onToggleTheme,
+  onSetThemeMode,
   notifications,
   onMarkNotificationAsRead,
   onMarkAllNotificationsAsRead,
@@ -148,12 +153,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onToggleTheme}
-            className="p-2 rounded-xl text-ink-2 hover:text-ink hover:bg-surface-2 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-ink-2 hover:text-ink hover:bg-surface-2 transition-colors"
             title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           >
             <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
               {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+            {/* A visible word, not only a glyph: the control stays findable even
+                if the icon font never arrives. */}
+            <span className="hidden sm:inline text-xs font-semibold">
+              {theme === 'dark' ? 'Light' : 'Dark'}
             </span>
           </button>
 
@@ -330,7 +340,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ))}
                   </div>
 
-                  <div className="border-t border-line-2 pt-1">
+                  <div className="border-t border-line-2 pt-2 pb-1 px-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-ink-3 mb-1.5">
+                      Appearance
+                    </p>
+                    <div
+                      role="radiogroup"
+                      aria-label="Theme"
+                      className="flex items-center gap-1 bg-surface-2 p-1 rounded-lg"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {THEME_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          role="radio"
+                          aria-checked={themeMode === option.value}
+                          onClick={() => onSetThemeMode(option.value)}
+                          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-bold transition-colors ${
+                            themeMode === option.value
+                              ? 'bg-surface text-accent shadow-2xs'
+                              : 'text-ink-3 hover:text-ink'
+                          }`}
+                        >
+                          <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
+                            {option.icon}
+                          </span>
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-line-2 pt-1 mt-1">
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
@@ -402,6 +443,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </nav>
+
+          <div className="p-3 rounded-xl bg-surface-2 border border-line">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-3 mb-2">Appearance</p>
+            <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-1.5">
+              {THEME_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  role="radio"
+                  aria-checked={themeMode === option.value}
+                  onClick={() => onSetThemeMode(option.value)}
+                  className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                    themeMode === option.value
+                      ? 'bg-emerald text-on-emerald border-emerald'
+                      : 'bg-surface text-ink border-line'
+                  }`}
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                    {option.icon}
+                  </span>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <button
             onClick={() => {

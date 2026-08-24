@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   INITIAL_PLANS,
   INITIAL_USER,
@@ -21,6 +21,12 @@ import {
   AppNotification,
   View,
 } from './types';
+import {
+  ThemeMode,
+  readStoredMode,
+  resolveTheme,
+  storeMode,
+} from './lib/theme';
 
 import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
@@ -49,29 +55,38 @@ const auditTimestamp = () => new Date().toISOString().replace('T', ' ').substrin
 
 export default function App() {
   // ---------------------------------------------------------------- theme
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = localStorage.getItem('growthfund_theme');
-      if (saved === 'dark' || saved === 'light') return saved;
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-    } catch {
-      // Storage can be unavailable (private mode, blocked cookies) — fall through.
-    }
-    return 'light';
-  });
+  const [themeMode, setThemeMode] = useState<ThemeMode>(readStoredMode);
+  /** Bumped when the OS preference flips, so `system` re-resolves live. */
+  const [systemTick, setSystemTick] = useState(0);
+
+  const theme = useMemo(() => resolveTheme(themeMode), [themeMode, systemTick]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('growthfund_theme', theme);
-    } catch {
-      // Persisting the preference is best-effort; the theme still applies.
-    }
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    storeMode(themeMode);
+    document.documentElement.classList.toggle('dark', resolveTheme(themeMode) === 'dark');
+  }, [themeMode, systemTick]);
 
+  // While on `system`, follow the OS instead of pinning whatever it reported
+  // when the page first loaded.
+  useEffect(() => {
+    if (themeMode !== 'system') return;
+    let query: MediaQueryList;
+    try {
+      query = window.matchMedia('(prefers-color-scheme: dark)');
+    } catch {
+      return;
+    }
+    const onChange = () => setSystemTick((tick) => tick + 1);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [themeMode]);
+
+  const handleSetThemeMode = useCallback((mode: ThemeMode) => setThemeMode(mode), []);
+
+  /** Header shortcut: flip to the opposite of what is currently on screen. */
   const handleToggleTheme = useCallback(
-    () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
-    []
+    () => setThemeMode(resolveTheme(themeMode) === 'dark' ? 'light' : 'dark'),
+    [themeMode]
   );
 
   // ----------------------------------------------------------- navigation
@@ -417,7 +432,9 @@ export default function App() {
         onToggleAdmin={() => setIsAdmin((prev) => !prev)}
         user={user}
         theme={theme}
+        themeMode={themeMode}
         onToggleTheme={handleToggleTheme}
+        onSetThemeMode={handleSetThemeMode}
         notifications={notifications}
         onMarkNotificationAsRead={handleMarkNotificationAsRead}
         onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
@@ -508,7 +525,8 @@ export default function App() {
               <SecurityView
                 user={user}
                 theme={theme}
-                onToggleTheme={handleToggleTheme}
+                themeMode={themeMode}
+                onSetThemeMode={handleSetThemeMode}
                 onUpdateSecurity={(settings) => setUser({ ...user, ...settings })}
                 onOpenKyc={openKyc}
               />
