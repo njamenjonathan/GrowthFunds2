@@ -1,9 +1,12 @@
-import { useRef, useState } from 'react';
-import { PaymentMethodType, UserProfile } from '../types';
+import { useMemo, useRef, useState } from 'react';
+import { ActiveInvestment, PaymentMethodType, UserProfile } from '../types';
+import { formatRemaining, lockStateFor } from '../lib/commitment';
 import { Modal, ModalHeader } from './Modal';
 
 interface WithdrawalFlowProps {
   user: UserProfile;
+  /** Used to explain how much capital is locked and when it frees up. */
+  activeInvestments: ActiveInvestment[];
   onClose: () => void;
   onWithdrawSuccess: (
     amount: number,
@@ -28,6 +31,7 @@ const DESTINATIONS: PaymentMethodType[] = [
 
 export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
   user,
+  activeInvestments,
   onClose,
   onWithdrawSuccess,
   onOpenKyc,
@@ -45,6 +49,24 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
   const isVerified = user.kycStatus === 'verified';
   const netReceived = Math.max(0, amount - FLAT_FEE);
 
+  /**
+   * Capital sitting inside lock-ups, and the soonest any of it frees up.
+   * Withdrawals have always been capped at the available balance; this states
+   * plainly why the rest of the portfolio is not part of that figure.
+   */
+  const locked = useMemo(() => {
+    const held = activeInvestments.filter((inv) => inv.status !== 'liquidated');
+    const stillLocked = held.filter((inv) => lockStateFor(inv).locked);
+    const total = stillLocked.reduce((sum, inv) => sum + inv.amountInvested, 0);
+    const next = stillLocked
+      .map((inv) => ({ holding: inv, lock: lockStateFor(inv) }))
+      .sort((a, b) => a.lock.daysRemaining - b.lock.daysRemaining)[0];
+    const redeemable = held
+      .filter((inv) => !lockStateFor(inv).locked)
+      .reduce((sum, inv) => sum + inv.maturityValue, 0);
+    return { total, count: stillLocked.length, next, redeemable };
+  }, [activeInvestments]);
+
   const handleNextToOtp = () => {
     if (!isVerified) {
       setErrorMsg('Identity verification is required before you can withdraw.');
@@ -55,7 +77,11 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
       return;
     }
     if (amount > user.availableBalance) {
-      setErrorMsg(`That exceeds your available balance of ${user.availableBalance.toLocaleString()} XAF.`);
+      setErrorMsg(
+        locked.total > 0
+          ? `That exceeds your available balance of ${user.availableBalance.toLocaleString()} XAF. A further ${locked.total.toLocaleString()} XAF is locked in active investments and cannot be withdrawn yet.`
+          : `That exceeds your available balance of ${user.availableBalance.toLocaleString()} XAF.`
+      );
       return;
     }
     if (!destinationAccount.trim()) {
@@ -105,6 +131,35 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
                 >
                   Verify now
                 </button>
+              </div>
+            </div>
+          )}
+
+          {locked.total > 0 && (
+            <div className="p-4 rounded-xl bg-surface-2 border border-line-2 flex items-start gap-3">
+              <span aria-hidden="true" className="material-symbols-outlined text-gold-ink shrink-0">lock_clock</span>
+              <div className="text-xs">
+                <p className="font-bold text-ink">
+                  {locked.total.toLocaleString()} XAF is locked in {locked.count}{' '}
+                  {locked.count === 1 ? 'holding' : 'holdings'}
+                </p>
+                <p className="text-ink-2 mt-0.5 leading-relaxed">
+                  Invested capital cannot be withdrawn until its lock-up ends.
+                  {locked.next && (
+                    <>
+                      {' '}
+                      The next one — {locked.next.holding.subInvestmentName ?? locked.next.holding.planName} — unlocks
+                      in <strong className="text-ink">{formatRemaining(locked.next.lock.daysRemaining)}</strong> on{' '}
+                      {locked.next.holding.maturityDate}.
+                    </>
+                  )}
+                </p>
+                {locked.redeemable > 0 && (
+                  <p className="text-pos font-semibold mt-1.5">
+                    {locked.redeemable.toLocaleString()} XAF has finished its lock-up — redeem it from your
+                    holdings to make it withdrawable.
+                  </p>
+                )}
               </div>
             </div>
           )}

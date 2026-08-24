@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Transaction } from '../types';
+import { TransactionRow } from './TransactionRow';
 
 interface TransactionHistoryViewProps {
   transactions: Transaction[];
@@ -70,6 +71,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
               { id: 'withdrawal', label: 'Withdrawals' },
               { id: 'investment', label: 'Investments' },
               { id: 'dividend', label: 'Dividends' },
+              { id: 'liquidation', label: 'Redemptions' },
               { id: 'referral_gift', label: 'Referral gifts' },
             ].map((tab) => (
               <button
@@ -110,91 +112,9 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
             </div>
           ) : (
             <div className="divide-y divide-line-2">
-              {filtered.map((tx) => {
-                const isCredit = tx.type === 'deposit' || tx.type === 'dividend' || tx.type === 'referral_gift';
-
-                return (
-                  <button
-                    key={tx.id}
-                    onClick={() => onSelectTransaction(tx)}
-                    className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-surface-2 transition-colors"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                          tx.type === 'deposit'
-                            ? 'bg-pos-bg/40 text-on-pos-bg'
-                            : tx.type === 'withdrawal'
-                            ? 'bg-neg-bg text-neg'
-                            : tx.type === 'dividend'
-                            ? 'bg-gold/40 text-gold-ink'
-                            : tx.type === 'referral_gift'
-                            ? 'bg-gold/50 text-accent'
-                            : 'bg-surface-3 text-accent'
-                        }`}
-                      >
-                        <span aria-hidden="true" className="material-symbols-outlined text-[22px]">
-                          {tx.type === 'deposit'
-                            ? 'arrow_downward'
-                            : tx.type === 'withdrawal'
-                            ? 'arrow_upward'
-                            : tx.type === 'dividend'
-                            ? 'payments'
-                            : tx.type === 'referral_gift'
-                            ? 'redeem'
-                            : 'trending_up'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-ink">
-                            {tx.type === 'referral_gift' ? 'Referral Gift Bonus' : `${tx.method} ${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}`}
-                          </p>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              tx.status === 'completed'
-                                ? 'bg-pos-bg text-on-pos-bg'
-                                : tx.status === 'processing' || tx.status === 'pending'
-                                ? 'bg-gold text-on-gold'
-                                : 'bg-neg-bg text-neg'
-                            }`}
-                          >
-                            {tx.status}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-1 text-xs text-ink-3">
-                          <span className="font-mono">{tx.reference}</span>
-                          <span>•</span>
-                          <span>{tx.date}</span>
-                          {tx.destinationOrSource && (
-                            <>
-                              <span>•</span>
-                              <span className="hidden sm:inline font-mono">{tx.destinationOrSource}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p
-                        className={`text-base font-extrabold font-mono ${
-                          isCredit ? 'text-accent' : 'text-ink'
-                        }`}
-                      >
-                        {isCredit ? '+' : '−'}
-                        {tx.amount.toLocaleString()} XAF
-                      </p>
-                      <p className="text-[11px] text-ink-3 flex items-center justify-end gap-0.5">
-                        <span>Receipt</span>
-                        <span aria-hidden="true" className="material-symbols-outlined text-[14px]">chevron_right</span>
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+              {filtered.map((tx) => (
+                <TransactionRow key={tx.id} transaction={tx} onSelect={onSelectTransaction} variant="detailed" />
+              ))}
             </div>
           )}
         </div>

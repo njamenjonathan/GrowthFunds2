@@ -54,10 +54,18 @@ export interface ActiveInvestment {
   subInvestmentName?: string;
   amountInvested: number;
   startDate: string;
+  /** End of the lock-up: capital cannot be redeemed before this date. */
   maturityDate: string;
+  /** Total months locked, base term plus the commitment tier's extension. */
+  lockMonths: number;
+  /** Commitment tier the original amount fell into, e.g. `growth`. */
+  tierId: string;
+  /** Annual target return actually granted, tier bonus included. */
   projectedReturn: number;
   accruedEarnings: number;
   currentValuation: number;
+  /** What the holding pays out once the lock-up ends. */
+  maturityValue: number;
   status: 'active' | 'matured' | 'liquidating' | 'liquidated';
 }
 

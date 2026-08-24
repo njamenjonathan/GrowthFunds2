@@ -24,6 +24,14 @@ import {
   DashboardTab,
 } from './types';
 import {
+  annualReturnFor,
+  lockMonthsFor,
+  lockStateFor,
+  maturityDateFrom,
+  maturityValueFor,
+  tierFor,
+} from './lib/commitment';
+import {
   ThemeMode,
   readStoredMode,
   resolveTheme,
@@ -53,6 +61,9 @@ const PRIVATE_VIEWS: View[] = ['dashboard', 'referrals', 'history', 'security'];
 const reference = (prefix: string) => `GF-${prefix}-${Math.floor(1000000 + Math.random() * 9000000)}`;
 
 const auditTimestamp = () => new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+const formatLockRefusal = (daysRemaining: number) =>
+  `holding still locked for ${daysRemaining} more ${daysRemaining === 1 ? 'day' : 'days'}`;
 
 export default function App() {
   // ---------------------------------------------------------------- theme
@@ -276,9 +287,13 @@ export default function App() {
       const refCode = reference('IV');
       // Term and target return come from the chosen opportunity, not the plan
       // it sits under — a 12-month construction contract and a 24-month
-      // apartment block mature on different dates.
-      const maturity = new Date();
-      maturity.setMonth(maturity.getMonth() + sub.termMonths);
+      // apartment block mature on different dates. The commitment tier then
+      // extends that lock-up and lifts the rate in proportion to the amount.
+      const tier = tierFor(amount);
+      const lockMonths = lockMonthsFor(sub, amount);
+      const annualReturn = annualReturnFor(sub, amount);
+      const maturityValue = maturityValueFor(sub, amount);
+      const startDate = new Date();
 
       const investment: ActiveInvestment = {
         id: `inv_${Date.now()}`,
@@ -287,11 +302,14 @@ export default function App() {
         subInvestmentId: sub.id,
         subInvestmentName: sub.name,
         amountInvested: amount,
-        startDate: new Date().toISOString().split('T')[0],
-        maturityDate: maturity.toISOString().split('T')[0],
-        projectedReturn: sub.projectedReturn,
+        startDate: startDate.toISOString().split('T')[0],
+        maturityDate: maturityDateFrom(startDate, lockMonths),
+        lockMonths,
+        tierId: tier.id,
+        projectedReturn: annualReturn,
         accruedEarnings: 0,
         currentValuation: amount,
+        maturityValue,
         status: 'active',
       };
 
@@ -311,7 +329,7 @@ export default function App() {
           timestamp: Date.now(),
           planName: plan.name,
           subInvestmentName: sub.name,
-          notes: `Capital committed to ${sub.name} under ${plan.name} (${sub.termMonths} month lock-up).`,
+          notes: `Capital committed to ${sub.name} under ${plan.name}. Locked for ${lockMonths} months (${tier.label} tier) until ${investment.maturityDate}.`,
         },
         ...prev,
       ]);
@@ -323,8 +341,8 @@ export default function App() {
       });
 
       pushNotification({
-        title: 'Investment active',
-        message: `Subscribed ${amount.toLocaleString()} XAF to ${sub.name} in ${plan.name} (${sub.termMonths} months, ${sub.projectedReturn}% projected return).`,
+        title: 'Investment locked in',
+        message: `${amount.toLocaleString()} XAF committed to ${sub.name} at the ${tier.label} tier — locked for ${lockMonths} months at ${annualReturn}% a year, paying out ${maturityValue.toLocaleString()} XAF on ${investment.maturityDate}.`,
         type: 'investment',
         amount,
         reference: refCode,
@@ -333,7 +351,7 @@ export default function App() {
 
       pushAudit({
         actor: user.name,
-        action: `Subscribed to ${sub.name} — ${plan.name} (${amount.toLocaleString()} XAF)`,
+        action: `Subscribed to ${sub.name} — ${plan.name} (${amount.toLocaleString()} XAF, ${lockMonths}-month lock-up)`,
         target: `Portfolio #${investment.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',
@@ -342,6 +360,91 @@ export default function App() {
       return refCode;
     },
     [user, pushAudit, pushNotification]
+  );
+
+  // ---------------------------------------------------------- redemptions
+  /**
+   * Release a holding once its lock-up has elapsed.
+   *
+   * The guard is not just presentational: the button is disabled while a
+   * holding is locked, but the same check runs here so a stale render or a
+   * replayed click cannot release capital early.
+   */
+  const handleRedeemInvestment = useCallback(
+    (investmentId: string) => {
+      if (!user) return;
+      const holding = activeInvestments.find((inv) => inv.id === investmentId);
+      if (!holding) return;
+
+      const lock = lockStateFor(holding);
+      if (lock.locked) {
+        pushAudit({
+          actor: user.name,
+          action: `Early redemption refused — ${formatLockRefusal(lock.daysRemaining)}`,
+          target: `Portfolio #${holding.id}`,
+          ipAddress: '41.202.219.14',
+          status: 'BLOCKED',
+        });
+        return;
+      }
+      if (holding.status === 'liquidated') return;
+
+      const refCode = reference('LQ');
+      const payout = holding.maturityValue;
+      const profit = Math.max(0, payout - holding.amountInvested);
+
+      setActiveInvestments((prev) =>
+        prev.map((inv) =>
+          inv.id === investmentId
+            ? { ...inv, status: 'liquidated', accruedEarnings: profit, currentValuation: payout }
+            : inv
+        )
+      );
+
+      setTransactions((prev) => [
+        {
+          id: `tx_${Date.now()}`,
+          type: 'liquidation',
+          amount: payout,
+          fee: 0,
+          netAmount: payout,
+          status: 'completed',
+          method: 'GrowthFund Wallet',
+          reference: refCode,
+          date: 'Just now',
+          timestamp: Date.now(),
+          planName: holding.planName,
+          subInvestmentName: holding.subInvestmentName,
+          notes: `Lock-up completed after ${holding.lockMonths} months. Capital and ${profit.toLocaleString()} XAF profit released to your available balance.`,
+        },
+        ...prev,
+      ]);
+
+      setUser({
+        ...user,
+        availableBalance: user.availableBalance + payout,
+        investedBalance: Math.max(0, user.investedBalance - holding.amountInvested),
+        lifetimeEarnings: user.lifetimeEarnings + profit,
+      });
+
+      pushNotification({
+        title: 'Holding unlocked and paid out',
+        message: `${holding.subInvestmentName ?? holding.planName} completed its ${holding.lockMonths}-month lock-up. ${payout.toLocaleString()} XAF (including ${profit.toLocaleString()} XAF profit) is now available.`,
+        type: 'maturity',
+        amount: payout,
+        reference: refCode,
+        targetView: 'dashboard',
+      });
+
+      pushAudit({
+        actor: user.name,
+        action: `Redeemed matured holding (+${payout.toLocaleString()} XAF)`,
+        target: `Portfolio #${holding.id}`,
+        ipAddress: '41.202.219.14',
+        status: 'SUCCESS',
+      });
+    },
+    [user, activeInvestments, pushAudit, pushNotification]
   );
 
   // ------------------------------------------------------------ referrals
@@ -516,6 +619,7 @@ export default function App() {
                 onViewHistory={() => navigate('history')}
                 onSelectTransaction={setSelectedTransaction}
                 onReferralSuccess={handleReferralSuccess}
+                onRedeemInvestment={handleRedeemInvestment}
               />
             )}
 
@@ -561,6 +665,7 @@ export default function App() {
       {showWithdrawModal && user && (
         <WithdrawalFlow
           user={user}
+          activeInvestments={activeInvestments}
           onClose={() => setShowWithdrawModal(false)}
           onWithdrawSuccess={handleWithdrawSuccess}
           onOpenKyc={() => {
