@@ -18,6 +18,7 @@ import {
   PaymentMethodType,
   AuditLog,
   ReferralRecord,
+  SubInvestment,
   AppNotification,
   View,
   DashboardTab,
@@ -270,20 +271,25 @@ export default function App() {
 
   // ---------------------------------------------------------- investments
   const handleInvestInPlan = useCallback(
-    (plan: InvestmentPlan, amount: number) => {
+    (plan: InvestmentPlan, amount: number, sub: SubInvestment) => {
       if (!user) return;
       const refCode = reference('IV');
+      // Term and target return come from the chosen opportunity, not the plan
+      // it sits under — a 12-month construction contract and a 24-month
+      // apartment block mature on different dates.
       const maturity = new Date();
-      maturity.setMonth(maturity.getMonth() + plan.termMonths);
+      maturity.setMonth(maturity.getMonth() + sub.termMonths);
 
       const investment: ActiveInvestment = {
         id: `inv_${Date.now()}`,
         planId: plan.id,
         planName: plan.name,
+        subInvestmentId: sub.id,
+        subInvestmentName: sub.name,
         amountInvested: amount,
         startDate: new Date().toISOString().split('T')[0],
         maturityDate: maturity.toISOString().split('T')[0],
-        projectedReturn: plan.projectedReturn,
+        projectedReturn: sub.projectedReturn,
         accruedEarnings: 0,
         currentValuation: amount,
         status: 'active',
@@ -304,7 +310,8 @@ export default function App() {
           date: 'Just now',
           timestamp: Date.now(),
           planName: plan.name,
-          notes: `Capital committed to ${plan.name} (${plan.termMonths} month lock-up).`,
+          subInvestmentName: sub.name,
+          notes: `Capital committed to ${sub.name} under ${plan.name} (${sub.termMonths} month lock-up).`,
         },
         ...prev,
       ]);
@@ -317,7 +324,7 @@ export default function App() {
 
       pushNotification({
         title: 'Investment active',
-        message: `Subscribed ${amount.toLocaleString()} XAF to ${plan.name} (${plan.termMonths} months, ${plan.projectedReturn}% projected return).`,
+        message: `Subscribed ${amount.toLocaleString()} XAF to ${sub.name} in ${plan.name} (${sub.termMonths} months, ${sub.projectedReturn}% projected return).`,
         type: 'investment',
         amount,
         reference: refCode,
@@ -326,7 +333,7 @@ export default function App() {
 
       pushAudit({
         actor: user.name,
-        action: `Subscribed to ${plan.name} (${amount.toLocaleString()} XAF)`,
+        action: `Subscribed to ${sub.name} — ${plan.name} (${amount.toLocaleString()} XAF)`,
         target: `Portfolio #${investment.id}`,
         ipAddress: '41.202.219.14',
         status: 'SUCCESS',

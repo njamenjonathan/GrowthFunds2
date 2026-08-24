@@ -34,12 +34,194 @@ const SECTOR_COLORS = ['var(--gf-accent)', 'var(--gf-gold-3)', 'var(--gf-info)',
 
 const currency = (value: number) => `${value.toLocaleString()} XAF`;
 
-const buildTabs = (holdings: number, activity: number, referrals: number): TabItem<DashboardTab>[] => [
+const buildTabs = (
+  holdings: number,
+  deposits: number,
+  withdrawals: number,
+  activity: number,
+  referrals: number
+): TabItem<DashboardTab>[] => [
   { id: 'overview', label: 'Overview', icon: 'donut_large' },
   { id: 'holdings', label: 'Holdings', icon: 'inventory_2', badge: holdings },
+  { id: 'deposits', label: 'Deposits', icon: 'arrow_downward', badge: deposits },
+  { id: 'withdrawals', label: 'Withdrawals', icon: 'arrow_upward', badge: withdrawals },
   { id: 'activity', label: 'Activity', icon: 'receipt_long', badge: activity },
   { id: 'invite', label: 'Invite & earn', icon: 'card_giftcard', badge: referrals },
 ];
+
+/** Wording and colours that separate the two money-movement panels. */
+const MOVEMENT_COPY = {
+  deposits: {
+    title: 'Deposits',
+    subtitle: 'Every top-up into your GrowthFund wallet',
+    icon: 'arrow_downward',
+    actionLabel: 'New deposit',
+    actionIcon: 'add_circle',
+    totalLabel: 'Total deposited',
+    emptyTitle: 'No deposits yet',
+    emptyBody: 'Fund your wallet to start allocating capital.',
+    accent: 'bg-pos-bg text-on-pos-bg',
+    amountClass: 'text-pos',
+    sign: '+',
+  },
+  withdrawals: {
+    title: 'Withdrawals',
+    subtitle: 'Every payout sent to your verified accounts',
+    icon: 'arrow_upward',
+    actionLabel: 'New withdrawal',
+    actionIcon: 'outbox',
+    totalLabel: 'Total withdrawn',
+    emptyTitle: 'No withdrawals yet',
+    emptyBody: 'Cash out to mobile money or your bank whenever you need to.',
+    accent: 'bg-neg-bg text-neg',
+    amountClass: 'text-ink',
+    sign: '\u2212',
+  },
+} as const;
+
+const STATUS_CHIP: Record<Transaction['status'], string> = {
+  completed: 'bg-pos-bg text-on-pos-bg',
+  processing: 'bg-gold text-on-gold',
+  pending: 'bg-gold text-on-gold',
+  failed: 'bg-neg-bg text-neg',
+  rejected: 'bg-neg-bg text-neg',
+};
+
+interface MovementPanelProps {
+  kind: 'deposits' | 'withdrawals';
+  entries: Transaction[];
+  onAction: () => void;
+  onSelectTransaction: (tx: Transaction) => void;
+  onViewHistory: () => void;
+}
+
+/**
+ * Deposits and withdrawals read the same way — a settled total, what is still
+ * in flight, and the receipts behind both — so they share one panel rather
+ * than two near-identical copies.
+ */
+const MovementPanel: React.FC<MovementPanelProps> = ({
+  kind,
+  entries,
+  onAction,
+  onSelectTransaction,
+  onViewHistory,
+}) => {
+  const copy = MOVEMENT_COPY[kind];
+
+  const settled = entries.filter((tx) => tx.status === 'completed');
+  const inFlight = entries.filter((tx) => tx.status === 'processing' || tx.status === 'pending');
+  const settledTotal = settled.reduce((sum, tx) => sum + tx.amount, 0);
+  const inFlightTotal = inFlight.reduce((sum, tx) => sum + tx.amount, 0);
+  const feesTotal = settled.reduce((sum, tx) => sum + tx.fee, 0);
+
+  const summary = [
+    { label: copy.totalLabel, value: currency(settledTotal), caption: `${settled.length} settled` },
+    { label: 'Awaiting settlement', value: currency(inFlightTotal), caption: `${inFlight.length} in progress` },
+    { label: 'Fees charged', value: currency(feesTotal), caption: 'Deducted at settlement' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {summary.map((item) => (
+          <div key={item.label} className="bg-surface p-5 rounded-2xl border border-line shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-3">{item.label}</p>
+            <p className="text-lg xl:text-xl font-extrabold font-mono text-ink mt-1.5">{item.value}</p>
+            <p className="text-[11px] text-ink-3 mt-1">{item.caption}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-line-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-3">
+            <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${copy.accent}`}>
+              <span aria-hidden="true" className="material-symbols-outlined text-[20px]">{copy.icon}</span>
+            </span>
+            <div>
+              <h2 className="text-lg font-bold text-ink">{copy.title}</h2>
+              <p className="text-xs text-ink-3">{copy.subtitle}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <button
+              onClick={onAction}
+              className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">{copy.actionIcon}</span>
+              {copy.actionLabel}
+            </button>
+            <button onClick={onViewHistory} className="text-xs font-bold text-accent hover:underline shrink-0">
+              Full ledger
+            </button>
+          </div>
+        </div>
+
+        {entries.length === 0 ? (
+          <div className="p-12 text-center">
+            <span aria-hidden="true" className="material-symbols-outlined text-3xl text-ink-3">{copy.icon}</span>
+            <p className="text-sm font-bold text-ink mt-2">{copy.emptyTitle}</p>
+            <p className="text-xs text-ink-3 mt-1">{copy.emptyBody}</p>
+            <button onClick={onAction} className="text-xs font-bold text-accent hover:underline mt-3">
+              {copy.actionLabel}
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-2 border-b border-line-2 text-[11px] font-bold uppercase tracking-wider text-ink-3">
+                  <th scope="col" className="p-4">Date</th>
+                  <th scope="col" className="p-4">Method</th>
+                  <th scope="col" className="p-4">{kind === 'deposits' ? 'Source' : 'Destination'}</th>
+                  <th scope="col" className="p-4">Amount</th>
+                  <th scope="col" className="p-4">Fee</th>
+                  <th scope="col" className="p-4">Net</th>
+                  <th scope="col" className="p-4">Status</th>
+                  <th scope="col" className="p-4 text-right">Receipt</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line-2 text-xs">
+                {entries.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-surface-2 transition-colors">
+                    <td className="p-4 text-ink-2 whitespace-nowrap">{tx.date}</td>
+                    <td className="p-4 font-bold text-ink whitespace-nowrap">{tx.method}</td>
+                    <td className="p-4 text-ink-2 max-w-[220px] truncate">{tx.destinationOrSource ?? '—'}</td>
+                    <td className={`p-4 font-mono font-bold whitespace-nowrap ${copy.amountClass}`}>
+                      {copy.sign}
+                      {tx.amount.toLocaleString()} XAF
+                    </td>
+                    <td className="p-4 font-mono text-ink-3 whitespace-nowrap">{tx.fee.toLocaleString()}</td>
+                    <td className="p-4 font-mono text-ink whitespace-nowrap">{tx.netAmount.toLocaleString()}</td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          STATUS_CHIP[tx.status]
+                        }`}
+                      >
+                        {tx.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => onSelectTransaction(tx)}
+                        className="text-xs font-bold text-accent hover:underline whitespace-nowrap"
+                      >
+                        {tx.reference}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   user,
@@ -112,9 +294,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const recentTransactions = transactions.slice(0, 5);
 
+  const deposits = useMemo(() => transactions.filter((tx) => tx.type === 'deposit'), [transactions]);
+  const withdrawals = useMemo(() => transactions.filter((tx) => tx.type === 'withdrawal'), [transactions]);
+
   const TABS = useMemo(
-    () => buildTabs(activeInvestments.length, transactions.length, user.referralList?.length ?? 0),
-    [activeInvestments.length, transactions.length, user.referralList?.length]
+    () =>
+      buildTabs(
+        activeInvestments.length,
+        deposits.length,
+        withdrawals.length,
+        transactions.length,
+        user.referralList?.length ?? 0
+      ),
+    [activeInvestments.length, deposits.length, withdrawals.length, transactions.length, user.referralList?.length]
   );
 
   const stats = [
@@ -398,7 +590,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <tbody className="divide-y divide-line-2 text-xs">
                   {activeInvestments.map((inv) => (
                     <tr key={inv.id} className="hover:bg-surface-2 transition-colors">
-                      <td className="p-4 font-bold text-ink whitespace-nowrap">{inv.planName}</td>
+                      <td className="p-4 whitespace-nowrap">
+                        <span className="block font-bold text-ink">{inv.subInvestmentName ?? inv.planName}</span>
+                        {inv.subInvestmentName && (
+                          <span className="block text-[11px] text-ink-3">{inv.planName}</span>
+                        )}
+                      </td>
                       <td className="p-4 font-mono text-ink">{currency(inv.amountInvested)}</td>
                       <td className="p-4 font-bold text-accent whitespace-nowrap">+{inv.projectedReturn}% / yr</td>
                       <td className="p-4 font-mono font-bold text-pos">+{currency(inv.accruedEarnings)}</td>
@@ -420,6 +617,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
         </section>
+        )}
+
+        {tab === 'deposits' && (
+          <div {...tabPanelProps('deposits')} className="outline-none">
+            <MovementPanel
+              kind="deposits"
+              entries={deposits}
+              onAction={onOpenDeposit}
+              onSelectTransaction={onSelectTransaction}
+              onViewHistory={onViewHistory}
+            />
+          </div>
+        )}
+
+        {tab === 'withdrawals' && (
+          <div {...tabPanelProps('withdrawals')} className="outline-none">
+            <MovementPanel
+              kind="withdrawals"
+              entries={withdrawals}
+              onAction={onOpenWithdraw}
+              onSelectTransaction={onSelectTransaction}
+              onViewHistory={onViewHistory}
+            />
+          </div>
         )}
 
         {tab === 'activity' && (
