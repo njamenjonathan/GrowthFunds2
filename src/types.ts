@@ -2,6 +2,9 @@
  *  (including notification deep links) from pointing at views that don't exist. */
 export type View = 'home' | 'plans' | 'dashboard' | 'referrals' | 'history' | 'security';
 
+/** Sections within the investor dashboard, shown one at a time. */
+export type DashboardTab = 'overview' | 'holdings' | 'activity' | 'invite';
+
 export type RiskLevel = 'Very Low' | 'Low' | 'Medium' | 'High';
 
 export interface InvestmentPlan {

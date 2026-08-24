@@ -1,7 +1,8 @@
-import { Suspense, lazy, useMemo, useState } from 'react';
-import { UserProfile, ActiveInvestment, Transaction, ReferralRecord } from '../types';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { UserProfile, ActiveInvestment, Transaction, ReferralRecord, DashboardTab } from '../types';
 import { ReferralProgram, referralLinkFor } from './ReferralProgram';
 import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
+import { Tabs, TabItem, tabPanelProps } from './Tabs';
 
 const PortfolioChart = lazy(() => import('./PortfolioChart'));
 
@@ -15,6 +16,10 @@ interface DashboardViewProps {
   onViewHistory: () => void;
   onSelectTransaction: (tx: Transaction) => void;
   onReferralSuccess: (referral: ReferralRecord) => void;
+  /** Section to open on mount — lets the nav and notifications deep-link in. */
+  initialTab?: DashboardTab;
+  /** Reports the active section so it survives navigating away and back. */
+  onTabChange?: (tab: DashboardTab) => void;
 }
 
 type ChartRange = '6M' | '1Y' | 'ALL';
@@ -29,6 +34,13 @@ const SECTOR_COLORS = ['var(--gf-accent)', 'var(--gf-gold-3)', 'var(--gf-info)',
 
 const currency = (value: number) => `${value.toLocaleString()} XAF`;
 
+const buildTabs = (holdings: number, activity: number, referrals: number): TabItem<DashboardTab>[] => [
+  { id: 'overview', label: 'Overview', icon: 'donut_large' },
+  { id: 'holdings', label: 'Holdings', icon: 'inventory_2', badge: holdings },
+  { id: 'activity', label: 'Activity', icon: 'receipt_long', badge: activity },
+  { id: 'invite', label: 'Invite & earn', icon: 'card_giftcard', badge: referrals },
+];
+
 export const DashboardView: React.FC<DashboardViewProps> = ({
   user,
   activeInvestments,
@@ -39,8 +51,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onViewHistory,
   onSelectTransaction,
   onReferralSuccess,
+  initialTab = 'overview',
+  onTabChange,
 }) => {
   const [range, setRange] = useState<ChartRange>('6M');
+  const [tab, setTab] = useState<DashboardTab>(initialTab);
+
+  // Follow deep links that arrive while the dashboard is already mounted, e.g.
+  // tapping "Invite & earn" in the nav or opening a referral notification.
+  // Reporting it upward too means arriving that way counts as choosing the
+  // section, so navigating away and back returns to it.
+  useEffect(() => {
+    setTab(initialTab);
+    onTabChange?.(initialTab);
+    // Only react to a new deep-link target, not to callback identity changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTab]);
 
   const totalNetWorth = user.availableBalance + user.investedBalance;
 
@@ -85,6 +111,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [activeInvestments]);
 
   const recentTransactions = transactions.slice(0, 5);
+
+  const TABS = useMemo(
+    () => buildTabs(activeInvestments.length, transactions.length, user.referralList?.length ?? 0),
+    [activeInvestments.length, transactions.length, user.referralList?.length]
+  );
 
   const stats = [
     {
@@ -195,7 +226,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ))}
         </div>
 
-        {/* Invite & earn */}
+        {/* Sections — one at a time, so the page shows a single subject rather
+            than every subject stacked on top of each other. */}
+        <Tabs
+          tabs={TABS}
+          active={tab}
+          onChange={(next) => {
+            setTab(next);
+            onTabChange?.(next);
+          }}
+          label="Dashboard sections"
+        />
+
+        {tab === 'invite' && (
+        <div {...tabPanelProps('invite')} className="space-y-5 outline-none">
         <ReferralProgram user={user} onReferralSuccess={onReferralSuccess} showBanner showDemoControls />
 
         <TopReferrersLeaderboard
@@ -213,8 +257,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           }
         />
 
-        {/* Growth chart + allocation */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        </div>
+        )}
+
+        {tab === 'overview' && (
+        <div {...tabPanelProps('overview')} className="grid grid-cols-1 lg:grid-cols-12 gap-5 outline-none">
           <section className="lg:col-span-8 bg-surface p-5 sm:p-6 rounded-2xl border border-line shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-line-2">
               <div>
@@ -311,9 +358,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </section>
         </div>
+        )}
 
-        {/* Holdings */}
-        <section className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+        {tab === 'holdings' && (
+        <section {...tabPanelProps('holdings')} className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden outline-none">
           <div className="p-5 sm:p-6 border-b border-line-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
               <h2 className="text-lg font-bold text-ink">Active holdings</h2>
@@ -372,9 +420,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
         </section>
+        )}
 
-        {/* Recent activity */}
-        <section className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
+        {tab === 'activity' && (
+        <section {...tabPanelProps('activity')} className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden outline-none">
           <div className="p-5 sm:p-6 border-b border-line-2 flex justify-between items-center gap-3">
             <div>
               <h2 className="text-lg font-bold text-ink">Recent activity</h2>
@@ -466,6 +515,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
         </section>
+        )}
       </div>
     </div>
   );

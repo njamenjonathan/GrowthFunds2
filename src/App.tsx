@@ -20,6 +20,7 @@ import {
   ReferralRecord,
   AppNotification,
   View,
+  DashboardTab,
 } from './types';
 import {
   ThemeMode,
@@ -32,7 +33,6 @@ import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
 import { PlansView } from './components/PlansView';
 import { DashboardView } from './components/DashboardView';
-import { ReferralsView } from './components/ReferralsView';
 import { TransactionHistoryView } from './components/TransactionHistoryView';
 import { SecurityView } from './components/SecurityView';
 import { AdminDashboardView } from './components/AdminDashboardView';
@@ -115,6 +115,8 @@ export default function App() {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
   /** Plan pre-selected from the home page, opened straight into its prospectus. */
   const [planToOpen, setPlanToOpen] = useState<InvestmentPlan | null>(null);
+  /** Last dashboard section viewed, so navigating away and back keeps context. */
+  const [dashboardTab, setDashboardTab] = useState<DashboardTab>('overview');
 
   const navigate = useCallback((view: View) => {
     setCurrentView(view);
@@ -494,8 +496,10 @@ export default function App() {
               />
             )}
 
-            {currentView === 'dashboard' && user && (
+            {(currentView === 'dashboard' || currentView === 'referrals') && user && (
               <DashboardView
+                initialTab={currentView === 'referrals' ? 'invite' : dashboardTab}
+                onTabChange={setDashboardTab}
                 user={user}
                 activeInvestments={activeInvestments}
                 transactions={transactions}
@@ -506,10 +510,6 @@ export default function App() {
                 onSelectTransaction={setSelectedTransaction}
                 onReferralSuccess={handleReferralSuccess}
               />
-            )}
-
-            {currentView === 'referrals' && user && (
-              <ReferralsView user={user} onReferralSuccess={handleReferralSuccess} />
             )}
 
             {currentView === 'history' && (
