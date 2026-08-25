@@ -44,36 +44,6 @@ const STEPS = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: 'Dr. Martin Mbarga',
-    role: 'Chief medical officer',
-    location: 'Douala, Cameroon',
-    amount: '25,000 XAF package',
-    yieldEarned: '+4,000 XAF in 20 days',
-    comment:
-      'I knew the exact day my money was coming back and exactly how much. It landed in my MTN MoMo wallet the same afternoon I asked for it.',
-  },
-  {
-    name: 'Jeanne-Marie Nguesso',
-    role: 'Managing director, logistics',
-    location: 'Libreville, Gabon',
-    amount: '15,000 XAF package',
-    yieldEarned: '+1,800 XAF in 12 days',
-    comment:
-      'No small print and no percentages to work out. The page told me what I put in and what I collect, and that is exactly what happened.',
-  },
-  {
-    name: 'Christian Kouassi',
-    role: 'Senior software engineer',
-    location: 'Yaoundé & diaspora',
-    amount: '5,000 XAF package',
-    yieldEarned: '+400 XAF in 5 days',
-    comment:
-      'I started with the smallest package to see if it was real. Five days later the money was back with its profit, so now I run one every week.',
-  },
-];
-
 const SAFEGUARDS = [
   {
     icon: 'account_balance',
@@ -553,61 +523,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </motion.button>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 md:py-20 bg-surface border-b border-line">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-8">
-          <motion.div className="text-center max-w-2xl mx-auto mb-12" {...reveal}>
-            <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">Investor voices</span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
-              Trusted across Central Africa
-            </h2>
-          </motion.div>
-
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" {...revealGroup}>
-            {TESTIMONIALS.map((testimonial) => (
-              <motion.figure
-                key={testimonial.name}
-                variants={revealItem}
-                {...interactive}
-                className="p-6 rounded-3xl border border-line bg-surface-2 flex flex-col justify-between hover:shadow-lg transition-all"
-              >
-                <div>
-                  <figcaption className="flex items-center gap-3.5 mb-4">
-                    <span className="w-11 h-11 rounded-full bg-emerald text-gold-on-emerald flex items-center justify-center font-bold text-sm shrink-0">
-                      {testimonial.name
-                        .split(' ')
-                        .slice(-2)
-                        .map((part) => part[0])
-                        .join('')}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-extrabold text-ink truncate">{testimonial.name}</span>
-                      <span className="block text-xs text-ink-3 truncate">{testimonial.role}</span>
-                      <span className="block text-[10px] text-accent font-bold truncate">{testimonial.location}</span>
-                    </span>
-                  </figcaption>
-
-                  <blockquote className="text-xs text-ink-2 leading-relaxed italic mb-5">
-                    “{testimonial.comment}”
-                  </blockquote>
-                </div>
-
-                <dl className="p-3 bg-surface rounded-2xl border border-line-2 text-[11px] space-y-1">
-                  <div className="flex justify-between text-ink-3 gap-2">
-                    <dt>Allocated</dt>
-                    <dd className="font-bold text-ink font-mono">{testimonial.amount}</dd>
-                  </div>
-                  <div className="flex justify-between text-pos font-bold gap-2">
-                    <dt>Realised</dt>
-                    <dd className="font-mono">{testimonial.yieldEarned}</dd>
-                  </div>
-                </dl>
-              </motion.figure>
-            ))}
-          </motion.div>
         </div>
       </section>
 
