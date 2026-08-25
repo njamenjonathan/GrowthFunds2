@@ -40,7 +40,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <PageBackdrop />
+      <PageBackdrop pair="fan" />
 
       <div className="max-w-[1200px] mx-auto w-full relative z-10 space-y-8">
         {/* Header */}

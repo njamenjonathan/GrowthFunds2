@@ -336,11 +336,16 @@ body * {
 /* -------------------------------------------------------------------------
    Currency motifs
 
-   Two photographs of CEMAC money — the BEAC note family and a handful of CFA
-   coins — sat behind the page in their own colours, far enough back to stay
-   out of the way of the content but close enough to be read as what they
-   are. They are anchored to opposite corners of the page body: notes bleeding
-   off the top right, coins off the bottom left.
+   Photographs of CEMAC money sat behind the page in their own colours, far
+   enough back to stay out of the way of the content but close enough to be
+   read as what they are. They come in pairs, and a page shows one pair: a
+   wide image bleeding off the top right, a second off the bottom left.
+
+     sheet  the printed sheet of note designs, and a handful of CFA coins
+     fan    a fan of 10,000 and 5,000 notes, and the denomination series
+
+   Which page gets which is set at each page's own PageBackdrop call, and
+   alternates as you move through the header.
 
    Both sit on the page canvas rather than on the emerald footer. On emerald
    the only way to make the coins bright enough to read is to lift them
@@ -394,6 +399,36 @@ body * {
   transform: rotate(5deg);
   -webkit-mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
   mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
+}
+
+/* The second pair. Every page shows exactly one pair, alternating as you move
+   through the header, so the site does not repeat one photograph everywhere. */
+
+.gf-motif--fan {
+  top: -6rem;
+  right: -8rem;
+  width: min(42rem, 66vw);
+  aspect-ratio: 1024 / 632;
+  background-image: url('./assets/cfa-notes-fan.webp');
+  transform: rotate(-5deg);
+  -webkit-mask-image: radial-gradient(ellipse 76% 76% at 58% 46%, #000 30%, transparent 74%);
+  mask-image: radial-gradient(ellipse 76% 76% at 58% 46%, #000 30%, transparent 74%);
+}
+
+/* This one is a cutout — the studio white behind the notes is transparent in
+   the file itself. Screen would have turned that white field into a lit
+   rectangle on the dark theme, and no mask hides a rectangle as well as not
+   having one. It only needs its trailing edge faded, since the row already
+   runs off the left of the page. */
+.gf-motif--series {
+  bottom: -1.5rem;
+  left: -6rem;
+  width: min(38rem, 84vw);
+  aspect-ratio: 749 / 267;
+  background-image: url('./assets/cfa-note-series.webp');
+  transform: rotate(-3deg);
+  -webkit-mask-image: linear-gradient(to right, #000 42%, transparent 94%);
+  mask-image: linear-gradient(to right, #000 42%, transparent 94%);
 }
 
 /* On a phone the motif would sit directly under body copy at a size where it

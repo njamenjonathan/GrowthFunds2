@@ -452,8 +452,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* The ladder — the one rule that governs every package on the platform */}
-      <section id="ladder" className="py-16 md:py-20 bg-canvas border-b border-line">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-8">
+      <section id="ladder" className="relative py-16 md:py-20 bg-canvas border-b border-line">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="gf-motif gf-motif--coins"></div>
+        </div>
+
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-8">
           <div className="bg-surface rounded-3xl border border-line p-6 md:p-10 shadow-sm">
             <div className="max-w-2xl mb-8">
               <span className="text-xs font-extrabold uppercase tracking-widest text-gold-ink">

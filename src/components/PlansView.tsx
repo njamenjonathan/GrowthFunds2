@@ -28,7 +28,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
   onOpenKyc,
 }) => (
   <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-    <PageBackdrop />
+    <PageBackdrop pair="fan" />
 
     <div className="max-w-[1200px] mx-auto w-full relative z-10">
       <header className="mb-7">

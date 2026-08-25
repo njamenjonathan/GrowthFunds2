@@ -82,7 +82,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <PageBackdrop />
+      <PageBackdrop pair="sheet" />
 
       <div className="max-w-[900px] mx-auto w-full relative z-10">
         <button
