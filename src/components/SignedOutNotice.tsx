@@ -16,7 +16,7 @@ export const SignedOutNotice: React.FC<SignedOutNoticeProps> = ({
   onExplorePlans,
 }) => (
   <div className="flex-1 flex items-center justify-center p-6 bg-canvas relative">
-    <PageBackdrop />
+    <PageBackdrop pair="sheet" />
 
     <div className="relative z-10 max-w-md w-full text-center bg-surface border border-line rounded-2xl p-8 shadow-sm">
       <div className="w-14 h-14 rounded-2xl bg-emerald text-gold flex items-center justify-center mx-auto mb-5">
