@@ -10,6 +10,7 @@ export type View =
   | 'checkin'
   | 'history'
   | 'about'
+  | 'faq'
   | 'security';
 
 /** Sections within the investor profile, shown one at a time. */
