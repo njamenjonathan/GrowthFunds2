@@ -26,6 +26,7 @@ import {
 import { lockStateFor, maturityDateInDays, payoutFor } from './lib/commitment';
 import { DAILY_CHECKIN_XAF, REFERRAL_REWARD_XAF } from './lib/constants';
 import { canCheckIn, nextStreak, todayKey } from './lib/checkin';
+import { Route, hashForRoute, routeFromHash } from './lib/routing';
 import {
   ThemeMode,
   readStoredMode,
@@ -98,7 +99,11 @@ export default function App() {
   );
 
   // ----------------------------------------------------------- navigation
-  const [currentView, setCurrentView] = useState<View>('home');
+  /** The page on screen, read from the address so every page can be linked. */
+  const [route, setRoute] = useState<Route>(
+    () => routeFromHash(window.location.hash) ?? { view: 'home' }
+  );
+  const currentView = route.view;
   const [isAdmin, setIsAdmin] = useState(false);
 
   // ------------------------------------------------------------- app data
@@ -121,24 +126,54 @@ export default function App() {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [legalModalTopic, setLegalModalTopic] = useState<string | null>(null);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
-  /** The plan whose packages page is open, if any. */
-  const [openPlan, setOpenPlan] = useState<InvestmentPlan | null>(null);
   /** Last dashboard section viewed, so navigating away and back keeps context. */
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('overview');
 
-  const navigate = useCallback((view: View) => {
-    setCurrentView(view);
+  /**
+   * Opens a page: the address changes, so the browser's back button walks back
+   * through the pages visited rather than leaving the site.
+   */
+  const goTo = useCallback((next: Route) => {
+    setRoute(next);
+    const hash = hashForRoute(next);
+    if (window.location.hash !== hash) window.location.hash = hash;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  const navigate = useCallback((view: View) => goTo({ view }), [goTo]);
+
   /** Sends the investor to a plan's own page, where its packages are listed. */
   const openPlanPage = useCallback(
-    (plan: InvestmentPlan) => {
-      setOpenPlan(plan);
-      navigate('plan');
-    },
-    [navigate]
+    (plan: InvestmentPlan) => goTo({ view: 'plan', planId: plan.id }),
+    [goTo]
   );
+
+  /** The plan whose packages page is open, taken from the address. */
+  const openPlan = useMemo(
+    () => (route.view === 'plan' ? plans.find((plan) => plan.id === route.planId) ?? null : null),
+    [plans, route]
+  );
+
+  // Back and forward move between pages instead of leaving the site. Addresses
+  // that are not pages — the `#main` skip link — are left to the browser.
+  useEffect(() => {
+    const syncFromAddress = () => {
+      const next = routeFromHash(window.location.hash);
+      if (next) setRoute(next);
+    };
+    window.addEventListener('hashchange', syncFromAddress);
+    return () => window.removeEventListener('hashchange', syncFromAddress);
+  }, []);
+
+  // A first visit with no address of its own still gets one, so going back to
+  // it later lands on the page it was opened at.
+  useEffect(() => {
+    if (!routeFromHash(window.location.hash)) {
+      window.history.replaceState(null, '', hashForRoute({ view: 'home' }));
+    }
+    // Runs once, for the address the app was opened at.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openDeposit = useCallback(() => setShowDepositModal(true), []);
   const openWithdraw = useCallback(() => setShowWithdrawModal(true), []);

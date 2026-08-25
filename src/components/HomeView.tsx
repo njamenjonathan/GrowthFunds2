@@ -423,7 +423,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.slice(0, 3).map((plan) => {
-              const entry = plan.subInvestments[0];
+              // Smallest first here too: the card quotes the entry package, so
+              // it has to be the entry package whatever order the data is in.
+              const packages = [...plan.subInvestments].sort((a, b) => a.amount - b.amount);
+              const entry = packages[0];
               return (
                 <motion.article
                   whileHover={{ y: -6 }}
@@ -436,7 +439,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <div className="flex justify-between items-start mb-4 gap-2">
                       <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 bg-accent-bg text-accent">
                         <span aria-hidden="true" className="material-symbols-outlined text-[14px]">inventory_2</span>
-                        {plan.subInvestments.length} packages
+                        {packages.length} packages
                       </span>
                       <span aria-hidden="true" className="material-symbols-outlined text-2xl text-accent group-hover:scale-110 transition-transform">
                         {plan.iconName}
@@ -469,7 +472,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     {/* Name the opportunities inside the plan, so the category
                         reads as something concrete before the prospectus opens. */}
                     <ul className="flex flex-wrap gap-1.5 mb-6">
-                      {plan.subInvestments.slice(0, 4).map((sub) => (
+                      {packages.slice(0, 4).map((sub) => (
                         <li
                           key={sub.id}
                           className="px-2.5 py-1 rounded-full bg-surface border border-line-2 text-[10px] font-bold text-ink-2"
