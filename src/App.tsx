@@ -40,6 +40,7 @@ import { PlansView } from './components/PlansView';
 import { PlanDetailView } from './components/PlanDetailView';
 import { DashboardView } from './components/DashboardView';
 import { TransactionHistoryView } from './components/TransactionHistoryView';
+import { AboutView } from './components/AboutView';
 import { SecurityView } from './components/SecurityView';
 import { AdminDashboardView } from './components/AdminDashboardView';
 import { SiteFooter } from './components/SiteFooter';
@@ -745,6 +746,13 @@ export default function App() {
                   onCheckIn={handleDailyCheckIn}
                 />
               )}
+
+            {currentView === 'about' && (
+              <AboutView
+                onExplorePlans={() => navigate('plans')}
+                onOpenLegal={setLegalModalTopic}
+              />
+            )}
 
             {currentView === 'history' && (
               <TransactionHistoryView

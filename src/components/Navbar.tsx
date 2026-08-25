@@ -30,16 +30,20 @@ interface NavLink {
 }
 
 /**
- * The places an investor goes, shown in the header on desktop and in the
+ * The pages an investor goes to, shown in the header on desktop and in the
  * drawer on mobile — never in both at once, and never repeated in the avatar
- * menu. Each entry is one click from anywhere.
+ * menu.
+ *
+ * Only whole pages belong here. Check-in and Invite & earn are sections of My
+ * money, so they are reached by their tab there and are deliberately absent
+ * from this list: a feature that sits in the tab strip must not also sit in
+ * the header, or the same thing is on screen twice with two different homes.
  */
 const NAV_LINKS: NavLink[] = [
   { view: 'plans', label: 'Invest', icon: 'trending_up' },
   { view: 'dashboard', label: 'My money', icon: 'account_balance_wallet' },
-  { view: 'checkin', label: 'CheckIn', icon: 'calendar_month' },
   { view: 'history', label: 'Transactions', icon: 'receipt_long' },
-  { view: 'referrals', label: 'Invite & earn', icon: 'card_giftcard' },
+  { view: 'about', label: 'About us', icon: 'info' },
 ];
 
 /**

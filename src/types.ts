@@ -1,6 +1,16 @@
 /** Every route the app can render. Typing this stops navigation targets
  *  (including notification deep links) from pointing at views that don't exist. */
-export type View = 'home' | 'plans' | 'plan' | 'dashboard' | 'referrals' | 'checkin' | 'history' | 'security';
+export type View =
+  | 'home'
+  | 'plans'
+  | 'plan'
+  | 'dashboard'
+  /** Deep-link targets that open `dashboard` on a particular section. */
+  | 'referrals'
+  | 'checkin'
+  | 'history'
+  | 'about'
+  | 'security';
 
 /** Sections within the investor profile, shown one at a time. */
 export type DashboardTab =
@@ -9,7 +19,6 @@ export type DashboardTab =
   | 'checkin'
   | 'deposits'
   | 'withdrawals'
-  | 'activity'
   | 'invite';
 
 /**

@@ -6,7 +6,6 @@ import { canCheckIn } from '../lib/checkin';
 import { CheckInPanel } from './CheckInPanel';
 import { ReferralProgram } from './ReferralProgram';
 import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
-import { TransactionRow } from './TransactionRow';
 import { Tabs, TabItem, tabPanelProps } from './Tabs';
 
 const PortfolioChart = lazy(() => import('./PortfolioChart'));
@@ -46,7 +45,6 @@ const buildTabs = (
   checkInReady: boolean,
   deposits: number,
   withdrawals: number,
-  activity: number,
   referrals: number
 ): TabItem<DashboardTab>[] => [
   { id: 'overview', label: 'Overview', icon: 'donut_large' },
@@ -55,7 +53,6 @@ const buildTabs = (
   { id: 'checkin', label: 'CheckIn', icon: 'calendar_month', badge: checkInReady ? 1 : 0 },
   { id: 'deposits', label: 'Deposits', icon: 'arrow_downward', badge: deposits },
   { id: 'withdrawals', label: 'Withdrawals', icon: 'arrow_upward', badge: withdrawals },
-  { id: 'activity', label: 'Activity', icon: 'receipt_long', badge: activity },
   { id: 'invite', label: 'Invite & earn', icon: 'card_giftcard', badge: referrals },
 ];
 
@@ -301,7 +298,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       }));
   }, [activeInvestments]);
 
-  const recentTransactions = transactions.slice(0, 5);
   const runningCount = activeInvestments.filter((inv) => inv.status !== 'liquidated').length;
 
   /** What is still running, what is ready to collect, and when the next one is. */
@@ -330,7 +326,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         canCheckIn(user.lastCheckInDate),
         deposits.length,
         withdrawals.length,
-        transactions.length,
         user.referralList?.length ?? 0
       ),
     [
@@ -338,7 +333,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       user.lastCheckInDate,
       deposits.length,
       withdrawals.length,
-      transactions.length,
       user.referralList?.length,
     ]
   );
@@ -743,43 +737,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
 
-        {tab === 'activity' && (
-        <section {...tabPanelProps('activity')} className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden outline-none">
-          <div className="p-5 sm:p-6 border-b border-line-2 flex justify-between items-center gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-ink">Recent activity</h2>
-              <p className="text-xs text-ink-3">Select any entry to open its receipt</p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {recentTransactions.length > 0 && (
-                <button
-                  onClick={() => onSelectTransaction(recentTransactions[0])}
-                  className="text-xs font-bold text-accent hover:underline"
-                >
-                  Latest receipt
-                </button>
-              )}
-              <button onClick={onViewHistory} className="text-xs font-bold text-accent hover:underline">
-                View all
-              </button>
-            </div>
-          </div>
-
-          {recentTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <span aria-hidden="true" className="material-symbols-outlined text-3xl text-ink-3">receipt_long</span>
-              <p className="text-sm font-bold text-ink mt-2">No transactions yet</p>
-              <p className="text-xs text-ink-3 mt-1">Your deposits and returns will appear here.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-line-2">
-              {recentTransactions.map((tx) => (
-                <TransactionRow key={tx.id} transaction={tx} onSelect={onSelectTransaction} />
-              ))}
-            </div>
-          )}
-        </section>
-        )}
       </div>
     </div>
   );
