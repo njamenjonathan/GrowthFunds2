@@ -42,6 +42,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
               ['dashboard', 'My money'],
               ['history', 'Transactions'],
               ['about', 'About us'],
+              ['faq', 'FAQ'],
               ['security', 'Security & 2FA'],
             ] as [View, string][]
           ).map(([view, label]) => (

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'motion/react';
 import { InvestmentPlan } from '../types';
 import { MAX_TERM_DAYS, STAKE_LADDER, TERM_DAYS_LADDER, payoutFor, profitForRung } from '../lib/commitment';
@@ -92,25 +91,6 @@ const SAFEGUARDS = [
   },
 ];
 
-const FAQS = [
-  {
-    q: 'How is my money protected?',
-    a: 'Your money is held in separate trust accounts at CEMAC commercial banks and regional depositories. It is never mixed with the money GrowthFund runs on, and the separation is supervised by COSUMAF.',
-  },
-  {
-    q: 'How do deposits and withdrawals work?',
-    a: 'Add money in XAF with MTN Mobile Money, Orange Money, Express Union or a bank transfer. Withdrawals start at 5,000 XAF and go in steps of 5,000 — 5,000, 10,000, 15,000, 20,000, 25,000 — straight back to your verified number or bank account.',
-  },
-  {
-    q: 'What is the minimum amount to start?',
-    a: 'Every area starts with a 5,000 XAF package that runs for 5 days. Bigger packages run longer and pay more — 10,000 XAF for 8 days, 15,000 XAF for 12 days, and so on — and nothing on the platform runs longer than 30 days.',
-  },
-  {
-    q: 'Are returns guaranteed?',
-    a: 'No. The profit shown on a package is the target it is built to pay, based on the real assets behind it — building sites, export contracts, treasury bills. We hold reserves and run every project under supervision, but investing always carries risk.',
-  },
-];
-
 export const HomeView: React.FC<HomeViewProps> = ({
   plans,
   onSelectPlan,
@@ -118,7 +98,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenDeposit,
   onOpenLegal,
 }) => {
-  const [activeFaq, setActiveFaq] = useState<number | null>(0);
 
   return (
     <div className="flex flex-col">
@@ -678,55 +657,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span aria-hidden="true" className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="relative py-16 md:py-20 bg-canvas">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="gf-motif gf-motif--coins"></div>
-        </div>
-
-        <div className="relative max-w-[900px] mx-auto px-4 md:px-8">
-          <div className="text-center mb-10">
-            <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">Investor clarity</span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
-              Frequently asked questions
-            </h2>
-          </div>
-
-          <div className="space-y-3">
-            {FAQS.map((faq, index) => (
-              <div key={faq.q} className="bg-surface rounded-2xl border border-line overflow-hidden">
-                <h3>
-                  <button
-                    onClick={() => setActiveFaq(activeFaq === index ? null : index)}
-                    aria-expanded={activeFaq === index}
-                    className="w-full p-5 text-left flex justify-between items-center gap-4 font-bold text-sm text-ink hover:text-accent transition-colors"
-                  >
-                    {faq.q}
-                    <span aria-hidden="true"
-                      className={`material-symbols-outlined text-ink-3 transition-transform shrink-0 ${
-                        activeFaq === index ? 'rotate-180' : ''
-                      }`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
-                </h3>
-                {activeFaq === index && (
-                  <p className="px-5 pb-5 text-xs text-ink-2 leading-relaxed border-t border-line-2 pt-3">{faq.a}</p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-ink-3 mt-8">
-            Still have questions?{' '}
-            <button onClick={() => onOpenLegal('risk')} className="text-accent font-bold hover:underline">
-              Read the full risk disclosure
-            </button>
-          </p>
         </div>
       </section>
     </div>

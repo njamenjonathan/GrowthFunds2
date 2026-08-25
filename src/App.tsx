@@ -41,6 +41,7 @@ import { PlanDetailView } from './components/PlanDetailView';
 import { DashboardView } from './components/DashboardView';
 import { TransactionHistoryView } from './components/TransactionHistoryView';
 import { AboutView } from './components/AboutView';
+import { FaqView } from './components/FaqView';
 import { SecurityView } from './components/SecurityView';
 import { AdminDashboardView } from './components/AdminDashboardView';
 import { SiteFooter } from './components/SiteFooter';
@@ -750,6 +751,14 @@ export default function App() {
             {currentView === 'about' && (
               <AboutView
                 onExplorePlans={() => navigate('plans')}
+                onOpenLegal={setLegalModalTopic}
+              />
+            )}
+
+            {currentView === 'faq' && (
+              <FaqView
+                onExplorePlans={() => navigate('plans')}
+                onOpenSupport={openSupport}
                 onOpenLegal={setLegalModalTopic}
               />
             )}
