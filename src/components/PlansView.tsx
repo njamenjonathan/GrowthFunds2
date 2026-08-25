@@ -77,8 +77,11 @@ export const PlansView: React.FC<PlansViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         {plans.map((plan) => {
-          const cheapest = plan.subInvestments[0];
-          const largest = plan.subInvestments[plan.subInvestments.length - 1];
+          // Ordered here as well as on the plan's own page, so the card can
+          // never advertise a starting price the page then contradicts.
+          const packages = [...plan.subInvestments].sort((a, b) => a.amount - b.amount);
+          const cheapest = packages[0];
+          const largest = packages[packages.length - 1];
           return (
             <article
               key={plan.id}
@@ -118,7 +121,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
                   <div className="flex justify-between items-center">
                     <dt className="text-ink-2">Packages</dt>
                     <dd className="font-bold text-ink">
-                      {plan.subInvestments.length}, up to {currency(largest.amount)}
+                      {packages.length}, up to {currency(largest.amount)}
                     </dd>
                   </div>
                 </dl>
@@ -139,7 +142,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
                       : 'bg-surface border border-line text-ink hover:bg-surface-2 hover:border-accent hover:text-accent'
                   }`}
                 >
-                  See the {plan.subInvestments.length} packages
+                  See the {packages.length} packages
                   <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
               </div>

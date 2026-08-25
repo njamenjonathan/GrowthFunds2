@@ -180,6 +180,11 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
                       <dd className="text-sm font-extrabold font-mono text-on-pos-bg mt-0.5">
                         {payoutFor(sub).toLocaleString()}
                       </dd>
+                      {/* The profit, spelled out: it grows with every rung, and
+                          that is the trade this page is asking about. */}
+                      <dd className="text-[10px] font-bold font-mono text-on-pos-bg/80">
+                        +{sub.profit.toLocaleString()} profit
+                      </dd>
                     </div>
                   </dl>
 
