@@ -24,6 +24,7 @@ const PATH_BY_VIEW: Record<Exclude<View, 'plan'>, string> = {
   referrals: '/invite',
   checkin: '/check-in',
   history: '/history',
+  about: '/about',
   security: '/security',
 };
 

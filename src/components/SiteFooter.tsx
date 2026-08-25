@@ -32,16 +32,16 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
 
       <nav aria-label="Platform">
         <h2 className="text-[11px] uppercase font-extrabold text-gold mb-3 tracking-widest">Platform</h2>
-        {/* Every screen in the app, so the footer is a one-click route to any
-            of them from wherever the reader has ended up. */}
+        {/* The pages, mirroring the header. Check-in and Invite & earn are
+            sections of My money and are reached from its tab strip, so they
+            are not listed again here. */}
         <ul className="space-y-2 text-xs text-on-emerald/80">
           {(
             [
               ['plans', 'Invest'],
               ['dashboard', 'My money'],
-              ['checkin', 'Daily check-in'],
               ['history', 'Transactions'],
-              ['referrals', 'Invite & earn'],
+              ['about', 'About us'],
               ['security', 'Security & 2FA'],
             ] as [View, string][]
           ).map(([view, label]) => (
