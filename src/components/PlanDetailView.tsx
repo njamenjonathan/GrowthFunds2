@@ -3,6 +3,7 @@ import { InvestmentPlan, SubInvestment, UserProfile } from '../types';
 import { MAX_TERM_DAYS, maturityDateInDays, payoutFor } from '../lib/commitment';
 import { currency } from '../lib/transactions';
 import { Modal, ModalHeader } from './Modal';
+import { PageBackdrop } from './PageBackdrop';
 
 interface PlanDetailViewProps {
   plan: InvestmentPlan;
@@ -81,7 +82,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
+      <PageBackdrop />
 
       <div className="max-w-[900px] mx-auto w-full relative z-10">
         <button

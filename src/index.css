@@ -309,6 +309,86 @@ body * {
   background-size: 44px 44px;
 }
 
+/* -------------------------------------------------------------------------
+   Currency motifs
+
+   Two photographs of CEMAC money — the BEAC note family and a handful of CFA
+   coins — sat behind the page in their own colours, far enough back to stay
+   out of the way of the content but close enough to be read as what they
+   are. They are anchored to opposite corners of the page body: notes bleeding
+   off the top right, coins off the bottom left.
+
+   Both sit on the page canvas rather than on the emerald footer. On emerald
+   the only way to make the coins bright enough to read is to lift them
+   toward the surface colour, which both green-casts them and drops the
+   footer's small print under 4.5:1; on the canvas, multiply leaves their
+   own colours intact and there is no light-on-dark text over them.
+
+   The radial mask is what stops them looking pasted on. Without it the
+   photograph's rectangle draws a hard edge across the page background, which
+   no amount of extra opacity fixes.
+   ------------------------------------------------------------------------- */
+
+.gf-motif {
+  position: absolute;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.32;
+  /* Multiply drops the photographs' white paper out against a light canvas,
+     leaving only the printed detail behind the page. Against a near-white
+     canvas it is close to a no-op on hue, so the notes keep their own
+     colours rather than being tinted by the surface under them. */
+  mix-blend-mode: multiply;
+}
+
+:root.dark .gf-motif {
+  opacity: 0.24;
+  /* Screen is multiply's mirror: on a near-black canvas it keeps the printed
+     detail and drops the paper, instead of stamping a dark rectangle. */
+  mix-blend-mode: screen;
+}
+
+.gf-motif--notes {
+  top: -5rem;
+  right: -9rem;
+  width: min(44rem, 68vw);
+  aspect-ratio: 1000 / 857;
+  background-image: url('./assets/cfa-banknotes.webp');
+  transform: rotate(-7deg);
+  -webkit-mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, #000 32%, transparent 76%);
+  mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, #000 32%, transparent 76%);
+}
+
+.gf-motif--coins {
+  bottom: -2.5rem;
+  left: -3.5rem;
+  width: min(30rem, 66vw);
+  aspect-ratio: 450 / 283;
+  background-image: url('./assets/cfa-coins.webp');
+  transform: rotate(5deg);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
+  mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
+}
+
+/* On a phone the motif would sit directly under body copy at a size where it
+   reads as an image rather than as texture. Pull it back instead of hiding it
+   so small screens keep the same character. */
+@media (max-width: 640px) {
+  .gf-motif {
+    opacity: 0.2;
+  }
+}
+
+/* Blend modes are the one thing here that can misfire: a browser without
+   them paints the raw photograph at full strength over the page. */
+@supports not (mix-blend-mode: multiply) {
+  .gf-motif {
+    opacity: 0.16;
+  }
+}
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

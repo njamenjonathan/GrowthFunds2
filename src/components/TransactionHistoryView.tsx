@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Transaction } from '../types';
 import { TransactionRow } from './TransactionRow';
+import { PageBackdrop } from './PageBackdrop';
 
 interface TransactionHistoryViewProps {
   transactions: Transaction[];
@@ -31,7 +32,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
+      <PageBackdrop />
 
       <div className="max-w-[1200px] mx-auto w-full relative z-10 space-y-6">
         {/* Header */}

@@ -132,6 +132,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           className="absolute bottom-0 left-0 w-80 h-80 bg-gold/10 rounded-full blur-3xl pointer-events-none"
           aria-hidden="true"
         ></div>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="gf-motif gf-motif--notes"></div>
+        </div>
 
         <div className="max-w-[1240px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative">
           <motion.div
@@ -679,8 +682,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* FAQ */}
-      <section className="py-16 md:py-20 bg-canvas">
-        <div className="max-w-[900px] mx-auto px-4 md:px-8">
+      <section className="relative py-16 md:py-20 bg-canvas">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="gf-motif gf-motif--coins"></div>
+        </div>
+
+        <div className="relative max-w-[900px] mx-auto px-4 md:px-8">
           <div className="text-center mb-10">
             <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">Investor clarity</span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
