@@ -44,6 +44,7 @@ const NAV_LINKS: NavLink[] = [
   { view: 'dashboard', label: 'My money', icon: 'account_balance_wallet' },
   { view: 'history', label: 'Transactions', icon: 'receipt_long' },
   { view: 'about', label: 'About us', icon: 'info' },
+  { view: 'faq', label: 'FAQ', icon: 'help' },
 ];
 
 /**
