@@ -8,12 +8,12 @@
  */
 
 const PALETTE = [
-  ['#043d21', '#f5cf5a'],
-  ['#0a5c33', '#ffe08a'],
-  ['#1d3a52', '#d4e4f6'],
-  ['#8a6a00', '#fff6d9'],
-  ['#0d4a28', '#d2f2dd'],
-  ['#3d2b12', '#f0d9a8'],
+  ['#2f6b4d', '#f3dda8'],
+  ['#26583f', '#e6c479'],
+  ['#41637d', '#dfeaf6'],
+  ['#8a6a1e', '#fff6d9'],
+  ['#1f7a48', '#d8f2e2'],
+  ['#5c4a24', '#f0d9a8'],
 ] as const;
 
 const initialsOf = (name: string): string =>

@@ -5,10 +5,11 @@
    -------------------------------------------------------------------------
    Two kinds of token:
 
-   1. FIXED tokens (--gf-emerald*, --gf-gold*, --gf-on-*) keep the same value
-      in both themes. They are the brand surfaces — deep emerald and gold —
-      that always carry light/dark text respectively, so they never need a
-      per-theme override and text on them can never lose contrast.
+   1. BRAND tokens (--gf-emerald*, --gf-gold*, --gf-on-*) are the soft green
+      and champagne gold that always carry light/dark text respectively, so
+      text on them can never lose contrast. Only the three emerald steps vary
+      by theme, and only to sit a shade deeper on a dark canvas; the gold and
+      every --gf-on-* pairing is identical in both.
 
    2. ADAPTIVE tokens (canvas/surface/ink/line/accent/pos/neg/info) are
       redefined under the dark theme. Every component references these by
@@ -18,19 +19,25 @@
 :root {
   color-scheme: light;
 
-  /* --- Fixed brand ------------------------------------------------------ */
-  --gf-emerald: #043d21;
-  --gf-emerald-2: #0a5c33;
-  --gf-emerald-3: #02240f;
+  /* --- Fixed brand ------------------------------------------------------
+     A soft, cultivated green rather than a near-black one. The old scale
+     bottomed out at #02240f, which read as black under the gold and made
+     every branded surface heavy; these sit in the mid range, where the green
+     is still legible as green while carrying white text comfortably. */
+  --gf-emerald: #2f6b4d;
+  --gf-emerald-2: #26583f;
+  --gf-emerald-3: #22503a;
   --gf-on-emerald: #ffffff;
-  --gf-emerald-tint: #97d5a5;
+  --gf-emerald-tint: #b4e0c6;
 
-  --gf-gold: #f5cf5a;
-  --gf-gold-2: #ffe08a;
-  --gf-gold-3: #d9ae3d;
-  --gf-on-gold: #2a1f00;
+  /* Champagne rather than brass: a quieter gold that reads as expensive
+     next to the softer green instead of competing with it. */
+  --gf-gold: #e6c479;
+  --gf-gold-2: #f3dda8;
+  --gf-gold-3: #c9a558;
+  --gf-on-gold: #3a2d08;
 
-  --gf-bronze: #cd7f32;
+  --gf-bronze: #c08046;
   --gf-whatsapp: #25d366;
 
   /* Solid destructive buttons. Fixed in both themes: the adaptive --gf-neg
@@ -41,73 +48,85 @@
   --gf-on-danger: #ffffff;
 
   /* --- Adaptive: surfaces ---------------------------------------------- */
-  --gf-canvas: #f5f8f6;
+  --gf-canvas: #f7faf8;
   --gf-surface: #ffffff;
-  --gf-surface-2: #f1f5f2;
-  --gf-surface-3: #e5ebe7;
+  --gf-surface-2: #f1f6f3;
+  --gf-surface-3: #e6efe9;
 
   /* --- Adaptive: text --------------------------------------------------- */
-  --gf-ink: #111815;
-  --gf-ink-2: #3d4a43;
-  --gf-ink-3: #6c7b73;
+  --gf-ink: #15201b;
+  --gf-ink-2: #405349;
+  /* Muted captions still clear AA on canvas, surface and surface-2. */
+  --gf-ink-3: #5e7266;
 
   /* --- Adaptive: lines -------------------------------------------------- */
-  --gf-line: #d3ddd7;
-  --gf-line-2: #e6ece8;
+  --gf-line: #dbe6e0;
+  --gf-line-2: #ebf1ed;
 
   /* --- Adaptive: accents & status --------------------------------------- */
-  --gf-accent: #0a5c33;
-  --gf-accent-bg: #e7f3eb;
-  --gf-gold-ink: #8a6a00;
+  --gf-accent: #2f6b4d;
+  --gf-accent-bg: #e8f3ec;
+  --gf-gold-ink: #7a5f12;
 
-  --gf-pos: #1d7a45;
-  --gf-pos-bg: #d2f2dd;
-  --gf-on-pos-bg: #0d4a28;
+  --gf-pos: #1f7a48;
+  --gf-pos-bg: #d8f2e2;
+  --gf-on-pos-bg: #0e4a29;
 
   --gf-neg: #b3261e;
   --gf-neg-bg: #fcdcd9;
   --gf-on-neg-bg: #8c1d18;
 
-  --gf-info: #1d3a52;
-  --gf-info-bg: #dce9f7;
+  --gf-info: #24455f;
+  --gf-info-bg: #dfeaf6;
   --gf-on-info: #d4e4f6;
 
   /* --- Elevation -------------------------------------------------------- */
-  --gf-shadow-color: 145 30% 12%;
+  --gf-shadow-color: 155 25% 15%;
+  --gf-shadow-strength: 1;
 }
 
 :root.dark {
   color-scheme: dark;
 
-  --gf-canvas: #0a1310;
-  --gf-surface: #111c17;
-  --gf-surface-2: #16241d;
-  --gf-surface-3: #1e3126;
+  /* Lifted off pure black onto a deep green-grey, so panels separate from
+     the page by tone rather than by a hard border. */
+  --gf-canvas: #0f1714;
+  --gf-surface: #16211d;
+  --gf-surface-2: #1d2a24;
+  --gf-surface-3: #26352d;
 
-  --gf-ink: #e9f0ec;
-  --gf-ink-2: #c2d1c8;
-  --gf-ink-3: #91a69a;
+  --gf-ink: #e8efeb;
+  --gf-ink-2: #bfcfc6;
+  --gf-ink-3: #8fa599;
 
-  --gf-line: #26382d;
-  --gf-line-2: #1d2c24;
+  --gf-line: #2b3a33;
+  --gf-line-2: #212e28;
 
-  --gf-accent: #6fd897;
-  --gf-accent-bg: #10291b;
-  --gf-gold-ink: #f5cf5a;
+  --gf-accent: #7ed9a4;
+  --gf-accent-bg: #132a1f;
+  --gf-gold-ink: #eccb7d;
 
-  --gf-pos: #4fcd83;
-  --gf-pos-bg: #123a25;
-  --gf-on-pos-bg: #a8ecc2;
+  --gf-pos: #5cd08d;
+  --gf-pos-bg: #143a27;
+  --gf-on-pos-bg: #aeecc6;
 
   --gf-neg: #ff9b93;
   --gf-neg-bg: #3d1512;
   --gf-on-neg-bg: #ffb4ab;
 
   --gf-info: #c5dcf5;
-  --gf-info-bg: #16283a;
+  --gf-info-bg: #1a2c3d;
   --gf-on-info: #d4e4f6;
 
-  --gf-shadow-color: 150 60% 2%;
+  /* Brand surfaces sit a shade deeper on a dark page. A full-width green
+     band tuned for white paper glares against a dark canvas; these keep the
+     same hue and still carry white text and gold well clear of AA. */
+  --gf-emerald: #24523c;
+  --gf-emerald-2: #2d6449;
+  --gf-emerald-3: #1e4835;
+
+  --gf-shadow-color: 155 50% 3%;
+  --gf-shadow-strength: 2.2;
 }
 
 /* Expose the tokens to Tailwind. `inline` keeps the var() reference in the
@@ -161,6 +180,28 @@
 
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
+
+  /* Elevation, tinted with the brand green rather than neutral grey, and
+     layered so a raised card reads as depth instead of a drop line. Both
+     themes drive these from the same two variables, so dark mode deepens
+     without every component naming a second shadow. */
+  --shadow-2xs: 0 1px 2px hsl(var(--gf-shadow-color) / calc(0.04 * var(--gf-shadow-strength)));
+  --shadow-xs: 0 1px 2px hsl(var(--gf-shadow-color) / calc(0.05 * var(--gf-shadow-strength)));
+  --shadow-sm:
+    0 1px 2px hsl(var(--gf-shadow-color) / calc(0.05 * var(--gf-shadow-strength))),
+    0 2px 6px hsl(var(--gf-shadow-color) / calc(0.04 * var(--gf-shadow-strength)));
+  --shadow-md:
+    0 2px 4px hsl(var(--gf-shadow-color) / calc(0.05 * var(--gf-shadow-strength))),
+    0 6px 14px hsl(var(--gf-shadow-color) / calc(0.06 * var(--gf-shadow-strength)));
+  --shadow-lg:
+    0 4px 8px hsl(var(--gf-shadow-color) / calc(0.05 * var(--gf-shadow-strength))),
+    0 12px 28px hsl(var(--gf-shadow-color) / calc(0.08 * var(--gf-shadow-strength)));
+  --shadow-xl:
+    0 8px 16px hsl(var(--gf-shadow-color) / calc(0.06 * var(--gf-shadow-strength))),
+    0 20px 44px hsl(var(--gf-shadow-color) / calc(0.10 * var(--gf-shadow-strength)));
+  --shadow-2xl:
+    0 12px 24px hsl(var(--gf-shadow-color) / calc(0.08 * var(--gf-shadow-strength))),
+    0 32px 64px hsl(var(--gf-shadow-color) / calc(0.14 * var(--gf-shadow-strength)));
 }
 
 /* =========================================================================
@@ -224,6 +265,7 @@ body * {
 
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.015em;
 }
 
 .gold-gradient-text {
@@ -241,9 +283,9 @@ body * {
 .shimmer-badge {
   background: linear-gradient(
     90deg,
-    rgb(245 207 90 / 0.1) 0%,
-    rgb(245 207 90 / 0.3) 50%,
-    rgb(245 207 90 / 0.1) 100%
+    color-mix(in srgb, var(--gf-gold) 10%, transparent) 0%,
+    color-mix(in srgb, var(--gf-gold) 30%, transparent) 50%,
+    color-mix(in srgb, var(--gf-gold) 10%, transparent) 100%
   );
   background-size: 200% 100%;
   animation: shimmerMove 3s infinite;
@@ -262,9 +304,9 @@ body * {
    instead of needing a separate dark-mode image. */
 .pattern-bg {
   background-image:
-    linear-gradient(135deg, color-mix(in srgb, var(--gf-accent) 7%, transparent) 25%, transparent 25%),
-    linear-gradient(225deg, color-mix(in srgb, var(--gf-accent) 7%, transparent) 25%, transparent 25%);
-  background-size: 28px 28px;
+    linear-gradient(135deg, color-mix(in srgb, var(--gf-accent) 3%, transparent) 25%, transparent 25%),
+    linear-gradient(225deg, color-mix(in srgb, var(--gf-accent) 3%, transparent) 25%, transparent 25%);
+  background-size: 44px 44px;
 }
 
 .hide-scrollbar::-webkit-scrollbar {

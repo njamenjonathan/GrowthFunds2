@@ -13,16 +13,6 @@ interface HomeViewProps {
   onOpenLegal: (topic: string) => void;
 }
 
-/** The rules of the platform, stated as plainly as a ticker can state them. */
-const TICKER_ITEMS = [
-  { label: 'Smallest investment', value: '5,000 XAF', change: '5 days' },
-  { label: 'Longest run', value: `${MAX_TERM_DAYS} days`, change: 'Never more' },
-  { label: 'Daily check-in', value: `${DAILY_CHECKIN_XAF} XAF`, change: 'Every day' },
-  { label: 'Invite a friend', value: `${REFERRAL_REWARD_XAF} XAF`, change: 'Per sign-up' },
-  { label: 'Smallest withdrawal', value: '5,000 XAF', change: 'Steps of 5,000' },
-  { label: 'Currency', value: 'XAF (FCFA)', change: 'Everywhere' },
-];
-
 const PARTNERS = [
   { name: 'COSUMAF', role: 'Regulator', icon: 'verified' },
   { name: 'BEAC', role: 'Interbank clearing', icon: 'account_balance' },
@@ -132,25 +122,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="flex flex-col">
-      {/* Market ticker */}
-      <div className="bg-emerald-3 text-gold py-2 border-b border-gold/20 overflow-hidden text-xs">
-        <div className="flex items-center gap-6 whitespace-nowrap overflow-x-auto hide-scrollbar px-4">
-          <span className="flex items-center gap-2 font-bold shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-tint animate-pulse"></span>
-            <span className="uppercase tracking-widest text-[10px]">Live CEMAC index</span>
-          </span>
-          {TICKER_ITEMS.map((item) => (
-            <span key={item.label} className="flex items-center gap-2 shrink-0 font-mono text-[11px]">
-              <span className="text-on-emerald/60">{item.label}</span>
-              <span className="text-on-emerald font-bold">{item.value}</span>
-              <span className="text-emerald-tint font-semibold bg-emerald-2 px-1.5 py-0.5 rounded text-[10px]">
-                {item.change}
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Hero */}
       <section className="relative py-14 md:py-20 border-b border-line overflow-hidden bg-surface">
         <div

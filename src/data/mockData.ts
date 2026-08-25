@@ -42,7 +42,7 @@ export const INITIAL_PLANS: InvestmentPlan[] = [
       pkg(4, 'agri-coffee-highland', 'Highland Coffee', 'Back new arabica hectares in Bafoussam through to their first crop.', 'local_cafe'),
     ],
     iconName: 'eco',
-    accentColor: '#002c13',
+    accentColor: '#2f6b4d',
   },
   {
     id: 'real-estate-fund',
@@ -61,7 +61,7 @@ export const INITIAL_PLANS: InvestmentPlan[] = [
       pkg(6, 're-logistics-hub', 'Logistics Warehouse', 'Back a warehouse serving the Douala port corridor.', 'local_shipping'),
     ],
     iconName: 'domain',
-    accentColor: '#735c00',
+    accentColor: '#b08a2e',
     isPopular: true,
   },
   {
@@ -80,7 +80,7 @@ export const INITIAL_PLANS: InvestmentPlan[] = [
       pkg(5, 'tech-datacentre', 'Data Centre Rack', 'Take a share of regional colocation capacity.', 'dns'),
     ],
     iconName: 'rocket_launch',
-    accentColor: '#2c3c4a',
+    accentColor: '#41637d',
   },
   {
     id: 'cemac-sovereign-bond',
@@ -96,7 +96,7 @@ export const INITIAL_PLANS: InvestmentPlan[] = [
       pkg(3, 'bond-government-note', 'Government Bond', 'Gabon and Congo sovereign paper paying a fixed coupon.', 'account_balance'),
     ],
     iconName: 'account_balance',
-    accentColor: '#162634',
+    accentColor: '#33586b',
   },
 ];
 

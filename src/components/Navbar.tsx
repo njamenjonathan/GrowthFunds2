@@ -23,20 +23,33 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
+interface NavLink {
+  view: View;
+  label: string;
+  icon: string;
+}
+
 /**
- * Every destination in the app, in the header and in the menus.
- *
- * The list is deliberately flat: each entry lands on its own screen in one
- * click from anywhere, so nothing worth reaching is more than two clicks away.
+ * The places an investor goes, shown in the header on desktop and in the
+ * drawer on mobile — never in both at once, and never repeated in the avatar
+ * menu. Each entry is one click from anywhere.
  */
-const NAV_LINKS: { view: View; label: string; icon: string }[] = [
+const NAV_LINKS: NavLink[] = [
   { view: 'plans', label: 'Invest', icon: 'trending_up' },
   { view: 'dashboard', label: 'My money', icon: 'account_balance_wallet' },
   { view: 'checkin', label: 'CheckIn', icon: 'calendar_month' },
   { view: 'history', label: 'Transactions', icon: 'receipt_long' },
   { view: 'referrals', label: 'Invite & earn', icon: 'card_giftcard' },
-  { view: 'security', label: 'Security', icon: 'shield' },
 ];
+
+/**
+ * Account settings, which live in the avatar menu and nowhere else.
+ *
+ * Keeping these out of `NAV_LINKS` is what stops the avatar menu from being a
+ * second copy of the header: the header carries the places you go, the menu
+ * carries the account you are signed in to.
+ */
+const ACCOUNT_LINKS: NavLink[] = [{ view: 'security', label: 'Security & 2FA', icon: 'shield' }];
 
 const NOTIFICATION_STYLES: Record<AppNotification['type'], { icon: string; className: string }> = {
   maturity: { icon: 'hourglass_bottom', className: 'bg-gold/20 text-gold-ink border-gold/40' },
@@ -337,7 +350,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
 
                   <div className="py-1">
-                    {NAV_LINKS.map(({ view, label, icon }) => (
+                    {ACCOUNT_LINKS.map(({ view, label, icon }) => (
                       <button
                         key={view}
                         onClick={() => go(view)}
@@ -455,30 +468,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </nav>
-
-          <div className="p-3 rounded-xl bg-surface-2 border border-line">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-3 mb-2">Appearance</p>
-            <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-1.5">
-              {THEME_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  role="radio"
-                  aria-checked={themeMode === option.value}
-                  onClick={() => onSetThemeMode(option.value)}
-                  className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-bold border transition-colors ${
-                    themeMode === option.value
-                      ? 'bg-emerald text-on-emerald border-emerald'
-                      : 'bg-surface text-ink border-line'
-                  }`}
-                >
-                  <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
-                    {option.icon}
-                  </span>
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <button
             onClick={() => {
