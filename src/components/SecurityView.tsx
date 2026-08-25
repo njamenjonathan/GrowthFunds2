@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageBackdrop } from './PageBackdrop';
 import { UserProfile } from '../types';
 import { ThemeMode, THEME_OPTIONS } from '../lib/theme';
 
@@ -35,7 +36,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
+      <PageBackdrop />
 
       <div className="max-w-[1000px] mx-auto w-full relative z-10 space-y-6">
         <div>

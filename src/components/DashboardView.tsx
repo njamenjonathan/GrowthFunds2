@@ -8,6 +8,7 @@ import { ReferralProgram } from './ReferralProgram';
 import { TopReferrersLeaderboard } from './TopReferrersLeaderboard';
 import { TransactionRow } from './TransactionRow';
 import { Tabs, TabItem, tabPanelProps } from './Tabs';
+import { PageBackdrop } from './PageBackdrop';
 
 const PortfolioChart = lazy(() => import('./PortfolioChart'));
 
@@ -384,7 +385,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-      <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
+      <PageBackdrop />
 
       <div className="max-w-[1200px] mx-auto w-full relative z-10 space-y-6">
         {/* Header */}

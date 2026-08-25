@@ -1,4 +1,5 @@
 import { InvestmentPlan, UserProfile } from '../types';
+import { PageBackdrop } from './PageBackdrop';
 import { MIN_INVESTMENT_XAF } from '../lib/constants';
 import { MAX_TERM_DAYS, payoutFor } from '../lib/commitment';
 import { currency } from '../lib/transactions';
@@ -27,7 +28,7 @@ export const PlansView: React.FC<PlansViewProps> = ({
   onOpenKyc,
 }) => (
   <div className="flex-1 p-4 md:p-10 bg-canvas relative">
-    <div className="absolute inset-0 opacity-40 pointer-events-none pattern-bg" aria-hidden="true"></div>
+    <PageBackdrop />
 
     <div className="max-w-[1200px] mx-auto w-full relative z-10">
       <header className="mb-7">

@@ -1,3 +1,5 @@
+import { PageBackdrop } from './PageBackdrop';
+
 interface SignedOutNoticeProps {
   onLogin: () => void;
   onRegister: () => void;
@@ -13,8 +15,10 @@ export const SignedOutNotice: React.FC<SignedOutNoticeProps> = ({
   onRegister,
   onExplorePlans,
 }) => (
-  <div className="flex-1 flex items-center justify-center p-6 bg-canvas">
-    <div className="max-w-md w-full text-center bg-surface border border-line rounded-2xl p-8 shadow-sm">
+  <div className="flex-1 flex items-center justify-center p-6 bg-canvas relative">
+    <PageBackdrop />
+
+    <div className="relative z-10 max-w-md w-full text-center bg-surface border border-line rounded-2xl p-8 shadow-sm">
       <div className="w-14 h-14 rounded-2xl bg-emerald text-gold flex items-center justify-center mx-auto mb-5">
         <span aria-hidden="true" className="material-symbols-outlined text-[28px]">lock</span>
       </div>

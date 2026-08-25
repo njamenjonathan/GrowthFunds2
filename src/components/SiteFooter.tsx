@@ -11,8 +11,12 @@ interface SiteFooterProps {
  * ended abruptly with no legal links or regulator disclosure.
  */
 export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate }) => (
-  <footer className="bg-emerald text-on-emerald w-full print-hide">
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-4 md:px-12 py-12 w-full max-w-[1240px] mx-auto">
+  <footer className="bg-emerald text-on-emerald w-full print-hide relative">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div className="gf-motif gf-motif--coins gf-motif--on-emerald"></div>
+    </div>
+
+    <div className="relative grid grid-cols-2 md:grid-cols-4 gap-8 px-4 md:px-12 py-12 w-full max-w-[1240px] mx-auto">
       <div className="col-span-2 space-y-4">
         <GrowthFundLogo size="md" variant="white" showTagline />
         <p className="text-xs text-on-emerald/70 max-w-md leading-relaxed">
