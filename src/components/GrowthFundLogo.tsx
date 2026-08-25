@@ -40,7 +40,7 @@ export const GrowthFundLogo: React.FC<GrowthFundLogoProps> = ({
           
           {/* Ascending Fund Columns */}
           <rect x="10" y="28" width="5" height="10" rx="2" fill="var(--gf-emerald-tint)" />
-          <rect x="18" y="22" width="5" height="16" rx="2" fill="#b7ecc6" />
+          <rect x="18" y="22" width="5" height="16" rx="2" fill="#c8ead6" />
           <rect x="26" y="16" width="5" height="22" rx="2" fill="var(--gf-gold-3)" />
           <rect x="34" y="10" width="5" height="28" rx="2" fill="var(--gf-gold)" />
 
