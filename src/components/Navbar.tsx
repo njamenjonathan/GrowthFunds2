@@ -168,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               isAdmin
                 ? 'bg-emerald text-gold-on-emerald border-emerald-2'
                 : 'bg-surface text-ink-2 border-line hover:bg-surface-2'
-            }`}
+            } gf-press`}
             title="Switch between the investor portal and the manager console"
           >
             <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
@@ -217,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] bg-surface rounded-2xl shadow-2xl border border-line z-50 overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] bg-surface rounded-2xl shadow-2xl border border-line z-50 overflow-hidden flex flex-col max-h-[80vh] gf-enter-drop">
                 <div className="px-4 py-3 bg-surface-2 border-b border-line-2 flex items-center justify-between gap-2">
                   <div>
                     <h2 className="text-sm font-bold text-ink">Notifications</h2>
@@ -342,7 +342,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl shadow-2xl border border-line py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl shadow-2xl border border-line py-2 z-50 gf-enter-drop">
                   <div className="px-4 py-2 border-b border-line-2">
                     <p className="text-[11px] text-ink-3">Signed in as</p>
                     <p className="text-sm font-bold text-accent truncate">{user.name}</p>

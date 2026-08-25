@@ -30,7 +30,7 @@ export const SignedOutNotice: React.FC<SignedOutNoticeProps> = ({
       <div className="flex flex-col sm:flex-row gap-2.5 mt-6">
         <button
           onClick={onLogin}
-          className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors"
+          className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
         >
           Sign in
         </button>

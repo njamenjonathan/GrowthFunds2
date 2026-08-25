@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm gf-enter-fade"
       onMouseDown={(event) => {
         // Only dismiss on a press that both starts and ends on the backdrop,
         // so dragging a text selection out of the panel doesn't close it.
@@ -91,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
         aria-label={label}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
-        className={`bg-surface rounded-2xl w-full ${size} shadow-2xl border border-line overflow-hidden flex flex-col max-h-[90vh] outline-none animate-in zoom-in-95 duration-150 ${className}`}
+        className={`bg-surface rounded-2xl w-full ${size} shadow-2xl border border-line overflow-hidden flex flex-col max-h-[90vh] outline-none gf-enter-pop ${className}`}
       >
         {children}
       </div>

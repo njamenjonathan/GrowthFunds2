@@ -233,7 +233,7 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
 
           <button
             onClick={handleNextToDetails}
-            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 gf-press"
           >
             Continue
             <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -314,7 +314,7 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
             </button>
             <button
               onClick={handleInitiateDeposit}
-              className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 gf-press"
             >
               Authorise {amount.toLocaleString()} XAF
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">lock</span>
@@ -385,7 +385,7 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
 
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors"
+            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
           >
             Done
           </button>

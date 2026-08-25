@@ -126,7 +126,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
       {toast && (
         <div
           role="status"
-          className="fixed bottom-20 right-5 z-50 bg-emerald-base text-on-emerald px-4 py-3 rounded-xl shadow-2xl border border-on-emerald/20 flex items-center gap-3 max-w-sm animate-in slide-in-from-bottom-2"
+          className="fixed bottom-20 right-5 z-50 bg-emerald-base text-on-emerald px-4 py-3 rounded-xl shadow-2xl border border-on-emerald/20 flex items-center gap-3 max-w-sm gf-enter-rise"
         >
           <span aria-hidden="true" className="material-symbols-outlined text-gold-on-emerald text-[20px]">redeem</span>
           <span className="text-xs font-semibold">{toast}</span>
@@ -135,7 +135,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
 
       <section className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
         {showBanner && (
-          <div className="bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
+          <div className="gf-glass-panel bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
             <span
               aria-hidden="true"
               className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-on-emerald opacity-10 pointer-events-none"
@@ -229,7 +229,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
                 />
                 <button
                   onClick={handleSendInvite}
-                  className="bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  className="bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap gf-press"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-[15px]">send</span>
                   Send invite
@@ -273,7 +273,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
                 </span>
                 <button
                   onClick={handleSimulateSignup}
-                  className="bg-emerald text-on-emerald hover:bg-emerald-2 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                  className="bg-emerald text-on-emerald hover:bg-emerald-2 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 gf-press"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-xs">add</span>
                   Simulate a sign-up (+{REWARD_LABEL} XAF)

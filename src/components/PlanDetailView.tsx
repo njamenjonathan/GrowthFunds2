@@ -118,7 +118,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={onOpenDeposit}
-                  className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors"
+                  className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors gf-press"
                 >
                   Deposit
                 </button>
@@ -261,7 +261,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
             {!user ? (
               <button
                 onClick={onOpenAuth}
-                className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors"
+                className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
               >
                 Sign in to invest
               </button>
@@ -275,7 +275,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 bg-emerald text-on-emerald rounded-lg text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5 gf-press"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-[16px]">check_circle</span>
                   Invest {currency(pending.amount)}

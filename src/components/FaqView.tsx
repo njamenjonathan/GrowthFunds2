@@ -213,7 +213,7 @@ export const FaqView: React.FC<FaqViewProps> = ({ onExplorePlans, onOpenSupport,
           <div className="flex flex-wrap gap-2.5 w-full sm:w-auto shrink-0">
             <button
               onClick={onOpenSupport}
-              className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 sm:flex-initial bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-1.5 gf-press"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">support_agent</span>
               Ask an advisor
