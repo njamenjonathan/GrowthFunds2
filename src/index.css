@@ -364,7 +364,7 @@ body * {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  opacity: 0.32;
+  opacity: 0.46;
   /* Multiply drops the photographs' white paper out against a light canvas,
      leaving only the printed detail behind the page. Against a near-white
      canvas it is close to a no-op on hue, so the notes keep their own
@@ -373,7 +373,7 @@ body * {
 }
 
 :root.dark .gf-motif {
-  opacity: 0.24;
+  opacity: 0.35;
   /* Screen is multiply's mirror: on a near-black canvas it keeps the printed
      detail and drops the paper, instead of stamping a dark rectangle. */
   mix-blend-mode: screen;
@@ -386,8 +386,8 @@ body * {
   aspect-ratio: 1000 / 857;
   background-image: url('./assets/cfa-banknotes.webp');
   transform: rotate(-7deg);
-  -webkit-mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, #000 32%, transparent 76%);
-  mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, #000 32%, transparent 76%);
+  -webkit-mask-image: radial-gradient(ellipse 82% 82% at 62% 42%, #000 42%, transparent 84%);
+  mask-image: radial-gradient(ellipse 82% 82% at 62% 42%, #000 42%, transparent 84%);
 }
 
 .gf-motif--coins {
@@ -397,8 +397,8 @@ body * {
   aspect-ratio: 450 / 283;
   background-image: url('./assets/cfa-coins.webp');
   transform: rotate(5deg);
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
-  mask-image: radial-gradient(ellipse 80% 80% at 45% 55%, #000 26%, transparent 74%);
+  -webkit-mask-image: radial-gradient(ellipse 84% 84% at 45% 55%, #000 36%, transparent 82%);
+  mask-image: radial-gradient(ellipse 84% 84% at 45% 55%, #000 36%, transparent 82%);
 }
 
 /* The second pair. Every page shows exactly one pair, alternating as you move
@@ -411,8 +411,8 @@ body * {
   aspect-ratio: 1024 / 632;
   background-image: url('./assets/cfa-notes-fan.webp');
   transform: rotate(-5deg);
-  -webkit-mask-image: radial-gradient(ellipse 76% 76% at 58% 46%, #000 30%, transparent 74%);
-  mask-image: radial-gradient(ellipse 76% 76% at 58% 46%, #000 30%, transparent 74%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 58% 46%, #000 40%, transparent 82%);
+  mask-image: radial-gradient(ellipse 80% 80% at 58% 46%, #000 40%, transparent 82%);
 }
 
 /* This one is a cutout — the studio white behind the notes is transparent in
@@ -427,8 +427,8 @@ body * {
   aspect-ratio: 749 / 267;
   background-image: url('./assets/cfa-note-series.webp');
   transform: rotate(-3deg);
-  -webkit-mask-image: linear-gradient(to right, #000 42%, transparent 94%);
-  mask-image: linear-gradient(to right, #000 42%, transparent 94%);
+  -webkit-mask-image: linear-gradient(to right, #000 55%, transparent 96%);
+  mask-image: linear-gradient(to right, #000 55%, transparent 96%);
 }
 
 /* On a phone the motif would sit directly under body copy at a size where it
@@ -436,7 +436,24 @@ body * {
    so small screens keep the same character. */
 @media (max-width: 640px) {
   .gf-motif {
-    opacity: 0.2;
+    opacity: 0.28;
+  }
+
+  /* A phone paints these at roughly a quarter of the desktop width, so the
+     full-resolution files are all weight and no detail there. Half-size
+     variants keep the same picture for a fifth of the bytes, which is the
+     difference that matters on the connections this audience is on. The
+     coins are small enough at source to need no variant. */
+  .gf-motif--notes {
+    background-image: url('./assets/cfa-banknotes-sm.webp');
+  }
+
+  .gf-motif--fan {
+    background-image: url('./assets/cfa-notes-fan-sm.webp');
+  }
+
+  .gf-motif--series {
+    background-image: url('./assets/cfa-note-series-sm.webp');
   }
 }
 
