@@ -15,11 +15,11 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-4 md:px-12 py-12 w-full max-w-[1240px] mx-auto">
       <div className="col-span-2 space-y-4">
         <GrowthFundLogo size="md" variant="white" showTagline />
-        <p className="text-xs text-on-emerald/70 max-w-md leading-relaxed">
+        <p className="text-xs text-on-emerald/80 max-w-md leading-relaxed">
           © 2026 GrowthFund CEMAC SAS. Regulated by COSUMAF (Commission de Surveillance du Marché
           Financier de l'Afrique Centrale). All investments carry market risk. Base currency: XAF (FCFA).
         </p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-gold">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-gold-on-emerald">
           <span className="flex items-center gap-1">
             <span aria-hidden="true" className="material-symbols-outlined text-[14px]">lock</span> 256-bit SSL
           </span>
@@ -31,7 +31,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
       </div>
 
       <nav aria-label="Platform">
-        <h2 className="text-[11px] uppercase font-extrabold text-gold mb-3 tracking-widest">Platform</h2>
+        <h2 className="text-[11px] uppercase font-extrabold text-gold-on-emerald mb-3 tracking-widest">Platform</h2>
         {/* The pages, mirroring the header. Check-in and Invite & earn are
             sections of My money and are reached from its tab strip, so they
             are not listed again here. */}
@@ -55,7 +55,7 @@ export const SiteFooter: React.FC<SiteFooterProps> = ({ onOpenLegal, onNavigate 
       </nav>
 
       <nav aria-label="Legal and compliance">
-        <h2 className="text-[11px] uppercase font-extrabold text-gold mb-3 tracking-widest">Legal</h2>
+        <h2 className="text-[11px] uppercase font-extrabold text-gold-on-emerald mb-3 tracking-widest">Legal</h2>
         <ul className="space-y-2 text-xs text-on-emerald/80">
           <li>
             <button onClick={() => onOpenLegal('terms')} className="hover:text-on-emerald hover:underline">

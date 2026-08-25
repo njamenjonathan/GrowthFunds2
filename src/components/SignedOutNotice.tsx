@@ -19,7 +19,7 @@ export const SignedOutNotice: React.FC<SignedOutNoticeProps> = ({
     <PageBackdrop />
 
     <div className="relative z-10 max-w-md w-full text-center bg-surface border border-line rounded-2xl p-8 shadow-sm">
-      <div className="w-14 h-14 rounded-2xl bg-emerald text-gold flex items-center justify-center mx-auto mb-5">
+      <div className="w-14 h-14 rounded-2xl bg-emerald text-gold-on-emerald flex items-center justify-center mx-auto mb-5">
         <span aria-hidden="true" className="material-symbols-outlined text-[28px]">lock</span>
       </div>
       <h1 className="text-xl font-extrabold text-ink">Sign in to view your portfolio</h1>

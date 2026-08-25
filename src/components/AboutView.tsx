@@ -133,7 +133,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
           className="max-w-3xl space-y-6"
         >
           <span className="inline-flex items-center gap-2 bg-surface-2 border border-gold/50 rounded-full px-3.5 py-1.5">
-            <span className="w-5 h-5 rounded-full bg-emerald text-gold flex items-center justify-center shrink-0">
+            <span className="w-5 h-5 rounded-full bg-emerald text-gold-on-emerald flex items-center justify-center shrink-0">
               <span aria-hidden="true" className="material-symbols-outlined text-[13px]">verified</span>
             </span>
             <span className="text-xs font-extrabold text-ink tracking-wide">
@@ -221,7 +221,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
               className="bg-surface-2 rounded-2xl border border-line p-6 hover:border-accent transition-colors"
             >
               <div className="flex items-start gap-4">
-                <span className="w-11 h-11 rounded-xl bg-emerald text-gold flex items-center justify-center shrink-0">
+                <span className="w-11 h-11 rounded-xl bg-emerald text-gold-on-emerald flex items-center justify-center shrink-0">
                   <span aria-hidden="true" className="material-symbols-outlined text-[22px]">{item.icon}</span>
                 </span>
                 <div className="min-w-0">
@@ -262,10 +262,10 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
     </section>
 
     {/* Safeguards */}
-    <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-gold/20">
+    <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
         <div className="max-w-2xl mb-10">
-          <span className="inline-flex items-center gap-2 bg-gold/20 border border-gold/40 rounded-full px-3.5 py-1 text-xs font-bold text-gold">
+          <span className="inline-flex items-center gap-2 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-full px-3.5 py-1 text-xs font-bold text-gold-on-emerald">
             <span aria-hidden="true" className="material-symbols-outlined text-sm">lock</span>
             How client money is protected
           </span>
@@ -276,28 +276,28 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {SAFEGUARDS.map((item) => (
-            <div key={item.title} className="bg-white/5 border border-white/15 p-6 rounded-2xl backdrop-blur-md">
-              <span className="w-11 h-11 rounded-xl bg-gold text-on-gold flex items-center justify-center mb-4">
+            <div key={item.title} className="bg-on-emerald/5 border border-on-emerald/15 p-6 rounded-2xl backdrop-blur-md">
+              <span className="w-11 h-11 rounded-xl bg-gold-on-emerald text-gold-2 flex items-center justify-center mb-4">
                 <span aria-hidden="true" className="material-symbols-outlined text-[22px]">{item.icon}</span>
               </span>
               <h3 className="text-base font-bold">{item.title}</h3>
-              <p className="text-xs text-on-emerald/75 mt-2 leading-relaxed">{item.body}</p>
+              <p className="text-xs text-on-emerald/80 mt-2 leading-relaxed">{item.body}</p>
             </div>
           ))}
         </div>
 
         {/* Partners */}
-        <div className="mt-10 pt-8 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="mt-10 pt-8 border-t border-on-emerald/15 grid grid-cols-1 sm:grid-cols-2 gap-8">
           {PARTNERS.map((group) => (
             <div key={group.group}>
-              <h3 className="text-[11px] uppercase font-extrabold text-gold tracking-widest mb-3">
+              <h3 className="text-[11px] uppercase font-extrabold text-gold-on-emerald tracking-widest mb-3">
                 {group.group}
               </h3>
               <ul className="flex flex-wrap gap-2">
                 {group.names.map((name) => (
                   <li
                     key={name}
-                    className="px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-xs font-semibold"
+                    className="px-3 py-1.5 rounded-lg bg-on-emerald/10 border border-on-emerald/10 text-xs font-semibold"
                   >
                     {name}
                   </li>

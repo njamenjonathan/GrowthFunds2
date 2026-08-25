@@ -144,7 +144,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             className="lg:col-span-7 space-y-6"
           >
             <span className="inline-flex items-center gap-2 bg-surface-2 border border-gold/50 rounded-full px-3.5 py-1.5">
-              <span className="w-5 h-5 rounded-full bg-emerald text-gold flex items-center justify-center shrink-0">
+              <span className="w-5 h-5 rounded-full bg-emerald text-gold-on-emerald flex items-center justify-center shrink-0">
                 <span aria-hidden="true" className="material-symbols-outlined text-[13px]">verified</span>
               </span>
               <span className="text-xs font-extrabold text-ink tracking-wide">
@@ -211,11 +211,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
             aria-hidden="true"
           >
             <div className="relative w-full rounded-3xl border border-gold/40 shadow-2xl bg-surface p-5 lg:p-6 overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald via-gold to-emerald"></div>
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-2 via-gold to-emerald-2"></div>
 
               <div className="flex justify-between items-center pb-4 border-b border-line-2 mt-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-2xl bg-emerald text-gold flex items-center justify-center font-bold text-sm">
+                  <span className="w-10 h-10 rounded-2xl bg-emerald text-gold-on-emerald flex items-center justify-center font-bold text-sm">
                     SN
                   </span>
                   <div>
@@ -232,27 +232,27 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
 
               <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-emerald to-emerald-2 text-on-emerald relative overflow-hidden">
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-gold/10 blur-xl"></div>
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-emerald-tint/10 blur-xl"></div>
                 <div className="flex justify-between items-start gap-3 relative">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-gold tracking-wider">
+                    <span className="text-[10px] uppercase font-bold text-gold-on-emerald tracking-wider">
                       Total portfolio value
                     </span>
                     <p className="text-2xl sm:text-3xl font-extrabold font-mono mt-1">127,500 XAF</p>
                   </div>
-                  <span className="px-2 py-1 bg-gold/20 border border-gold/40 rounded-lg text-[10px] font-bold text-gold shrink-0">
+                  <span className="px-2 py-1 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-lg text-[10px] font-bold text-gold-on-emerald shrink-0">
                     +12,400 earned
                   </span>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-xs relative">
+                <div className="mt-4 pt-3 border-t border-on-emerald/15 grid grid-cols-2 gap-2 text-xs relative">
                   <div>
-                    <span className="text-on-emerald/60 text-[10px]">Available</span>
+                    <span className="text-on-emerald/80 text-[10px]">Available</span>
                     <p className="font-bold font-mono">82,500 XAF</p>
                   </div>
                   <div>
-                    <span className="text-on-emerald/60 text-[10px]">Invested</span>
-                    <p className="font-bold font-mono text-gold">45,000 XAF</p>
+                    <span className="text-on-emerald/80 text-[10px]">Invested</span>
+                    <p className="font-bold font-mono text-gold-on-emerald">45,000 XAF</p>
                   </div>
                 </div>
               </div>
@@ -349,7 +349,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 }`}
               >
                 <div>
-                  <span className="w-12 h-12 bg-emerald text-gold rounded-2xl flex items-center justify-center mb-5 font-bold text-lg">
+                  <span className="w-12 h-12 bg-emerald text-gold-on-emerald rounded-2xl flex items-center justify-center mb-5 font-bold text-lg">
                     {index + 1}
                   </span>
                   <h3 className="text-lg font-extrabold text-ink mb-2">{step.title}</h3>
@@ -536,7 +536,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 },
               ].map((item) => (
                 <div key={item.title} className="p-5 rounded-2xl border border-line bg-surface-2">
-                  <span className="w-10 h-10 rounded-xl bg-emerald text-gold flex items-center justify-center mb-3">
+                  <span className="w-10 h-10 rounded-xl bg-emerald text-gold-on-emerald flex items-center justify-center mb-3">
                     <span aria-hidden="true" className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   </span>
                   <h3 className="text-sm font-extrabold text-ink">{item.title}</h3>
@@ -583,7 +583,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               >
                 <div>
                   <figcaption className="flex items-center gap-3.5 mb-4">
-                    <span className="w-11 h-11 rounded-full bg-emerald text-gold flex items-center justify-center font-bold text-sm shrink-0">
+                    <span className="w-11 h-11 rounded-full bg-emerald text-gold-on-emerald flex items-center justify-center font-bold text-sm shrink-0">
                       {testimonial.name
                         .split(' ')
                         .slice(-2)
@@ -619,10 +619,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* Security */}
-      <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-gold/20">
+      <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
         <div className="max-w-[1240px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <span className="inline-flex items-center gap-2 bg-gold/20 border border-gold/40 rounded-full px-3.5 py-1 text-xs font-bold text-gold">
+            <span className="inline-flex items-center gap-2 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-full px-3.5 py-1 text-xs font-bold text-gold-on-emerald">
               <span aria-hidden="true" className="material-symbols-outlined text-sm">lock</span>
               Four layers of capital protection
             </span>
@@ -639,40 +639,40 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <ul className="space-y-4 pt-1">
               {SAFEGUARDS.map((item) => (
                 <li key={item.title} className="flex items-start gap-4">
-                  <span className="w-9 h-9 rounded-xl bg-gold text-on-gold flex items-center justify-center shrink-0">
+                  <span className="w-9 h-9 rounded-xl bg-gold-on-emerald text-gold-2 flex items-center justify-center shrink-0">
                     <span aria-hidden="true" className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   </span>
                   <div>
                     <h3 className="text-sm font-bold">{item.title}</h3>
-                    <p className="text-xs text-on-emerald/70 mt-0.5 leading-relaxed">{item.body}</p>
+                    <p className="text-xs text-on-emerald/80 mt-0.5 leading-relaxed">{item.body}</p>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="lg:col-span-6 bg-white/5 border border-white/15 p-7 rounded-3xl backdrop-blur-md">
-            <span className="w-16 h-16 rounded-2xl bg-gold text-on-gold flex items-center justify-center mb-5">
+          <div className="lg:col-span-6 bg-on-emerald/5 border border-on-emerald/15 p-7 rounded-3xl backdrop-blur-md">
+            <span className="w-16 h-16 rounded-2xl bg-gold-on-emerald text-gold-2 flex items-center justify-center mb-5">
               <span aria-hidden="true" className="material-symbols-outlined text-3xl">verified_user</span>
             </span>
             <h3 className="text-xl font-bold">COSUMAF accredited asset manager</h3>
-            <p className="text-xs text-on-emerald/70 mt-2 leading-relaxed">
+            <p className="text-xs text-on-emerald/80 mt-2 leading-relaxed">
               Licence registration SGP-04/2023. Authorised to structure and distribute collective investment schemes
               and fixed-income portfolios across Central Africa.
             </p>
             <dl className="grid grid-cols-2 gap-3 mt-6">
-              <div className="p-3 bg-white/10 rounded-xl border border-white/10 text-center">
-                <dd className="text-base font-extrabold text-gold font-mono">Separate</dd>
-                <dt className="text-[10px] text-on-emerald/70">Trust accounts, never mixed</dt>
+              <div className="p-3 bg-on-emerald/10 rounded-xl border border-on-emerald/10 text-center">
+                <dd className="text-base font-extrabold text-gold-on-emerald font-mono">Separate</dd>
+                <dt className="text-[10px] text-on-emerald/80">Trust accounts, never mixed</dt>
               </div>
-              <div className="p-3 bg-white/10 rounded-xl border border-white/10 text-center">
-                <dd className="text-base font-extrabold text-gold font-mono">Every payout</dd>
-                <dt className="text-[10px] text-on-emerald/70">Made on its due date</dt>
+              <div className="p-3 bg-on-emerald/10 rounded-xl border border-on-emerald/10 text-center">
+                <dd className="text-base font-extrabold text-gold-on-emerald font-mono">Every payout</dd>
+                <dt className="text-[10px] text-on-emerald/80">Made on its due date</dt>
               </div>
             </dl>
             <button
               onClick={() => onOpenLegal('cosumaf')}
-              className="mt-5 text-xs font-bold text-gold hover:underline flex items-center gap-1"
+              className="mt-5 text-xs font-bold text-gold-on-emerald hover:underline flex items-center gap-1"
             >
               Read the licence details
               <span aria-hidden="true" className="material-symbols-outlined text-[14px]">arrow_forward</span>

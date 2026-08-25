@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onToggleAdmin}
             className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
               isAdmin
-                ? 'bg-emerald text-gold border-emerald-2'
+                ? 'bg-emerald text-gold-on-emerald border-emerald-2'
                 : 'bg-surface text-ink-2 border-line hover:bg-surface-2'
             }`}
             title="Switch between the investor portal and the manager console"

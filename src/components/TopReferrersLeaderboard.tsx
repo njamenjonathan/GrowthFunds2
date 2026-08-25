@@ -214,35 +214,35 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       className={`bg-surface rounded-2xl border border-line/40 shadow-xs overflow-hidden ${className}`}
     >
       {/* Leaderboard Header */}
-      <div className="p-5 sm:p-6 bg-linear-to-r from-emerald via-emerald-2 to-emerald text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="p-5 sm:p-6 bg-linear-to-r from-emerald via-emerald-2 to-emerald text-on-emerald flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse"></span>
-            <span className="text-[11px] uppercase tracking-widest font-extrabold text-gold">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold-on-emerald animate-pulse"></span>
+            <span className="text-[11px] uppercase tracking-widest font-extrabold text-gold-on-emerald">
               CEMAC Community League
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/15">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-on-emerald/10 text-on-emerald border border-on-emerald/15">
               Season 8
             </span>
           </div>
-          <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-2">
+          <h3 className="text-lg sm:text-xl font-black tracking-tight text-on-emerald flex items-center gap-2">
             <span>Top Referrers Leaderboard</span>
             <span className="text-base">🏆</span>
           </h3>
-          <p className="text-xs text-white/80 mt-0.5">
-            Compete with top regional investors. Win up to <strong className="text-gold">50,000 XAF</strong> in seasonal bonus pools!
+          <p className="text-xs text-on-emerald/80 mt-0.5">
+            Compete with top regional investors. Win up to <strong className="text-gold-on-emerald">50,000 XAF</strong> in seasonal bonus pools!
           </p>
         </div>
 
         {/* View Toggle Tabs */}
-        <div className="flex items-center gap-1 bg-emerald-3 p-1 rounded-xl border border-gold/30 self-stretch sm:self-auto justify-between sm:justify-start">
+        <div className="flex items-center gap-1 bg-emerald-3 p-1 rounded-xl border border-on-emerald/15 self-stretch sm:self-auto justify-between sm:justify-start">
           <button
             id="tab-month-leaderboard"
             onClick={() => setActivePeriod('month')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'month'
-                ? 'bg-gold text-on-gold shadow-xs'
-                : 'text-white/80 hover:text-white hover:bg-white/5'
+                ? 'bg-gold-on-emerald text-gold-2 shadow-xs'
+                : 'text-on-emerald/80 hover:text-on-emerald hover:bg-on-emerald/5'
             }`}
           >
             This Month
@@ -252,8 +252,8 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             onClick={() => setActivePeriod('alltime')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'alltime'
-                ? 'bg-gold text-on-gold shadow-xs'
-                : 'text-white/80 hover:text-white hover:bg-white/5'
+                ? 'bg-gold-on-emerald text-gold-2 shadow-xs'
+                : 'text-on-emerald/80 hover:text-on-emerald hover:bg-on-emerald/5'
             }`}
           >
             All-Time
@@ -263,8 +263,8 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             onClick={() => setActivePeriod('perks')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activePeriod === 'perks'
-                ? 'bg-gold text-on-gold shadow-xs'
-                : 'text-white/80 hover:text-white hover:bg-white/5'
+                ? 'bg-gold-on-emerald text-gold-2 shadow-xs'
+                : 'text-on-emerald/80 hover:text-on-emerald hover:bg-on-emerald/5'
             }`}
           >
             Prizes &amp; Perks
@@ -412,7 +412,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
                     </span>{' '}
                     invites
                   </p>
-                  <span className="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald text-gold">
+                  <span className="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald text-gold-on-emerald">
                     🥇 50k Grand
                   </span>
                 </div>
@@ -520,24 +520,24 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             </div>
 
             {/* Current User Standings Card */}
-            <div className="p-4 rounded-xl bg-linear-to-r from-emerald to-emerald-2 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+            <div className="p-4 rounded-xl bg-linear-to-r from-emerald to-emerald-2 text-on-emerald flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-full bg-gold text-on-gold font-black text-base flex items-center justify-center shadow-xs ring-2 ring-white/20">
+                <div className="w-11 h-11 rounded-full bg-gold-on-emerald text-gold-2 font-black text-base flex items-center justify-center shadow-xs ring-2 ring-on-emerald/20">
                   #{userRankInfo.rank}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gold">Your Current Standings</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white">
+                    <span className="text-xs font-bold text-gold-on-emerald">Your Current Standings</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-on-emerald/15 text-on-emerald">
                       {currentUser.name}
                     </span>
                   </div>
-                  <p className="text-xs text-white/90 mt-0.5">
-                    You have <strong className="text-gold font-mono">{userInvites} invites</strong>{' '}
+                  <p className="text-xs text-on-emerald/90 mt-0.5">
+                    You have <strong className="text-gold-on-emerald font-mono">{userInvites} invites</strong>{' '}
                     (+{userEarnings.toLocaleString()} XAF earned).
                     {userRankInfo.nextInvites > 0 && (
-                      <span className="text-white/75 block sm:inline sm:ml-1">
-                        Invite <strong className="text-gold">{userRankInfo.nextInvites} more</strong> to reach #{userRankInfo.nextRank}!
+                      <span className="text-on-emerald/80 block sm:inline sm:ml-1">
+                        Invite <strong className="text-gold-on-emerald">{userRankInfo.nextInvites} more</strong> to reach #{userRankInfo.nextRank}!
                       </span>
                     )}
                   </p>
@@ -548,7 +548,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
                 {onInviteFriend && (
                   <button
                     onClick={onInviteFriend}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gold text-on-gold hover:bg-gold-2 text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gold-on-emerald text-gold-2 hover:brightness-125 text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-1.5"
                   >
                     <span aria-hidden="true" className="material-symbols-outlined text-[15px]">person_add</span>
                     <span>Invite Friends</span>

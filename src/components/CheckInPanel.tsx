@@ -44,13 +44,13 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({ user, onCheckIn }) =
         <div className="bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
           <span
             aria-hidden="true"
-            className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-gold opacity-10 pointer-events-none"
+            className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-on-emerald opacity-10 pointer-events-none"
           >
             calendar_month
           </span>
 
           <div className="relative z-10 max-w-2xl space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold text-on-gold text-xs font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-on-emerald text-gold-2 text-xs font-bold">
               <span aria-hidden="true" className="material-symbols-outlined text-[15px]">redeem</span>
               {DAILY_CHECKIN_XAF} XAF a day
             </span>
@@ -59,7 +59,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({ user, onCheckIn }) =
             </h2>
             <p className="text-xs sm:text-sm text-on-emerald/80 leading-relaxed">
               Open this tab once a day and collect{' '}
-              <strong className="text-gold">{currency(DAILY_CHECKIN_XAF)}</strong> straight into your wallet. One
+              <strong className="text-gold-on-emerald">{currency(DAILY_CHECKIN_XAF)}</strong> straight into your wallet. One
               collection per day — come back tomorrow for the next one.
             </p>
           </div>
