@@ -5,11 +5,12 @@
    -------------------------------------------------------------------------
    Two kinds of token:
 
-   1. BRAND tokens (--gf-emerald*, --gf-gold*, --gf-on-*) are the soft green
-      and champagne gold that always carry light/dark text respectively, so
+   1. BRAND tokens (--gf-emerald*, --gf-gold*, --gf-on-*) are the light
+      translucent green and champagne gold that always carry dark text, so
       text on them can never lose contrast. Only the three emerald steps vary
-      by theme, and only to sit a shade deeper on a dark canvas; the gold and
-      every --gf-on-* pairing is identical in both.
+      by theme, and only in how much of the base green lands, so the surfaces
+      hold the same lightness over either canvas; the gold and every
+      --gf-on-* pairing is identical in both.
 
    2. ADAPTIVE tokens (canvas/surface/ink/line/accent/pos/neg/info) are
       redefined under the dark theme. Every component references these by
@@ -20,15 +21,31 @@
   color-scheme: light;
 
   /* --- Fixed brand ------------------------------------------------------
-     A soft, cultivated green rather than a near-black one. The old scale
-     bottomed out at #02240f, which read as black under the gold and made
-     every branded surface heavy; these sit in the mid range, where the green
-     is still legible as green while carrying white text comfortably. */
-  --gf-emerald: #2f6b4d;
-  --gf-emerald-2: #26583f;
-  --gf-emerald-3: #22503a;
-  --gf-on-emerald: #ffffff;
-  --gf-emerald-tint: #b4e0c6;
+     A light, translucent green rather than a deep one. Earlier scales were
+     dark enough that every branded surface — footer, hero bands, buttons —
+     read as a heavy slab; these are a pale spring green laid over whatever
+     is behind them, so a branded surface tints the page instead of blocking
+     it out.
+
+     The steps differ only in how much of the base colour lands: -3 is the
+     airiest (wide full-bleed bands), the default sits in between (buttons,
+     chips, the footer) and -2 is the densest (hover states, gradient ends),
+     so a hover reads as the same green pressed harder.
+
+     Because these are light in BOTH themes, everything drawn on them is
+     dark in both themes: --gf-on-emerald is a deep green ink and
+     --gf-gold-on-emerald is the champagne gold taken down far enough to
+     stay legible on it. Nothing white belongs on an emerald surface any
+     more. */
+  --gf-emerald-base: #8ef09c;
+  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 62%, transparent);
+  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 82%, transparent);
+  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 42%, transparent);
+  --gf-on-emerald: #07301a;
+  --gf-gold-on-emerald: #5a4409;
+  /* Detail drawn on top of an emerald surface (logo bars, tooltip figures):
+     deeper than the ink so it separates from it. */
+  --gf-emerald-tint: #0f4a2a;
 
   /* Champagne rather than brass: a quieter gold that reads as expensive
      next to the softer green instead of competing with it. */
@@ -118,12 +135,17 @@
   --gf-info-bg: #1a2c3d;
   --gf-on-info: #d4e4f6;
 
-  /* Brand surfaces sit a shade deeper on a dark page. A full-width green
-     band tuned for white paper glares against a dark canvas; these keep the
-     same hue and still carry white text and gold well clear of AA. */
-  --gf-emerald: #24523c;
-  --gf-emerald-2: #2d6449;
-  --gf-emerald-3: #1e4835;
+  /* The brand green stays light on a dark page — that is the point of it —
+     but what shows through a translucent layer here is a near-black canvas
+     rather than near-white paper, which drags the light-theme mix down into
+     a murky mid green and costs the dark ink its contrast. Two corrections
+     hold the surfaces at roughly the light-theme lightness: the base is
+     lifted toward white, and much more of it lands. The green then reads the
+     same in both themes and --gf-on-emerald clears AA on every step. */
+  --gf-emerald-base: #a6f3b0;
+  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 88%, transparent);
+  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 96%, transparent);
+  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 82%, transparent);
 
   --gf-shadow-color: 155 50% 3%;
   --gf-shadow-strength: 2.2;
@@ -133,6 +155,7 @@
    generated utility, so a theme swap re-resolves without rebuilding CSS. */
 @theme inline {
   --color-emerald: var(--gf-emerald);
+  --color-emerald-base: var(--gf-emerald-base);
   --color-emerald-2: var(--gf-emerald-2);
   --color-emerald-3: var(--gf-emerald-3);
   --color-emerald-tint: var(--gf-emerald-tint);
@@ -143,6 +166,7 @@
   --color-gold-3: var(--gf-gold-3);
   --color-on-gold: var(--gf-on-gold);
   --color-gold-ink: var(--gf-gold-ink);
+  --color-gold-on-emerald: var(--gf-gold-on-emerald);
 
   --color-bronze: var(--gf-bronze);
   --color-whatsapp: var(--gf-whatsapp);
@@ -249,8 +273,8 @@ body * {
 }
 
 ::selection {
-  background: var(--gf-emerald);
-  color: var(--gf-gold);
+  background: var(--gf-emerald-2);
+  color: var(--gf-on-emerald);
 }
 
 /* Scrollbars that match the theme instead of punching a light hole in it. */

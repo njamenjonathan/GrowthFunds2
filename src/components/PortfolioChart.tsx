@@ -45,8 +45,8 @@ export default function PortfolioChart({ data }: { data: ChartPoint[] }) {
           cursor={{ stroke: 'var(--gf-line)' }}
           content={({ active, payload, label }) =>
             active && payload?.length ? (
-              <div className="bg-emerald text-on-emerald p-3 rounded-xl border border-gold/40 shadow-xl text-xs font-mono">
-                <p className="text-gold font-bold mb-1">{label}</p>
+              <div className="bg-emerald-base text-on-emerald p-3 rounded-xl border border-on-emerald/25 shadow-xl text-xs font-mono">
+                <p className="text-gold-on-emerald font-bold mb-1">{label}</p>
                 <p>Invested: {Number(payload[0]?.value ?? 0).toLocaleString()} XAF</p>
                 <p className="text-emerald-tint">Yield: +{Number(payload[1]?.value ?? 0).toLocaleString()} XAF</p>
               </div>

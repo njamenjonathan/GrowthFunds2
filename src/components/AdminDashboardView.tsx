@@ -47,7 +47,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface p-6 rounded-2xl border border-line/40 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-emerald text-gold rounded-lg">
+              <span className="p-1.5 bg-emerald text-gold-on-emerald rounded-lg">
                 <span aria-hidden="true" className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-accent">Manager &amp; Compliance Portal</h2>

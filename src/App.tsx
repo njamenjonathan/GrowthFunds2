@@ -629,7 +629,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-emerald focus:text-gold focus:text-sm focus:font-bold"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-emerald-base focus:text-on-emerald focus:text-sm focus:font-bold"
       >
         Skip to main content
       </a>
@@ -791,7 +791,7 @@ export default function App() {
       {/* Support launcher — the single entry point to the helpdesk. */}
       <button
         onClick={openSupport}
-        className="fixed bottom-5 right-5 z-40 bg-emerald text-gold pl-3.5 pr-4 py-3 rounded-full shadow-lg hover:bg-emerald-2 transition-all flex items-center gap-2 border border-gold/30 hover:scale-105 active:scale-95 print-hide"
+        className="fixed bottom-5 right-5 z-40 bg-emerald-base text-on-emerald pl-3.5 pr-4 py-3 rounded-full shadow-lg hover:brightness-95 transition-all flex items-center gap-2 border border-on-emerald/20 hover:scale-105 active:scale-95 print-hide"
         title="Chat with a GrowthFund advisor"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-[22px]">support_agent</span>

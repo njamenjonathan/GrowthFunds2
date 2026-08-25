@@ -496,7 +496,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     onClick={() => setRange(option)}
                     aria-pressed={range === option}
                     className={`px-2.5 py-1 rounded-lg transition-colors ${
-                      range === option ? 'bg-emerald text-gold' : 'text-ink-3 hover:text-ink'
+                      range === option ? 'bg-emerald text-gold-on-emerald' : 'text-ink-3 hover:text-ink'
                     }`}
                   >
                     {option}

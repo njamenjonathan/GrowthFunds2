@@ -125,7 +125,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
       <div className="flex items-center gap-3 min-w-0">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isBrand ? 'bg-gold text-on-gold' : 'bg-emerald text-gold'
+            isBrand ? 'bg-gold-on-emerald text-gold-2' : 'bg-emerald text-gold-on-emerald'
           }`}
         >
           <span aria-hidden="true" className="material-symbols-outlined text-[20px]">{icon}</span>
@@ -135,7 +135,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
             {title}
           </h3>
           {subtitle && (
-            <p className={`text-xs truncate ${isBrand ? 'text-on-emerald/70' : 'text-ink-3'}`}>{subtitle}</p>
+            <p className={`text-xs truncate ${isBrand ? 'text-on-emerald/80' : 'text-ink-3'}`}>{subtitle}</p>
           )}
         </div>
       </div>
@@ -144,7 +144,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
         onClick={onClose}
         aria-label="Close dialog"
         className={`p-2 rounded-xl transition-colors shrink-0 ${
-          isBrand ? 'text-on-emerald/70 hover:text-on-emerald hover:bg-white/10' : 'text-ink-3 hover:text-ink hover:bg-surface-3'
+          isBrand ? 'text-on-emerald/80 hover:text-on-emerald hover:bg-on-emerald/10' : 'text-ink-3 hover:text-ink hover:bg-surface-3'
         }`}
       >
         <span aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>

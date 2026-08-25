@@ -326,7 +326,7 @@ export const DepositFlow: React.FC<DepositFlowProps> = ({ user, onClose, onDepos
       {step === 'authorising' && (
         <div className="p-8 text-center space-y-5" role="status" aria-live="polite">
           <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-gold border-t-emerald animate-spin"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-gold border-t-accent animate-spin"></div>
             <span aria-hidden="true" className="material-symbols-outlined text-3xl text-accent">phone_iphone</span>
           </div>
 

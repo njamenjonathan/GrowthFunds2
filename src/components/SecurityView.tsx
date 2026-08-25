@@ -70,7 +70,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
                 onChange={(e) => setTwoFactor(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-surface-3 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald"></div>
+              <div className="w-11 h-6 bg-surface-3 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-emerald/40 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald"></div>
             </label>
           </div>
 
@@ -130,7 +130,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
                 onChange={(e) => setBiometrics(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-surface-3 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald"></div>
+              <div className="w-11 h-6 bg-surface-3 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-emerald/40 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald"></div>
             </label>
           </div>
 

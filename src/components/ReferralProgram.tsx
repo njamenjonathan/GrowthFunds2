@@ -126,9 +126,9 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
       {toast && (
         <div
           role="status"
-          className="fixed bottom-20 right-5 z-50 bg-emerald text-on-emerald px-4 py-3 rounded-xl shadow-2xl border border-gold/30 flex items-center gap-3 max-w-sm animate-in slide-in-from-bottom-2"
+          className="fixed bottom-20 right-5 z-50 bg-emerald-base text-on-emerald px-4 py-3 rounded-xl shadow-2xl border border-on-emerald/20 flex items-center gap-3 max-w-sm animate-in slide-in-from-bottom-2"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-gold text-[20px]">redeem</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-gold-on-emerald text-[20px]">redeem</span>
           <span className="text-xs font-semibold">{toast}</span>
         </div>
       )}
@@ -138,13 +138,13 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
           <div className="bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
             <span
               aria-hidden="true"
-              className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-gold opacity-10 pointer-events-none"
+              className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-on-emerald opacity-10 pointer-events-none"
             >
               redeem
             </span>
 
             <div className="relative z-10 max-w-2xl space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold text-on-gold text-xs font-bold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-on-emerald text-gold-2 text-xs font-bold">
                 <span aria-hidden="true" className="material-symbols-outlined text-[15px]">card_giftcard</span>
                 {REWARD_LABEL} XAF gift programme
               </span>
@@ -154,7 +154,7 @@ export const ReferralProgram: React.FC<ReferralProgramProps> = ({
               <p className="text-xs sm:text-sm text-on-emerald/80 leading-relaxed">
                 Help your network build wealth across the CEMAC region. When a friend joins GrowthFund with your
                 code and completes verification, you receive an instant{' '}
-                <strong className="text-gold">{REWARD_LABEL} XAF cash gift</strong> in your available balance.
+                <strong className="text-gold-on-emerald">{REWARD_LABEL} XAF cash gift</strong> in your available balance.
               </p>
             </div>
           </div>
