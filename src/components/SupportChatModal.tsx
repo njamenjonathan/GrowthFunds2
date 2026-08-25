@@ -158,7 +158,7 @@ export const SupportChatModal: React.FC<SupportChatModalProps> = ({ onClose }) =
         <button
           type="submit"
           aria-label="Send message"
-          className="p-2.5 bg-emerald text-on-emerald rounded-xl hover:bg-emerald-2 transition-colors flex items-center justify-center"
+          className="p-2.5 bg-emerald text-on-emerald rounded-xl hover:bg-emerald-2 transition-colors flex items-center justify-center gf-press"
         >
           <span aria-hidden="true" className="material-symbols-outlined text-[18px]">send</span>
         </button>

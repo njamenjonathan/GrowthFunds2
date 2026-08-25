@@ -38,9 +38,9 @@
      stay legible on it. Nothing white belongs on an emerald surface any
      more. */
   --gf-emerald-base: #8ef09c;
-  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 62%, transparent);
-  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 82%, transparent);
-  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 42%, transparent);
+  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 52%, transparent);
+  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 72%, transparent);
+  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 34%, transparent);
   --gf-on-emerald: #07301a;
   --gf-gold-on-emerald: #5a4409;
   /* Detail drawn on top of an emerald surface (logo bars, tooltip figures):
@@ -100,6 +100,29 @@
   /* --- Elevation -------------------------------------------------------- */
   --gf-shadow-color: 155 25% 15%;
   --gf-shadow-strength: 1;
+
+  /* --- Glass ------------------------------------------------------------
+     What turns a translucent fill into a material: the page behind it is
+     blurred and its colour pushed, so the surface reads as frosted glass
+     with the page living underneath rather than as a flat wash of paint.
+     The rim is the lit edge, the specular the highlight running along the
+     top; both are what stop the panel looking like a hole in the page. */
+  --gf-glass-blur: 18px;
+  --gf-glass-filter: blur(var(--gf-glass-blur)) saturate(180%);
+  --gf-glass-rim: color-mix(in srgb, #ffffff 45%, transparent);
+  --gf-glass-specular: color-mix(in srgb, #ffffff 55%, transparent);
+  --gf-glass-underside: color-mix(in srgb, var(--gf-on-emerald) 12%, transparent);
+
+  /* --- Motion -----------------------------------------------------------
+     Two curves and three durations, so every transition in the app is
+     paced from the same vocabulary. `ease` decelerates hard, which is what
+     makes a hover feel like it settles; `spring` overshoots slightly, for
+     things that appear rather than change. */
+  --gf-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gf-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --gf-dur-fast: 140ms;
+  --gf-dur: 240ms;
+  --gf-dur-slow: 420ms;
 }
 
 :root.dark {
@@ -143,12 +166,20 @@
      lifted toward white, and much more of it lands. The green then reads the
      same in both themes and --gf-on-emerald clears AA on every step. */
   --gf-emerald-base: #a6f3b0;
-  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 88%, transparent);
-  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 96%, transparent);
-  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 82%, transparent);
+  --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 84%, transparent);
+  --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 92%, transparent);
+  --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 84%, transparent);
 
   --gf-shadow-color: 155 50% 3%;
   --gf-shadow-strength: 2.2;
+
+  /* The panels stay light, so their lit edge still comes from white — but a
+     dark page behind means less of it reads as glare, and the blur has to
+     work harder to separate the surface from what it covers. */
+  --gf-glass-blur: 22px;
+  --gf-glass-rim: color-mix(in srgb, #ffffff 32%, transparent);
+  --gf-glass-specular: color-mix(in srgb, #ffffff 40%, transparent);
+  --gf-glass-underside: color-mix(in srgb, var(--gf-on-emerald) 18%, transparent);
 }
 
 /* Expose the tokens to Tailwind. `inline` keeps the var() reference in the
@@ -202,6 +233,9 @@
   --color-info-bg: var(--gf-info-bg);
   --color-on-info: var(--gf-on-info);
 
+  --ease-glass: var(--gf-ease);
+  --ease-spring: var(--gf-ease-spring);
+
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
 
@@ -242,13 +276,15 @@ body {
 }
 
 /* Theme swaps animate, but never at the cost of a janky first paint or of
-   users who asked for less motion. */
+   users who asked for less motion. Colour only: putting `transform` in a
+   rule this broad would fight every Motion component on the page, which
+   drives transforms frame by frame through inline styles. */
 body,
 body * {
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+    background-color var(--gf-dur) var(--gf-ease),
+    border-color var(--gf-dur) var(--gf-ease),
+    color var(--gf-dur) var(--gf-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -281,6 +317,161 @@ body * {
 * {
   scrollbar-color: var(--gf-line) transparent;
   scrollbar-width: thin;
+}
+
+/* =========================================================================
+   Liquid glass
+
+   The emerald tokens are translucent, which on its own only makes a surface
+   pale. What makes it read as a material is this: the page behind it is
+   blurred and its colour pushed, and the edge is lit. The panel then has a
+   front and a back — content slides under it and stays legible as shape —
+   instead of looking like a hole cut in the page.
+
+   Every `bg-emerald*` surface picks the material up automatically, so a new
+   brand surface is glass by writing the same class as before. Gradients and
+   any non-token surface opt in with `.gf-glass`.
+
+   The lit edge is drawn with `outline` at a negative offset rather than a
+   border or a ring: a border would resize elements that do not have one, and
+   a ring is a box-shadow, which would collide with every `shadow-*` utility
+   in the codebase. The outline follows border-radius and costs no layout.
+   `:focus-visible` outranks it, so focus rings still win.
+   ========================================================================= */
+
+:where(.bg-emerald, .bg-emerald-2, .bg-emerald-3, .gf-glass, .gf-glass-panel) {
+  /* Unprefixed only: Lightning CSS adds the -webkit- alias for the browsers
+     that still need it. Writing both by hand made it treat the standard
+     property as a duplicate and drop it, which left Firefox with no blur. */
+  backdrop-filter: var(--gf-glass-filter);
+  outline: 1px solid var(--gf-glass-rim);
+  outline-offset: -1px;
+  transition:
+    background-color var(--gf-dur) var(--gf-ease),
+    outline-color var(--gf-dur) var(--gf-ease),
+    box-shadow var(--gf-dur) var(--gf-ease),
+    backdrop-filter var(--gf-dur) var(--gf-ease);
+}
+
+/* The showcase surfaces — hero panels, full-bleed bands, brand modal headers.
+   The specular is the highlight along the top edge and the underside is the
+   shadow the glass casts on itself; together they give the panel thickness. */
+.gf-glass-panel {
+  box-shadow:
+    inset 0 1px 0 var(--gf-glass-specular),
+    inset 0 -1px 0 var(--gf-glass-underside),
+    0 10px 34px -14px hsl(var(--gf-shadow-color) / calc(0.55 * var(--gf-shadow-strength)));
+}
+
+/* Only things you can actually press light up under the cursor. A full-bleed
+   band brightening because the pointer crossed it would read as a bug. */
+:where(button, a, [role='button']):where(.bg-emerald, .bg-emerald-2, .gf-glass, .gf-glass-panel):hover {
+  outline-color: var(--gf-glass-specular);
+}
+
+/* A highlight that sweeps across the glass on hover, the way a reflection
+   travels over a real pane. The parent needs `relative overflow-hidden`. */
+.gf-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    color-mix(in srgb, #ffffff 55%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  transition: transform var(--gf-dur-slow) var(--gf-ease);
+}
+
+.gf-sheen:hover::after,
+.gf-sheen:focus-visible::after {
+  transform: translateX(120%);
+}
+
+/* Without backdrop-filter the fill is all there is, so it has to be dense
+   enough to carry the text on its own. */
+@supports not (backdrop-filter: blur(1px)) {
+  :root,
+  :root.dark {
+    --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 88%, transparent);
+    --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 96%, transparent);
+    --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 76%, transparent);
+  }
+}
+
+/* =========================================================================
+   Entrances
+
+   These replace `animate-in fade-in` / `zoom-in-95` / `slide-in-from-*`,
+   which are tailwindcss-animate class names. That plugin is not installed,
+   so those classes compiled to nothing and every dialog, toast and dropdown
+   in the app appeared instantly.
+   ========================================================================= */
+
+@keyframes gfFadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes gfPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+}
+
+@keyframes gfRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes gfDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.gf-enter-fade {
+  animation: gfFadeIn var(--gf-dur) var(--gf-ease) both;
+}
+
+.gf-enter-pop {
+  animation: gfPopIn var(--gf-dur-slow) var(--gf-ease-spring) both;
+}
+
+.gf-enter-rise {
+  animation: gfRiseIn var(--gf-dur-slow) var(--gf-ease-spring) both;
+}
+
+.gf-enter-drop {
+  animation: gfDropIn var(--gf-dur-fast) var(--gf-ease) both;
+}
+
+/* Press feedback for plain buttons. Deliberately opt-in: applied globally it
+   would put a `transform` transition on Motion's components too, and fight
+   the inline transforms they animate. */
+.gf-press {
+  transition:
+    transform var(--gf-dur-fast) var(--gf-ease),
+    background-color var(--gf-dur) var(--gf-ease),
+    outline-color var(--gf-dur) var(--gf-ease),
+    box-shadow var(--gf-dur) var(--gf-ease);
+}
+
+.gf-press:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.gf-press:active:not(:disabled) {
+  transform: scale(0.975);
+  transition-duration: 60ms;
 }
 
 /* =========================================================================

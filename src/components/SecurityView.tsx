@@ -142,7 +142,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({
             )}
             <button
               onClick={handleSave}
-              className="ml-auto bg-emerald text-on-emerald px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-emerald-2 transition-all shadow-xs"
+              className="ml-auto bg-emerald text-on-emerald px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-emerald-2 transition-all shadow-xs gf-press"
             >
               Save Security Preferences
             </button>

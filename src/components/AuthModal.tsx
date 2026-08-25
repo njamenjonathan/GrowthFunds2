@@ -311,7 +311,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ initialMode, onClose, onAu
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+          className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 gf-press"
         >
           {isSubmitting ? (
             <>

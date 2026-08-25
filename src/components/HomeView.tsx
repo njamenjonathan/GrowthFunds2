@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { stagger, useInteractive, useReveal, useRevealItem } from '../lib/motion';
 import { InvestmentPlan } from '../types';
 import { MAX_TERM_DAYS, STAKE_LADDER, TERM_DAYS_LADDER, payoutFor, profitForRung } from '../lib/commitment';
 import { DAILY_CHECKIN_XAF, MIN_INVESTMENT_XAF, REFERRAL_REWARD_XAF } from '../lib/constants';
@@ -98,6 +99,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenDeposit,
   onOpenLegal,
 }) => {
+  // One reveal config and one hover config for the whole page, so every card
+  // on it settles on the same curve.
+  const reveal = useReveal();
+  const revealGroup = useReveal(stagger);
+  const revealItem = useRevealItem();
+  const interactive = useInteractive();
 
   return (
     <div className="flex flex-col">
@@ -146,7 +153,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onOpenDeposit}
-                className="bg-emerald text-on-emerald font-bold text-sm px-7 py-4 rounded-xl shadow-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2.5 group relative overflow-hidden"
+                className="gf-sheen bg-emerald text-on-emerald font-bold text-sm px-7 py-4 rounded-xl shadow-lg hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2.5 group relative overflow-hidden"
               >
                 <span className="absolute inset-0 shimmer-badge pointer-events-none opacity-30" aria-hidden="true"></span>
                 <span>Start investing in XAF</span>
@@ -210,7 +217,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </span>
               </div>
 
-              <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-emerald to-emerald-2 text-on-emerald relative overflow-hidden">
+              <div className="gf-glass-panel mt-4 p-4 rounded-2xl bg-gradient-to-br from-emerald to-emerald-2 text-on-emerald relative overflow-hidden">
                 <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-emerald-tint/10 blur-xl"></div>
                 <div className="flex justify-between items-start gap-3 relative">
                   <div>
@@ -308,7 +315,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* How it works */}
       <section className="py-16 md:py-20 bg-canvas border-b border-line">
         <div className="max-w-[1240px] mx-auto px-4 md:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <motion.div className="text-center max-w-2xl mx-auto mb-12" {...reveal}>
             <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">How it works</span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
               Three steps to build wealth
@@ -316,13 +323,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <p className="text-sm text-ink-2 mt-2">
               From an instant mobile money deposit to institutional asset growth and flexible redemption.
             </p>
-          </div>
+          </motion.div>
 
-          <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.ol className="grid grid-cols-1 md:grid-cols-3 gap-6" {...revealGroup}>
             {STEPS.map((step, index) => (
               <motion.li
                 key={step.title}
-                whileHover={{ y: -4 }}
+                variants={revealItem}
+                {...interactive}
                 className={`bg-surface p-7 rounded-3xl shadow-sm hover:shadow-xl transition-all relative flex flex-col justify-between ${
                   step.featured ? 'border-2 border-gold' : 'border border-line'
                 }`}
@@ -344,7 +352,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </p>
               </motion.li>
             ))}
-          </ol>
+          </motion.ol>
         </div>
       </section>
 
@@ -374,7 +382,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" {...revealGroup}>
             {plans.slice(0, 3).map((plan) => {
               // Smallest first here too: the card quotes the entry package, so
               // it has to be the entry package whatever order the data is in.
@@ -382,7 +390,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               const entry = packages[0];
               return (
                 <motion.article
-                  whileHover={{ y: -6 }}
+                  variants={revealItem}
+                  {...interactive}
                   key={plan.id}
                   className="bg-surface-2 rounded-3xl border border-line p-6 flex flex-col justify-between hover:border-accent transition-all hover:shadow-xl relative overflow-hidden group"
                 >
@@ -447,7 +456,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </motion.article>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -550,18 +559,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* Testimonials */}
       <section className="py-16 md:py-20 bg-surface border-b border-line">
         <div className="max-w-[1240px] mx-auto px-4 md:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <motion.div className="text-center max-w-2xl mx-auto mb-12" {...reveal}>
             <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">Investor voices</span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
               Trusted across Central Africa
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" {...revealGroup}>
             {TESTIMONIALS.map((testimonial) => (
               <motion.figure
                 key={testimonial.name}
-                whileHover={{ y: -4 }}
+                variants={revealItem}
+                {...interactive}
                 className="p-6 rounded-3xl border border-line bg-surface-2 flex flex-col justify-between hover:shadow-lg transition-all"
               >
                 <div>
@@ -597,14 +607,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </dl>
               </motion.figure>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Security */}
-      <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
+      <section className="gf-glass-panel py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
         <div className="max-w-[1240px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-6 space-y-6">
+          <motion.div className="lg:col-span-6 space-y-6" {...reveal}>
             <span className="inline-flex items-center gap-2 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-full px-3.5 py-1 text-xs font-bold text-gold-on-emerald">
               <span aria-hidden="true" className="material-symbols-outlined text-sm">lock</span>
               Four layers of capital protection
@@ -632,9 +642,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
-          <div className="lg:col-span-6 bg-on-emerald/5 border border-on-emerald/15 p-7 rounded-3xl backdrop-blur-md">
+          <motion.div className="lg:col-span-6 bg-on-emerald/5 border border-on-emerald/15 p-7 rounded-3xl backdrop-blur-md" {...reveal}>
             <span className="w-16 h-16 rounded-2xl bg-gold-on-emerald text-gold-2 flex items-center justify-center mb-5">
               <span aria-hidden="true" className="material-symbols-outlined text-3xl">verified_user</span>
             </span>
@@ -660,7 +670,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Read the licence details
               <span aria-hidden="true" className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>

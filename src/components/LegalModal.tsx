@@ -153,7 +153,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
       <div className="p-4 border-t border-line-2 bg-surface-2 flex justify-end shrink-0">
         <button
           onClick={onClose}
-          className="bg-emerald text-on-emerald px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors"
+          className="bg-emerald text-on-emerald px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
         >
           Close
         </button>

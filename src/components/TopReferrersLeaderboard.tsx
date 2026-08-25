@@ -214,7 +214,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
       className={`bg-surface rounded-2xl border border-line/40 shadow-xs overflow-hidden ${className}`}
     >
       {/* Leaderboard Header */}
-      <div className="p-5 sm:p-6 bg-linear-to-r from-emerald via-emerald-2 to-emerald text-on-emerald flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="gf-glass-panel p-5 sm:p-6 bg-linear-to-r from-emerald via-emerald-2 to-emerald text-on-emerald flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-gold-on-emerald animate-pulse"></span>
@@ -520,7 +520,7 @@ export const TopReferrersLeaderboard: React.FC<TopReferrersLeaderboardProps> = (
             </div>
 
             {/* Current User Standings Card */}
-            <div className="p-4 rounded-xl bg-linear-to-r from-emerald to-emerald-2 text-on-emerald flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+            <div className="gf-glass-panel p-4 rounded-xl bg-linear-to-r from-emerald to-emerald-2 text-on-emerald flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-full bg-gold-on-emerald text-gold-2 font-black text-base flex items-center justify-center shadow-xs ring-2 ring-on-emerald/20">
                   #{userRankInfo.rank}

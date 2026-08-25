@@ -49,7 +49,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onOpenDeposit}
-              className="bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-all flex items-center gap-1.5 shadow-xs"
+              className="bg-emerald text-on-emerald text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-emerald-2 transition-all flex items-center gap-1.5 shadow-xs gf-press"
             >
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> Deposit XAF
             </button>

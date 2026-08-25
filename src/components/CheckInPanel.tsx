@@ -41,7 +41,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({ user, onCheckIn }) =
   return (
     <div className="space-y-5">
       <section className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
-        <div className="bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
+        <div className="gf-glass-panel bg-emerald text-on-emerald p-6 sm:p-8 relative overflow-hidden">
           <span
             aria-hidden="true"
             className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-[160px] text-on-emerald opacity-10 pointer-events-none"
@@ -74,7 +74,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({ user, onCheckIn }) =
                 available
                   ? 'bg-emerald text-on-emerald hover:bg-emerald-2 shadow-md'
                   : 'bg-surface-2 text-ink-3 border border-line cursor-not-allowed'
-              }`}
+              } gf-press`}
             >
               <span aria-hidden="true" className="material-symbols-outlined text-[22px]">
                 {available ? 'redeem' : 'check_circle'}

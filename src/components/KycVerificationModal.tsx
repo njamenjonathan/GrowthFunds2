@@ -175,7 +175,7 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
 
             <button
               onClick={goToDocument}
-              className="w-full py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 gf-press"
             >
               Continue
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -273,7 +273,7 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
               </button>
               <button
                 onClick={goToBiometric}
-                className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 gf-press"
               >
                 Continue
                 <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -309,7 +309,7 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
               <button
                 onClick={handleSubmitKyc}
                 disabled={isSubmitting}
-                className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 gf-press"
               >
                 {isSubmitting ? (
                   <>
@@ -362,7 +362,7 @@ export const KycVerificationModal: React.FC<KycVerificationModalProps> = ({
 
             <button
               onClick={onClose}
-              className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors"
+              className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
             >
               Done
             </button>

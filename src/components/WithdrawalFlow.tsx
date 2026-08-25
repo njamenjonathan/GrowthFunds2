@@ -299,7 +299,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
           <button
             onClick={handleNextToOtp}
             disabled={!isVerified}
-            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed gf-press"
           >
             Continue to verification
             <span aria-hidden="true" className="material-symbols-outlined text-[16px]">lock</span>
@@ -366,7 +366,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
             </button>
             <button
               onClick={handleConfirmWithdrawal}
-              className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors flex items-center justify-center gap-2 gf-press"
             >
               Authorise payout
               <span aria-hidden="true" className="material-symbols-outlined text-[16px]">check_circle</span>
@@ -400,7 +400,7 @@ export const WithdrawalFlow: React.FC<WithdrawalFlowProps> = ({
 
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors"
+            className="w-full py-3.5 bg-emerald text-on-emerald rounded-xl text-xs font-bold hover:bg-emerald-2 transition-colors gf-press"
           >
             Done
           </button>

@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { stagger, useInteractive, useReveal, useRevealItem } from '../lib/motion';
 import { avatarFor } from '../lib/avatar';
 import { MAX_TERM_DAYS } from '../lib/commitment';
 import { MIN_INVESTMENT_XAF } from '../lib/constants';
@@ -116,7 +117,15 @@ const LEADERSHIP = [
  * company came from, who says it is allowed to do this, and where the money
  * physically sits.
  */
-export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLegal }) => (
+export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLegal }) => {
+  // Shared with the rest of the app, so a card here settles exactly like a
+  // card on the home page.
+  const reveal = useReveal();
+  const revealGroup = useReveal(stagger);
+  const revealItem = useRevealItem();
+  const interactive = useInteractive();
+
+  return (
   <div className="flex flex-col">
     {/* Who we are */}
     <section className="relative py-14 md:py-20 border-b border-line overflow-hidden bg-surface">
@@ -203,7 +212,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
     {/* Legitimacy */}
     <section className="py-16 md:py-20 bg-surface border-b border-line">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
-        <div className="max-w-2xl mb-10">
+        <motion.div className="max-w-2xl mb-10" {...reveal}>
           <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">
             Who we answer to
           </span>
@@ -214,13 +223,14 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
             Four bodies govern what we are allowed to do and how client money is held. Each reference below can be
             checked against the public register it belongs to.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-5" {...revealGroup}>
           {AFFILIATIONS.map((item) => (
             <motion.article
               key={item.name}
-              whileHover={{ y: -4 }}
+              variants={revealItem}
+              {...interactive}
               className="bg-surface-2 rounded-2xl border border-line p-6 hover:border-accent transition-colors"
             >
               <div className="flex items-start gap-4">
@@ -235,7 +245,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
               <p className="text-xs text-ink-2 leading-relaxed mt-4">{item.role}</p>
             </motion.article>
           ))}
-        </div>
+        </motion.div>
 
         {/* Registration details */}
         <div className="mt-8 bg-accent-bg border border-accent/20 rounded-2xl p-6">
@@ -265,9 +275,9 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
     </section>
 
     {/* Safeguards */}
-    <section className="py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
+    <section className="gf-glass-panel py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
       <div className="max-w-[1240px] mx-auto px-4 md:px-8">
-        <div className="max-w-2xl mb-10">
+        <motion.div className="max-w-2xl mb-10" {...reveal}>
           <span className="inline-flex items-center gap-2 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-full px-3.5 py-1 text-xs font-bold text-gold-on-emerald">
             <span aria-hidden="true" className="material-symbols-outlined text-sm">lock</span>
             How client money is protected
@@ -275,19 +285,19 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
           <h2 className="text-2xl sm:text-4xl font-extrabold font-display mt-4">
             The three rules we cannot break
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" {...revealGroup}>
           {SAFEGUARDS.map((item) => (
-            <div key={item.title} className="bg-on-emerald/5 border border-on-emerald/15 p-6 rounded-2xl backdrop-blur-md">
+            <motion.div key={item.title} variants={revealItem} className="bg-on-emerald/5 border border-on-emerald/15 p-6 rounded-2xl backdrop-blur-md">
               <span className="w-11 h-11 rounded-xl bg-gold-on-emerald text-gold-2 flex items-center justify-center mb-4">
                 <span aria-hidden="true" className="material-symbols-outlined text-[22px]">{item.icon}</span>
               </span>
               <h3 className="text-base font-bold">{item.title}</h3>
               <p className="text-xs text-on-emerald/80 mt-2 leading-relaxed">{item.body}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Partners */}
         <div className="mt-10 pt-8 border-t border-on-emerald/15 grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -319,12 +329,12 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
       </div>
 
       <div className="relative max-w-[1240px] mx-auto px-4 md:px-8">
-        <div className="max-w-2xl mb-10">
+        <motion.div className="max-w-2xl mb-10" {...reveal}>
           <span className="text-xs uppercase font-extrabold text-gold-ink tracking-widest">Accountable</span>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-ink mt-1.5 font-display">
             Who runs GrowthFund
           </h2>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {LEADERSHIP.map((person) => (
@@ -379,4 +389,5 @@ export const AboutView: React.FC<AboutViewProps> = ({ onExplorePlans, onOpenLega
       </div>
     </section>
   </div>
-);
+  );
+};
