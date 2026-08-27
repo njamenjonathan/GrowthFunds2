@@ -25,14 +25,14 @@ export const STAKE_LADDER = [5000, 10000, 15000, 20000, 25000, 50000, 100000];
 /**
  * Profit for the rung at `index`, as a whole number of XAF.
  *
- * The profit share widens as the stake grows (8% of the stake at the bottom
- * rung, two more points on every rung above), so both the money earned and the
- * share it represents rise together as an investor moves up the ladder. The
- * result is baked into the catalogue as a plain XAF figure — investors see
- * "+400 XAF", never a rate to work out.
+ * The profit share widens as the stake grows (10% of the stake at the bottom
+ * rung, two and a half more points on every rung above), so both the money
+ * earned and the share it represents rise together as an investor moves up the
+ * ladder. The result is baked into the catalogue as a plain XAF figure —
+ * investors see "+500 XAF", never a rate to work out.
  */
 export const profitForRung = (index: number, stake: number): number =>
-  Math.round((stake * (8 + index * 2)) / 100);
+  Math.round((stake * (10 + index * 2.5)) / 100);
 
 /** The stake, run time and profit of one rung, ready to drop into a package. */
 export const rung = (index: number): { amount: number; durationDays: number; profit: number } => {
