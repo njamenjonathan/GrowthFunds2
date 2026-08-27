@@ -112,6 +112,12 @@
   --gf-glass-rim: color-mix(in srgb, #ffffff 45%, transparent);
   --gf-glass-specular: color-mix(in srgb, #ffffff 55%, transparent);
   --gf-glass-underside: color-mix(in srgb, var(--gf-on-emerald) 12%, transparent);
+  /* The thinnest the brand green goes. A panel that floats clear of the page
+     has canvas visible all the way round it, so the eye can compare the two
+     and reads the fill as something you see through; a full-bleed band has no
+     such reference and needs the denser steps above to look deliberate. */
+  --gf-emerald-glass: color-mix(in srgb, var(--gf-emerald-base) 40%, transparent);
+  --gf-glass-radius: 1.75rem;
 
   /* --- Motion -----------------------------------------------------------
      Two curves and three durations, so every transition in the app is
@@ -180,6 +186,10 @@
   --gf-glass-rim: color-mix(in srgb, #ffffff 32%, transparent);
   --gf-glass-specular: color-mix(in srgb, #ffffff 40%, transparent);
   --gf-glass-underside: color-mix(in srgb, var(--gf-on-emerald) 18%, transparent);
+  /* Thinning the fill here would show a near-black canvas through it rather
+     than paper, which drops the deep green ink under 4.5:1. The glass reads
+     on this theme from the blur and the lit rim instead. */
+  --gf-emerald-glass: color-mix(in srgb, var(--gf-emerald-base) 78%, transparent);
 }
 
 /* Expose the tokens to Tailwind. `inline` keeps the var() reference in the
@@ -189,6 +199,7 @@
   --color-emerald-base: var(--gf-emerald-base);
   --color-emerald-2: var(--gf-emerald-2);
   --color-emerald-3: var(--gf-emerald-3);
+  --color-emerald-glass: var(--gf-emerald-glass);
   --color-emerald-tint: var(--gf-emerald-tint);
   --color-on-emerald: var(--gf-on-emerald);
 
@@ -339,7 +350,15 @@ body * {
    `:focus-visible` outranks it, so focus rings still win.
    ========================================================================= */
 
-:where(.bg-emerald, .bg-emerald-2, .bg-emerald-3, .gf-glass, .gf-glass-panel) {
+:where(
+    .bg-emerald,
+    .bg-emerald-2,
+    .bg-emerald-3,
+    .bg-emerald-glass,
+    .gf-glass,
+    .gf-glass-panel,
+    .gf-glass-float
+  ) {
   /* Unprefixed only: Lightning CSS adds the -webkit- alias for the browsers
      that still need it. Writing both by hand made it treat the standard
      property as a duplicate and drop it, which left Firefox with no blur. */
@@ -363,9 +382,87 @@ body * {
     0 10px 34px -14px hsl(var(--gf-shadow-color) / calc(0.55 * var(--gf-shadow-strength)));
 }
 
+/* A pane of glass laid on the page rather than a band built into it.
+
+   `gf-glass-panel` fills its strip edge to edge, so at the bottom of the
+   document it runs into the two corners of the viewport and stops reading as
+   a separate surface — it becomes the page's own floor. This one is inset by
+   its caller and rounded, which leaves canvas visible round every side. That
+   margin is what makes the material legible: the eye gets the page and the
+   glass side by side and can see one through the other.
+
+   Three things sit on top of the shared material:
+     · a rim lit by direction — brightest at the top left where the light
+       lands, fading through the middle, and closing on the panel's own
+       underside shadow at the bottom right. A rim of one colour all the way
+       round reads as a drawn stroke, not as a lit edge.
+     · the bloom a thick edge throws back into the pane.
+     · a drop shadow, since the panel is now above the page it blurs.
+
+   Both decorations are pseudo-elements at `z-index: -1`, which paints them
+   over the element's own background but under its content, so nothing inside
+   needs a stacking context of its own. */
+.gf-glass-float {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--gf-glass-radius);
+  box-shadow:
+    inset 0 1px 0 var(--gf-glass-specular),
+    inset 0 -1px 0 var(--gf-glass-underside),
+    0 22px 52px -24px hsl(var(--gf-shadow-color) / calc(0.65 * var(--gf-shadow-strength)));
+}
+
+.gf-glass-float::before,
+.gf-glass-float::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The lit edge. `padding` plus the two masks composited to `exclude` cut the
+   fill out of the middle, leaving the gradient showing only in the 1px frame
+   — a gradient border, which `border-image` cannot do with a border-radius. */
+.gf-glass-float::before {
+  padding: 1px;
+  background: linear-gradient(
+    145deg,
+    var(--gf-glass-specular) 0%,
+    color-mix(in srgb, var(--gf-glass-rim) 45%, transparent) 32%,
+    transparent 56%,
+    var(--gf-glass-underside) 100%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* The highlight the top edge throws inward, plus the brighter corner where
+   the light meets it. Sizes are percentages of the panel, so a footer and a
+   band are lit the same way at very different heights. */
+.gf-glass-float::after {
+  background:
+    radial-gradient(125% 90% at 50% -24%, var(--gf-glass-specular) 0%, transparent 60%),
+    radial-gradient(
+      72% 100% at 6% -6%,
+      color-mix(in srgb, #ffffff 26%, transparent) 0%,
+      transparent 68%
+    );
+  opacity: 0.72;
+}
+
 /* Only things you can actually press light up under the cursor. A full-bleed
    band brightening because the pointer crossed it would read as a bug. */
-:where(button, a, [role='button']):where(.bg-emerald, .bg-emerald-2, .gf-glass, .gf-glass-panel):hover {
+:where(button, a, [role='button']):where(
+    .bg-emerald,
+    .bg-emerald-2,
+    .gf-glass,
+    .gf-glass-panel,
+    .gf-glass-float
+  ):hover {
   outline-color: var(--gf-glass-specular);
 }
 
@@ -399,6 +496,7 @@ body * {
     --gf-emerald: color-mix(in srgb, var(--gf-emerald-base) 88%, transparent);
     --gf-emerald-2: color-mix(in srgb, var(--gf-emerald-base) 96%, transparent);
     --gf-emerald-3: color-mix(in srgb, var(--gf-emerald-base) 76%, transparent);
+    --gf-emerald-glass: color-mix(in srgb, var(--gf-emerald-base) 76%, transparent);
   }
 }
 

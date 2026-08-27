@@ -527,8 +527,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* Security */}
-      <section className="gf-glass-panel py-16 md:py-20 bg-emerald-3 text-on-emerald border-b border-on-emerald/15">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      {/* The last green on the page, and it used to be a full-bleed band — so
+          together with the footer under it the bottom of the home page was one
+          slab of green running into both corners. Inset and rounded like the
+          footer, the two read as two panes with the canvas between them. */}
+      <section className="px-3 pt-2 pb-2 sm:px-5 sm:pt-4">
+        <div className="gf-glass-float bg-emerald-glass text-on-emerald relative max-w-[1240px] mx-auto py-16 md:py-20 px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <motion.div className="lg:col-span-6 space-y-6" {...reveal}>
             <span className="inline-flex items-center gap-2 bg-gold-on-emerald/15 border border-gold-on-emerald/35 rounded-full px-3.5 py-1 text-xs font-bold text-gold-on-emerald">
               <span aria-hidden="true" className="material-symbols-outlined text-sm">lock</span>
