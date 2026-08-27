@@ -170,8 +170,8 @@ export const INITIAL_ACTIVE_INVESTMENTS: ActiveInvestment[] = [
     startDate: daysFromNow(-6),
     maturityDate: daysFromNow(14),
     durationDays: 20,
-    profit: 4000,
-    maturityValue: 29000,
+    profit: 9000,
+    maturityValue: 34000,
     status: 'active',
   },
   {
@@ -184,8 +184,8 @@ export const INITIAL_ACTIVE_INVESTMENTS: ActiveInvestment[] = [
     startDate: daysFromNow(-9),
     maturityDate: daysFromNow(3),
     durationDays: 12,
-    profit: 1800,
-    maturityValue: 16800,
+    profit: 4500,
+    maturityValue: 19500,
     status: 'active',
   },
   {
@@ -199,8 +199,8 @@ export const INITIAL_ACTIVE_INVESTMENTS: ActiveInvestment[] = [
     // Finished yesterday, so the demo account always has something to collect.
     maturityDate: daysFromNow(-1),
     durationDays: 8,
-    profit: 1000,
-    maturityValue: 11000,
+    profit: 2700,
+    maturityValue: 12700,
     status: 'matured',
   },
 ];
@@ -337,12 +337,12 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
     id: 'notif_01',
     title: 'Ready to collect',
-    message: 'Your Treasury Bill finished its 8-day run. Collect 11,000 XAF from your investments.',
+    message: 'Your Treasury Bill finished its 8-day run. Collect 12,700 XAF from your investments.',
     timestamp: Date.now() - 1000 * 60 * 25,
     timeAgo: '25m ago',
     type: 'maturity',
     read: false,
-    amount: 11000,
+    amount: 12700,
     reference: 'GF-MT-102',
     targetView: 'dashboard',
   },

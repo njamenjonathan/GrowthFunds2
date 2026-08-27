@@ -23,20 +23,37 @@ export const TERM_DAYS_LADDER = [5, 8, 12, 16, 20, 24, 28];
 export const STAKE_LADDER = [5000, 10000, 15000, 20000, 25000, 50000, 100000];
 
 /**
+ * The share of the stake each rung pays back as profit, in percent.
+ *
+ * Written out a rung at a time rather than derived from a step, because the
+ * two largest packages are priced deliberately rather than by the pattern
+ * below them: the ladder climbs three points a rung to 36%, then opens up to
+ * 50% for the 50,000 and 100,000 packages.
+ *
+ * The one rule this list must keep is that the money paid never falls as the
+ * stake grows — the share may hold flat between two rungs, as it does at the
+ * top, but a bigger stake locked up for longer can never come back with less.
+ */
+export const PROFIT_RATE_LADDER = [24, 27, 30, 33, 36, 50, 50];
+
+/** Clamp a rung index onto the ladder, so an out-of-range rung reads as its nearest end. */
+const safeRungIndex = (index: number): number =>
+  Math.min(Math.max(index, 0), STAKE_LADDER.length - 1);
+
+/**
  * Profit for the rung at `index`, as a whole number of XAF.
  *
- * The profit share widens as the stake grows (8% of the stake at the bottom
- * rung, two more points on every rung above), so both the money earned and the
- * share it represents rise together as an investor moves up the ladder. The
- * result is baked into the catalogue as a plain XAF figure — investors see
- * "+400 XAF", never a rate to work out.
+ * Both the money earned and the share it represents rise as an investor moves
+ * up the ladder, from 24% of the stake at the bottom rung to 50% at the top.
+ * The result is baked into the catalogue as a plain XAF figure — investors see
+ * "+1,200 XAF", never a rate to work out.
  */
 export const profitForRung = (index: number, stake: number): number =>
-  Math.round((stake * (8 + index * 2)) / 100);
+  Math.round((stake * PROFIT_RATE_LADDER[safeRungIndex(index)]) / 100);
 
 /** The stake, run time and profit of one rung, ready to drop into a package. */
 export const rung = (index: number): { amount: number; durationDays: number; profit: number } => {
-  const safeIndex = Math.min(Math.max(index, 0), STAKE_LADDER.length - 1);
+  const safeIndex = safeRungIndex(index);
   const amount = STAKE_LADDER[safeIndex];
   return {
     amount,
